@@ -1,0 +1,6 @@
+rootProject.name = 'osgi-run-test'
+
+include 'my-api'
+include 'my-impl'
+include 'my-consumer'
+
