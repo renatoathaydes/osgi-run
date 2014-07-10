@@ -1,7 +1,7 @@
-echo "------------------------"
+echo "---------- Installing osgi-run-core  --------------"
 cd osgi-run-core
-gradle install
-echo "------------------------"
+gradle clean install
+echo "----------   Running osgi-run-test   --------------"
 cd ../osgi-run-test
-gradle runOsgi
+gradle clean runOsgi
 cd ..

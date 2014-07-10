@@ -16,7 +16,15 @@ class OsgiRunPlugin implements Plugin<Project> {
     @Override
     void apply( Project project ) {
         project.apply( plugin: 'osgi' )
-        project.task( dependsOn: 'jar', 'createOsgiRuntime' ) << {
+        project.task( dependsOn: 'jar', 'createOsgiRuntime' ) << createOsgiRuntimeTask( project )
+        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << runOsgiTask( project )
+        project.configurations.create( 'osgiRuntime' )
+        project.configurations.create( 'osgiMain' )
+        project.extensions.create( 'runOsgi', OsgiConfig )
+    }
+
+    private Closure<File> createOsgiRuntimeTask( Project project ) {
+        return {
             OsgiConfig osgi = project.extensions.getByName( 'runOsgi' )
             String target = ( osgi.outDir instanceof File ) ? osgi.outDir.absolutePath : "${project.buildDir}/${osgi.outDir}"
             log.info( "Will copy osgi runtime resources into $target" )
@@ -36,13 +44,13 @@ class OsgiRunPlugin implements Plugin<Project> {
             configFile << this.class.getResource( '/conf/config.properties' ).text
             osgi.outDirFile = target as File
         }
-        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << {
+    }
+
+    private Closure runOsgiTask( Project project ) {
+        return {
             OsgiConfig osgi = project.extensions.getByName( 'runOsgi' )
             osgiRunner.run( project, osgi )
         }
-        project.configurations.create( 'osgiRuntime' )
-        project.configurations.create( 'osgiMain' )
-        project.extensions.create( 'runOsgi', OsgiConfig )
     }
 
     def asCopySources( resources ) {
