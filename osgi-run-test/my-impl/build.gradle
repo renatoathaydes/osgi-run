@@ -9,6 +9,5 @@ jar {
 
 dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.1'
-    compile group: group, name: 'osgi-run-core', version: version
     compile project( ':my-api' )
 }
