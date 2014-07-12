@@ -16,20 +16,21 @@ class OsgiRunPlugin implements Plugin<Project> {
     @Override
     void apply( Project project ) {
         project.apply( plugin: 'osgi' )
-        project.task( dependsOn: 'jar', 'createOsgiRuntime' ) << createOsgiRuntimeTask( project )
-        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << runOsgiTask( project )
         project.configurations.create( 'osgiRuntime' )
         project.configurations.create( 'osgiMain' )
-        project.extensions.create( 'runOsgi', OsgiConfig )
+        OsgiConfig osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
+        project.task( dependsOn: 'jar', 'createOsgiRuntime' ) << createOsgiRuntimeTask( project, osgiConfig )
+        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << runOsgiTask( project, osgiConfig )
     }
 
-    private Closure<File> createOsgiRuntimeTask( Project project ) {
+    private Closure<File> createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig ) {
         return {
-            OsgiConfig osgi = project.extensions.getByName( 'runOsgi' )
-            String target = ( osgi.outDir instanceof File ) ? osgi.outDir.absolutePath : "${project.buildDir}/${osgi.outDir}"
+            String target = ( osgiConfig.outDir instanceof File ) ?
+                    osgiConfig.outDir.absolutePath :
+                    "${project.buildDir}/${osgiConfig.outDir}"
             log.info( "Will copy osgi runtime resources into $target" )
             project.copy {
-                from asCopySources( osgi.bundles )
+                from asCopySources( osgiConfig.bundles )
                 from project.configurations.osgiRuntime
                 into target + "/bundle"
             }
@@ -42,14 +43,13 @@ class OsgiRunPlugin implements Plugin<Project> {
                 configFile.parentFile.mkdirs()
             }
             configFile << this.class.getResource( '/conf/config.properties' ).text
-            osgi.outDirFile = target as File
+            osgiConfig.outDirFile = target as File
         }
     }
 
-    private Closure runOsgiTask( Project project ) {
+    private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
         return {
-            OsgiConfig osgi = project.extensions.getByName( 'runOsgi' )
-            osgiRunner.run( project, osgi )
+            osgiRunner.run( project, osgiConfig )
         }
     }
 
@@ -69,6 +69,6 @@ class OsgiRunPlugin implements Plugin<Project> {
 
 class OsgiConfig {
     protected File outDirFile
-    String outDir = "osgi"
+    def outDir = "osgi"
     def bundles = [ ]
 }
