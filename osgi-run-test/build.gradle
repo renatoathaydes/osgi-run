@@ -28,9 +28,10 @@ dependencies {
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
+    osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
 }
 
 runOsgi {
-    bundles = felixGogo + subprojects
-    osgiMain = felix
+    bundles = FELIX_GOGO_BUNDLES + subprojects
+    osgiMain = FELIX
 }
