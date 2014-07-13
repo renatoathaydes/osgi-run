@@ -22,6 +22,9 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
         Accepts anything accepted by ``Project.files(Object... paths)``.
     * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
     * ``bundlesPath``: String with path where the bundles should be copied to (default ``"bundle"``).
+    * ``configSettings``: String, one of ``['equinox', 'felix', 'none']`` (default ``"felix"``).
+        This is used to generate a default config file for the OSGi container selected.
+        Set to ``none`` if you want to provide your own config file.
     
     The following final properties can be used to provide values for the above properties:
     
@@ -66,16 +69,7 @@ runOsgi {
 }
 ```
 
-#### Using Equinox as the OSGi container
-
-```groovy
-runOsgi {
-  osgiMain = equinox
-  bundles = [] // do not use the Gogo bundles
-}
-```
-
-#### Include dependencies as runtime bundles
+#### Use dependencies as runtime bundles
 
 ```groovy
 dependencies {
@@ -92,7 +86,82 @@ dependencies {
 }
 ```
 
-Non-bundle jars will be wrapped into OSGi bundles automatically, with their version set to ``0.0.0``.
+Non-bundle jars will be wrapped into OSGi bundles automatically by Felix, with their version set to ``0.0.0``.
+
+#### Using Equinox as the OSGi container
+
+Simplest possible Equinox setup:
+
+```groovy
+runOsgi {
+  osgiMain = EQUINOX
+  bundles = [] // do not use the Gogo bundles
+  javaArgs = '-console'
+  configSettings = 'equinox'
+}
+```
+
+Notice that this will only start the Equinox Framework with the console enabled but no bundles deployed.
+
+If you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
+try something like this:
+
+```groovy
+runOsgi {
+  osgiMain = EQUINOX
+  bundles = subprojects
+  javaArgs = '-console'
+  configSettings = 'equinox'
+  bundlesPath = 'plugins'
+}
+```
+
+This will deploy and start all your bundles when you run ``gradle runOsgi``.
+This is done through the ``configuration/config.ini`` file which is generated automatically by ``osgi-run``.
+If you do not wish to use this behavior, just set ``configSettings`` to ``"none"`` and copy your own config file
+to ``"${runOsgi.outDir}/<configFileLocation>"``.
+
+#### Using a different version of Felix/Equinox or another OSGi container
+
+If you want to declare exactly which version of Felix or Equinox (or you want to use some other OSGi container) you want
+to use, you can set ``runOsgi.osgiMain`` to the artifact coordinates of the container.
+
+##### Using an older version of Apache Felix
+
+```groovy
+runOsgi {
+  osgiMain = "org.apache.felix:org.apache.felix.main:3.2.1"
+}
+```
+
+##### Using an older version of Equinox
+
+```groovy
+runOsgi {
+  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:3.6.0.v20100517"
+  javaArgs = '-console'
+  configSettings = 'equinox'
+  bundlesPath = 'plugins'
+}
+```
+
+##### Using another OSGi framework implementation
+
+Just point to a runnable artifact which can start up your framework of choice, Knopflerfish, for example:
+
+```groovy
+repositories {
+  maven {
+    url 'http://www.knopflerfish.org/maven2'
+  }
+}
+
+runOsgi {
+  osgiMain = "your.knopflerfish:starter:7.1.2"
+  bundles = [ "org.knopflerfish:framework:7.1.2" ]
+  configSettings = 'none'
+}
+```
 
 ### External Links
 
@@ -100,4 +169,6 @@ Non-bundle jars will be wrapped into OSGi bundles automatically, with their vers
 * [Felix Gogo](http://felix.apache.org/documentation/subprojects/apache-felix-gogo.html)
 * [Equinox Framework](http://www.eclipse.org/equinox)
 * [Equinox Quickstart](http://www.eclipse.org/equinox/documents/quickstart-framework.php)
+* [Equinox runtime options](http://help.eclipse.org/indigo/index.jsp?topic=/org.eclipse.platform.doc.isv/reference/misc/runtime-options.html)
+* [Knopflerfish](http://www.knopflerfish.org/index.html)
 

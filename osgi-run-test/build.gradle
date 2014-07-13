@@ -24,7 +24,7 @@ allprojects {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-//    osgiMain runOsgi.felix()
+//    osgiMain runOsgi.FELIX
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
 //    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
@@ -32,6 +32,14 @@ dependencies {
 }
 
 runOsgi {
-    bundles = FELIX_GOGO_BUNDLES + subprojects
-    osgiMain = FELIX
+    /** FELIX **/
+//    bundles = FELIX_GOGO_BUNDLES + subprojects
+//    osgiMain = FELIX
+
+    /** EQUINOX **/
+    bundles = subprojects
+    osgiMain = EQUINOX
+    javaArgs = '-console'
+    bundlesPath = 'plugins'
+    configSettings = 'equinox'
 }
