@@ -3,6 +3,30 @@ osgi-run
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless
 
+## Quick Start
+
+Given a Gradle project whose sub-projects are OSGi bundles:
+
+*build.gradle*
+```groovy
+apply 'osgi-run'
+
+runOsgi {
+  bundles = FELIX_GOGO_BUNDLES + subprojects
+}
+```
+
+Run:
+
+```
+gradle runOsgi
+```
+
+Type ``lb`` to see all bundles running.
+
+The OSGi environment built by ``osgi-run`` will be located in the default ``outDir`` (see below).
+
+
 ## Tasks
 
   * ``createOsgiRuntime``: create the OSGi runtime based on configuration provided (or the defaults).
