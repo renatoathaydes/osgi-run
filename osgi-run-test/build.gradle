@@ -31,5 +31,5 @@ dependencies {
 }
 
 runOsgi {
-    bundles = project.subprojects
+    bundles = subprojects
 }

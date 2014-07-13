@@ -2,8 +2,10 @@ package com.athaydes.gradle.osgi
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.bundling.Jar
 
 /**
  * A Gradle plugin that helps create and execute OSGi runtime environments.
@@ -19,8 +21,9 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.configurations.create( 'osgiRuntime' )
         project.configurations.create( 'osgiMain' )
         OsgiConfig osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
-        project.task( dependsOn: 'jar', 'createOsgiRuntime' ) << createOsgiRuntimeTask( project, osgiConfig )
+        Task createOsgiRuntimeTask= project.task( 'createOsgiRuntime' ) << createOsgiRuntimeTask( project, osgiConfig )
         project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << runOsgiTask( project, osgiConfig )
+        addTaskDependencies( project, createOsgiRuntimeTask )
     }
 
     private Closure<File> createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig ) {
@@ -47,6 +50,14 @@ class OsgiRunPlugin implements Plugin<Project> {
         }
     }
 
+    void addTaskDependencies( Project project, createOsgiRuntimeTask ) {
+        project.allprojects {
+            it.tasks.withType( Jar ) { jarTask ->
+                createOsgiRuntimeTask.dependsOn jarTask
+            }
+        }
+    }
+
     private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
         return {
             osgiRunner.run( project, osgiConfig )
@@ -55,6 +66,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     def asCopySources( resources ) {
         resources.collect { resource ->
+            println "As CopySource: $resource"
             switch ( resource ) {
                 case Project:
                     Project p = resource
