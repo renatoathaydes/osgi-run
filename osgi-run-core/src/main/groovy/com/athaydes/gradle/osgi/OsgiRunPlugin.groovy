@@ -64,6 +64,8 @@ class OsgiConfig {
     def outDir = "osgi"
     def bundles = [ ] + FELIX_GOGO_BUNDLES
     def osgiMain = FELIX
+    String javaArgs = ""
+    String bundlesPath = "bundle"
 
     static final String FELIX = 'org.apache.felix:org.apache.felix.main:4.4.0'
 

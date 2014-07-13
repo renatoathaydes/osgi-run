@@ -17,7 +17,7 @@ class OsgiRuntimeTaskCreator {
             osgiConfig.outDirFile = target as File
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
-            copyBundles( project, target )
+            copyBundles( project, "${target}/${osgiConfig.bundlesPath}" )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target )
@@ -45,10 +45,10 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyBundles( Project project, String target ) {
+    private void copyBundles( Project project, String bundlesDir ) {
         project.copy {
             from project.configurations.osgiRuntime
-            into target + "/bundle"
+            into bundlesDir
         }
     }
 

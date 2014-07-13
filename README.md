@@ -20,6 +20,8 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time (default: ``runOsgi.FELIX``).
         Accepts anything accepted by ``Project.files(Object... paths)``.
+    * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
+    * ``bundlesPath``: String with path where the bundles should be copied to (default ``"bundle"``).
     
     The following final properties can be used to provide values for the above properties:
     
@@ -47,7 +49,6 @@ You can immediately run your OSGi container using:
 ```groovy
 gradle runOsgi
 ```
-
 
 To see a list of installed bundles, type ``lb`` (or ``ss`` if using Equinox).
 

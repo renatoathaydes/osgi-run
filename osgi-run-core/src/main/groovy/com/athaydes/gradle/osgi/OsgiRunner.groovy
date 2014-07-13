@@ -31,7 +31,7 @@ class OsgiRunner {
         def runnableJar = config.outDirFile.listFiles().find( isRunnableJar )
         if ( runnableJar ) {
             log.debug "Running executable jar: ${runnableJar}"
-            def process = "java -jar ${runnableJar.absolutePath}".execute( [ ], config.outDirFile )
+            def process = "java -jar ${runnableJar.absolutePath} ${config.javaArgs}".execute( [ ], config.outDirFile )
             process.consumeProcessOutput( System.out, System.out )
             delegateProcessTo( process )
         } else {
