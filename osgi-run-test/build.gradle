@@ -24,12 +24,13 @@ allprojects {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    osgiMain 'org.apache.felix:org.apache.felix.main:4.4.0'
-    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
-    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
-    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
+//    osgiMain runOsgi.felix()
+//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
+//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
+//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
 }
 
 runOsgi {
-    bundles = subprojects
+    bundles = felixGogo + subprojects
+    osgiMain = felix
 }

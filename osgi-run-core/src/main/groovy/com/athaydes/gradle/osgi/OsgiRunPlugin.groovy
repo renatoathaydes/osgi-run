@@ -1,5 +1,6 @@
 package com.athaydes.gradle.osgi
 
+import groovy.transform.ToString
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -13,41 +14,32 @@ import org.gradle.api.tasks.bundling.Jar
 class OsgiRunPlugin implements Plugin<Project> {
 
     static final Logger log = Logging.getLogger( OsgiRunPlugin )
-    final osgiRunner = new OsgiRunner()
+    def osgiRunner = new OsgiRunner()
+    def runtimeCreator = new OsgiRuntimeTaskCreator()
 
     @Override
     void apply( Project project ) {
         project.apply( plugin: 'osgi' )
-        project.configurations.create( 'osgiRuntime' )
-        project.configurations.create( 'osgiMain' )
-        OsgiConfig osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
-        Task createOsgiRuntimeTask= project.task( 'createOsgiRuntime' ) << createOsgiRuntimeTask( project, osgiConfig )
-        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) << runOsgiTask( project, osgiConfig )
+        createConfigurations( project )
+        OsgiConfig osgiConfig = createExtensions( project )
+        createTasks( project, osgiConfig )
+    }
+
+    def void createTasks( Project project, OsgiConfig osgiConfig ) {
+        Task createOsgiRuntimeTask = project.task( 'createOsgiRuntime' ) <<
+                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig )
+        project.task( dependsOn: 'createOsgiRuntime', 'runOsgi' ) <<
+                runOsgiTask( project, osgiConfig )
         addTaskDependencies( project, createOsgiRuntimeTask )
     }
 
-    private Closure<File> createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig ) {
-        return {
-            String target = ( osgiConfig.outDir instanceof File ) ?
-                    osgiConfig.outDir.absolutePath :
-                    "${project.buildDir}/${osgiConfig.outDir}"
-            log.info( "Will copy osgi runtime resources into $target" )
-            project.copy {
-                from asCopySources( osgiConfig.bundles )
-                from project.configurations.osgiRuntime
-                into target + "/bundle"
-            }
-            project.copy {
-                from project.configurations.osgiMain
-                into target
-            }
-            def configFile = new File( "${target}/conf/config.properties" )
-            if ( !configFile.exists() ) {
-                configFile.parentFile.mkdirs()
-            }
-            configFile << this.class.getResource( '/conf/config.properties' ).text
-            osgiConfig.outDirFile = target as File
-        }
+    def OsgiConfig createExtensions( Project project ) {
+        project.extensions.create( 'runOsgi', OsgiConfig )
+    }
+
+    void createConfigurations( Project project ) {
+        project.configurations.create( 'osgiRuntime' )
+        project.configurations.create( 'osgiMain' )
     }
 
     void addTaskDependencies( Project project, createOsgiRuntimeTask ) {
@@ -64,23 +56,21 @@ class OsgiRunPlugin implements Plugin<Project> {
         }
     }
 
-    def asCopySources( resources ) {
-        resources.collect { resource ->
-            println "As CopySource: $resource"
-            switch ( resource ) {
-                case Project:
-                    Project p = resource
-                    return p.configurations.archives.artifacts.files.files.asList() + p.configurations.runtime
-                default:
-                    return resource
-            }
-        }
-    }
-
 }
 
+@ToString( includeFields = true )
 class OsgiConfig {
     protected File outDirFile
     def outDir = "osgi"
-    def bundles = [ ]
+    def bundles = felixGogo
+    def osgiMain = felix
+
+    static final String felix = 'org.apache.felix:org.apache.felix.main:4.4.0'
+
+    static final felixGogo = [
+            'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1',
+            'org.apache.felix:org.apache.felix.gogo.shell:0.10.0',
+            'org.apache.felix:org.apache.felix.gogo.command:0.14.0',
+    ]
+
 }
