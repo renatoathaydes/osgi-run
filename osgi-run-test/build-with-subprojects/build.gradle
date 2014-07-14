@@ -1,0 +1,18 @@
+apply plugin: 'osgi-run'
+
+allprojects {
+    apply plugin: 'idea'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+dependencies {
+    osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
+}
+
+runOsgi {
+    bundles += subprojects
+}

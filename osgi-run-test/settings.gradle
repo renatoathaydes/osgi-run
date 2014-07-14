@@ -1,6 +1,8 @@
 rootProject.name = 'osgi-run-test'
 
-include 'my-api'
-include 'my-impl'
-include 'my-consumer'
+include 'build-with-subprojects',
+        'build-with-subprojects:my-api',
+        'build-with-subprojects:my-impl',
+        'build-with-subprojects:my-consumer',
+        'simplest-build'
 

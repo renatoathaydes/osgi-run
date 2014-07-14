@@ -3,5 +3,5 @@ cd osgi-run-core
 gradle clean install
 echo "----------   Running osgi-run-test   --------------"
 cd ../osgi-run-test
-gradle clean runOsgi
+gradle build-with-subprojects:clean build-with-subprojects:runOsgi
 cd ..

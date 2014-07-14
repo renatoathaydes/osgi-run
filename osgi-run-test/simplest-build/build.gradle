@@ -1,1 +1,5 @@
 apply plugin: 'osgi-run'
+
+repositories {
+    mavenCentral()
+}

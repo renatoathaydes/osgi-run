@@ -9,5 +9,5 @@ jar {
 
 dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.1'
-    compile project( ':my-api' )
+    compile project( ':build-with-subprojects:my-api' )
 }

@@ -7,39 +7,7 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'osgi-run'
-
 allprojects {
-    apply plugin: 'idea'
-
     group = 'com.athaydes.gradle.osgi'
     version = '1.0-SNAPSHOT'
-
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
-
-dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-//    osgiMain runOsgi.FELIX
-//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
-//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
-//    osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
-    osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
-}
-
-runOsgi {
-    /** FELIX **/
-//    bundles = FELIX_GOGO_BUNDLES + subprojects
-//    osgiMain = FELIX
-
-    /** EQUINOX **/
-    bundles = subprojects
-    osgiMain = EQUINOX
-    javaArgs = '-console'
-    bundlesPath = 'plugins'
-    configSettings = 'equinox'
 }
