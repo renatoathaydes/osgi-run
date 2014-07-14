@@ -12,7 +12,7 @@ Given a Gradle project whose sub-projects are OSGi bundles:
 apply 'osgi-run'
 
 runOsgi {
-  bundles = FELIX_GOGO_BUNDLES + subprojects
+  bundles += subprojects
 }
 ```
 
@@ -22,10 +22,11 @@ Run:
 gradle runOsgi
 ```
 
-Type ``lb`` to see all bundles running.
+Type ``lb`` to see all bundles installed and running.
 
 The OSGi environment built by ``osgi-run`` will be located in the default ``outDir`` (see below).
 
+For complete examples, see the (osgi-run-test)[osgi-run-test/] projects.
 
 ## Tasks
 
@@ -83,17 +84,42 @@ To see a list of installed bundles, type ``lb`` (or ``ss`` if using Equinox).
 ### Configuring the ``runOsgi`` extension
 
 The best way to understand how you can configure your OSGi runtime is through examples.
+
 Let's have a look at some common use-cases:
+
+#### Use the Gradle project itself as a bundle
+
+```groovy
+runOsgi {
+  bundles += project
+}
+```
+
+As ``FELIX_GOGO_BUNDLES`` is the default value of ``bundles``, the above is equivalent to:
+
+```groovy
+runOsgi {
+  bundles = FELIX_GOGO_BUNDLES + project
+}
+```
+
+If you don't want the Gogo bundles installed, just use:
+
+```groovy
+runOsgi {
+  bundles = [ project ]
+}
+```
 
 #### Use Gradle sub-projects as bundles
 
 ```groovy
 runOsgi {
-  bundles = FELIX_GOGO_BUNDLES + subprojects
+  bundles += subprojects
 }
 ```
 
-#### Use dependencies as runtime bundles
+#### Use artifacts as runtime bundles
 
 ```groovy
 dependencies {
@@ -104,13 +130,43 @@ dependencies {
 }
 ```
 
+Notice that the above configuration is equivalent to setting ``osgiConfig.bundles`` to ``FELIX_GOGO_BUNDLES`` (which is the default).
+
+##### Solving *unresolved constraint* errors
+
+As another example, suppose you want to run the  [PDF Box library](http://pdfbox.apache.org) in an OSGi environment.
+That seems pretty easy, as PDF Box jars are already OSGi bundles!
+So you might expect that it should just work if you declare a dependency to it:
+
 ```groovy
 dependencies {
-  osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'org.apache.pdfbox:pdfbox:1.8.6' // won't work
 }
 ```
 
-Non-bundle jars will be wrapped into OSGi bundles automatically by Felix, with their version set to ``0.0.0``.
+However, when you do ``gradle clean runOsgi``, you will find out it requires Apache Commons Logging at run-time:
+
+```
+(org.osgi.framework.BundleException: Unresolved constraint in bundle org.apache.pdfbox.fontbox [3]:
+  Unable to resolve 3.0: missing requirement [3.0] osgi.wiring.package; (osgi.wiring.package=org.apache.commons.logging))
+```
+
+Luckily, that's easy to fix! Just add Commons Logging to the OSGi runtime:
+
+```groovy
+dependencies {
+    compile 'org.apache.pdfbox:pdfbox:1.8.6'
+    osgiRuntime 'commons-logging:commons-logging:1.2'
+}
+```
+
+You might notice that Commongs Logging is NOT an OSGi bundle.
+
+Still, this works just fine (and you can actually try yourself in the [Installing non-bundles demo](osgi-run-test/installing-non-bundles))
+because non-bundle jars will be wrapped into OSGi bundles automatically.
+
+If you have experience with OSGi you might have thought that it could be difficult to use Commons Logging in OSGi.
+Well, no more!
 
 #### Using Equinox as the OSGi container
 
@@ -119,15 +175,16 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   osgiMain = EQUINOX
-  bundles = [] // do not use the Gogo bundles
+  bundles = [] // do not use the Gogo bundles, just run the system bundle
   javaArgs = '-console'
   configSettings = 'equinox'
 }
 ```
 
 Notice that this will only start the Equinox Framework with the console enabled but no bundles deployed.
+You can install bundles manually using the Equinox console.
 
-If you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
+But if you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
 try something like this:
 
 ```groovy
@@ -150,19 +207,23 @@ to ``"${runOsgi.outDir}/<configFileLocation>"``.
 If you want to declare exactly which version of Felix or Equinox (or you want to use some other OSGi container) you want
 to use, you can set ``runOsgi.osgiMain`` to the artifact coordinates of the container.
 
-##### Using an older version of Apache Felix
+##### Using an older/newer version of Apache Felix
 
 ```groovy
+def felixVersion = '3.2.1' // or some other version
+
 runOsgi {
-  osgiMain = "org.apache.felix:org.apache.felix.main:3.2.1"
+  osgiMain = "org.apache.felix:org.apache.felix.main:$felixVersion"
 }
 ```
 
-##### Using an older version of Equinox
+##### Using an older/newer version of Equinox
 
 ```groovy
+def equinoxVersion = '3.6.0.v20100517'
+
 runOsgi {
-  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:3.6.0.v20100517"
+  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
   javaArgs = '-console'
   configSettings = 'equinox'
   bundlesPath = 'plugins'

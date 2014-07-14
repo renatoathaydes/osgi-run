@@ -4,5 +4,6 @@ include 'build-with-subprojects',
         'build-with-subprojects:my-api',
         'build-with-subprojects:my-impl',
         'build-with-subprojects:my-consumer',
-        'simplest-build'
+        'simplest-build',
+        'installing-non-bundles'
 
