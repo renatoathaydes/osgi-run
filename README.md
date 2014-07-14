@@ -26,7 +26,7 @@ Type ``lb`` to see all bundles installed and running.
 
 The OSGi environment built by ``osgi-run`` will be located in the default ``outDir`` (see below).
 
-For complete examples, see the (osgi-run-test)[osgi-run-test/] projects.
+For complete examples, see the [osgi-run-test](osgi-run-test/) projects.
 
 ## Tasks
 
