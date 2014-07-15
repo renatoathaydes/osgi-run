@@ -16,13 +16,13 @@ runOsgi {
 }
 ```
 
-Run:
+From the project's root directory, type:
 
 ```
 gradle runOsgi
 ```
 
-Type ``lb`` to see all bundles installed and running.
+Once the framework starts, type ``lb`` to see all bundles installed and running.
 Stop the OSGi framework by typing ``exit``.
 
 The OSGi environment built by ``osgi-run`` will be located in the default ``outDir`` (see below).
