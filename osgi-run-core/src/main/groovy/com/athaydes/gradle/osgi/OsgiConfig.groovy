@@ -2,7 +2,10 @@ package com.athaydes.gradle.osgi
 
 import groovy.transform.ToString
 
-@ToString( includeFields = true )
+/**
+ * The configuration used by the {@code osgi-run} plugin to create and run OSGi environments.
+ */
+@ToString( includeFields = true, includeNames = true )
 class OsgiConfig {
     protected File outDirFile
     def outDir = "osgi"
