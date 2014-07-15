@@ -87,8 +87,12 @@ class OsgiRuntimeTaskCreator {
     }
 
     private String generateEquinoxConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
-        def bundlesDir = "${target}/${osgiConfig.bundlesPath}"
-        def bundleJars = new FileNameByRegexFinder().getFileNames( bundlesDir, /.+\.jar/ )
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
+        if ( !bundlesDir.exists() ) {
+            bundlesDir.mkdirs()
+        }
+        def bundleJars = new FileNameByRegexFinder().getFileNames(
+                bundlesDir.absolutePath, /.+\.jar/ )
         """eclipse.ignoreApp=true
            |osgi.noShutdown=true
            |osgi.bundles=${bundleJars.collect { it + '@start' }.join( ',' )}
