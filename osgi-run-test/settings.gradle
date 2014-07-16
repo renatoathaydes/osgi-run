@@ -6,6 +6,9 @@ include 'build-with-subprojects',
         'build-with-subprojects:my-consumer',
         'simplest-build',
         'installing-non-bundles',
-        'using-equinox'
-
+        'using-equinox',
+        'ipojo-example',
+        'ipojo-example:hello-service',
+        'ipojo-example:hello-client',
+        'ipojo-example:hello-impl'
 
