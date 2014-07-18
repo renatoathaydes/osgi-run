@@ -1,6 +1,6 @@
 # Gradle IPojo Plugin
 
-The Gradle IPojo Plugin IPojoizes your jars.
+The Gradle IPojo Plugin IPojoizes your jars, making it really easy to use [IPojo](http://felix.apache.org/documentation/subprojects/apache-felix-ipojo.html).
 
 ## How to use
 
@@ -22,7 +22,7 @@ buildscript {
 apply plugin: 'ipojo'
 ```
 
-Now, when the ``jar`` task runs, the IPojo Plugin will add IPojo metadata to it automatically.
+Now, when the ``jar`` task runs, the IPojo Plugin will add IPojo metadata to the jars automatically.
 
 
 > Currently, it only works with annotation-based configuration (XML is not yet supported).
@@ -39,7 +39,7 @@ ipojo {
 }
 ```
 
-## Plugins implicitly applied
+## Implicitly applied plugins
 
 The IPojo Plugin applies the following plugins:
 

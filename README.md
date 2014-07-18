@@ -29,6 +29,12 @@ The OSGi environment built by ``osgi-run`` will be located in the default ``outD
 
 For complete examples, see the [osgi-run-test](osgi-run-test/) projects.
 
+### IPojo Plugin
+
+If you use [IPojo](http://felix.apache.org/documentation/subprojects/apache-felix-ipojo.html),
+you should definitely check out the [IPojo Plugin](ipojo-plugin), which complements the ``osgi-run`` plugin
+to make it really easy to use IPojo, develop and run your OSGi/IPojo projects.
+
 ## Tasks
 
   * ``createOsgiRuntime``: create the OSGi runtime based on configuration provided (or the defaults).
@@ -64,6 +70,12 @@ For complete examples, see the [osgi-run-test](osgi-run-test/) projects.
       overrides that property. It is preferrable to use that property over this configuration.
   * ``osgiRuntime``: same as the extension ``runOsgi.bundles`` property.
       Both the property and the configuration are applied.
+
+## Implicitly applied plugins
+
+The ``osgi-run`` plugin applies the following plugins:
+
+  * [OSGi plugin](http://www.gradle.org/docs/current/userguide/osgi_plugin.html)
 
 ## Using the osgi-run plugin
 
