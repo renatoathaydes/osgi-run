@@ -8,8 +8,7 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
-    apply plugin: 'osgi'
+    apply plugin: 'ipojo'
 
     dependencies {
         compile 'org.apache.felix:org.apache.felix.ipojo.annotations:1.12.0'
