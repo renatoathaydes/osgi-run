@@ -33,7 +33,12 @@ For complete examples, see the [osgi-run-test](osgi-run-test/) projects.
 
 If you use [IPojo](http://felix.apache.org/documentation/subprojects/apache-felix-ipojo.html),
 you should definitely check out the [IPojo Plugin](ipojo-plugin), which complements the ``osgi-run`` plugin
-to make it really easy to use IPojo, develop and run your OSGi/IPojo projects.
+to make it really easy to develop and run your OSGi/IPojo projects.
+
+For examples of using IPojo and Gradle, see the test projects:
+
+* [ipojo-example](osgi-run-test/ipojo-example) - annotation-based IPojo project
+* [ipojo-xml-example](osgi-run-test/ipojo-xml-example) - XML-configured IPojo project
 
 ## Tasks
 
