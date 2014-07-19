@@ -49,6 +49,7 @@ bintray {
     user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
     key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
     publications = [ "mavenJava" ]
+    publish = true
     pkg {
         repo = 'maven'
         name = 'osgi-run-core'

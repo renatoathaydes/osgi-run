@@ -9,6 +9,15 @@ Given a Gradle project whose sub-projects are OSGi bundles:
 
 *build.gradle*
 ```groovy
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.0"
+    }
+}
+
 apply 'osgi-run'
 
 runOsgi {
@@ -23,6 +32,7 @@ gradle runOsgi
 ```
 
 Once the framework starts, type ``lb`` to see all bundles installed and running.
+To see a list of commands available, type ``help``.
 Stop the OSGi framework by typing ``exit``.
 
 The OSGi environment built by ``osgi-run`` will be located in the default ``outDir`` (see below).

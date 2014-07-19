@@ -9,15 +9,12 @@ Add to your ``build.gradle`` file:
 
 ```groovy
 buildscript {
-  repositories {
-    // this will be available in JCenter shortly!
-    //jcenter() 
-    // if you build this project locally and install it using the Maven plugin
-    mavenLocal()
-  }
-  dependencies {
-    classpath group: 'com.athaydes.gradle.osgi', name: 'ipojo-plugin', version: '1.0-SNAPSHOT'
-  }
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.athaydes.gradle.osgi:ipojo-plugin:1.0"
+    }
 }
 
 apply plugin: 'ipojo'
@@ -100,7 +97,7 @@ ipojo {
 
 ```groovy
 ipojo {
-  metadata = [file 'config/metadata.xml', 'WEB-INF/metadata.xml']
+  metadata = [file('config/metadata.xml'), 'WEB-INF/metadata.xml']
 }
 ```
 
