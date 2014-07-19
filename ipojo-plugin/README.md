@@ -63,7 +63,7 @@ If set to true, the IPojo manipulator will not look at remote XSD resources to v
 
 ```groovy
 ipojo {
-  ignoreLocalXSD = true
+  useLocalXSD = true
 }
 ```
 

@@ -59,7 +59,7 @@ For examples of using IPojo and Gradle, see the test projects:
 ## Extensions
 
   * ``runOsgi``: allows configuration of the plugin.
-    It contains the following mutable properties:
+    It contains the following settable properties:
     
     * ``outDir``: output directory (defaut: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
