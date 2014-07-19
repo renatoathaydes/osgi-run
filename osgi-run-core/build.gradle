@@ -4,7 +4,6 @@ buildscript {
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
-        classpath "com.github.townsfolk:gradle-release:1.2"
     }
 }
 
@@ -15,7 +14,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenLocal()
@@ -45,7 +44,6 @@ publishing {
 }
 
 apply plugin: 'com.jfrog.bintray'
-apply plugin: 'release'
 
 bintray {
     user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
@@ -64,4 +62,3 @@ bintray {
 }
 
 bintrayUpload.dependsOn build, sourcesJar
-createReleaseTag.dependsOn bintrayUpload
