@@ -1,5 +1,15 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
+        classpath "com.github.townsfolk:gradle-release:1.2"
+    }
+}
+
 apply plugin: 'groovy'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 sourceCompatibility = 1.7
@@ -16,3 +26,42 @@ dependencies {
     compile gradleApi()
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
+
+task sourcesJar( type: Jar, dependsOn: classes ) {
+    from sourceSets.main.allSource
+    classifier "sources"
+    extension "jar"
+}
+
+/* Publishing config */
+
+publishing {
+    publications {
+        mavenJava( MavenPublication ) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'release'
+
+bintray {
+    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
+    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
+    publications = [ "mavenJava" ]
+    pkg {
+        repo = 'maven'
+        name = 'osgi-run-core'
+        licenses = [ 'Apache-2.0' ]
+        desc = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
+        websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
+        issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
+        labels = [ 'osgi', 'ipojo', 'modular' ]
+        publicDownloadNumbers = true
+    }
+}
+
+bintrayUpload.dependsOn build, sourcesJar
+createReleaseTag.dependsOn bintrayUpload
