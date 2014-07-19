@@ -1,11 +1,20 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
+    }
+}
+
 apply plugin: 'groovy'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     mavenLocal()
@@ -18,3 +27,40 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
 
+task sourcesJar( type: Jar, dependsOn: classes ) {
+    from sourceSets.main.allSource
+    classifier "sources"
+    extension "jar"
+}
+
+/* Publishing config */
+
+publishing {
+    publications {
+        mavenJava( MavenPublication ) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+
+bintray {
+    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
+    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
+    publications = [ "mavenJava" ]
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'osgi-run-ipojo'
+        licenses = [ 'Apache-2.0' ]
+        desc = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project.'
+        websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
+        issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
+        labels = [ 'osgi', 'ipojo', 'modular' ]
+        publicDownloadNumbers = true
+    }
+}
+
+bintrayUpload.dependsOn build, sourcesJar
