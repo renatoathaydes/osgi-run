@@ -1,0 +1,52 @@
+apply plugin: 'osgi-run'
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+def apiModules = [ 'hello-service' ]
+
+/* Configuring all sub-projects here for convenience */
+
+configure( subprojects.findAll { it.name == 'hello-service' } ) {
+    // api bundles do not need to be ipojoized
+    apply plugin: 'java'
+    apply plugin: 'osgi'
+
+    jar {
+        manifest {
+            instruction 'Export-Package', 'ipojo.example.hello'
+        }
+    }
+}
+
+configure( subprojects.findAll { !( it.name in apiModules ) } ) {
+    apply plugin: 'ipojo'
+
+    ipojo {
+        ignoreAnnotations = true
+        failIfNoIPojoComponents = true
+    }
+    jar {
+        manifest {
+            instruction 'Export-Package', ''
+        }
+    }
+    dependencies {
+        compile project( ':ipojo-xml-example:hello-service' )
+    }
+}
+
+runOsgi {
+    bundles = [
+            subprojects,
+            'org.apache.felix:org.apache.felix.ipojo:1.12.0',
+            'org.apache.felix:org.apache.felix.shell:1.4.3',
+            'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
+            'org.apache.felix:org.apache.felix.bundlerepository:1.6.0',
+            'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
+    ]
+}

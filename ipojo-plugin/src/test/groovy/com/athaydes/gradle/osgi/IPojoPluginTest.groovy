@@ -1,16 +1,31 @@
 package com.athaydes.gradle.osgi
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
-import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 /**
  *
  */
 class IPojoPluginTest {
+
+    def plugin = new IPojoPlugin()
+    File inputBundle
+    File outBundle
+    Project mockProject
+
+    void setupWith( IPojoConfig config, String inputBundlePath ) {
+        mockProject = [ getBuildDir: { config.outDir } ] as Project
+        inputBundle = inputBundlePath as File
+        assert inputBundle.isFile()
+        outBundle = new File( config.outDir as File, inputBundle.name )
+        if ( outBundle.exists() ) {
+            assert outBundle.delete()
+        }
+    }
 
     @Test
     void pluginCreatesIPojoExtension() {
@@ -20,16 +35,9 @@ class IPojoPluginTest {
     }
 
     @Test
-    void ipojoTaskCorrectlyModifiesOutputBundle() {
-        def plugin = new IPojoPlugin()
-        def mockProject = [ getBuildDir: { new File( 'build' ) } ] as Project
-        def config = new IPojoConfig( outDir: mockProject.buildDir )
-        def inputBundle = 'src/test/resources/no-ipojo.spell.checker.jar.1' as File
-        assert inputBundle.isFile()
-        def outBundle = new File( mockProject.buildDir, 'no-ipojo.spell.checker.jar.1' )
-        if ( outBundle.exists() ) {
-            assert outBundle.delete()
-        }
+    void ipojoTaskCorrectlyModifiesOutputBundle_Annotations() {
+        def config = new IPojoConfig( outDir: new File( 'build' ) )
+        setupWith config, 'src/test/resources/no-ipojo.spell.checker.jar.1'
 
         plugin.ipojoTask( mockProject, inputBundle, config ).run()
 
@@ -38,13 +46,38 @@ class IPojoPluginTest {
         assertManifestRemainsTheSameExceptForIPojoEntry inputBundle, outBundle
     }
 
+    @Test
+    void ipojoTaskCorrectlyModifiesOutputBundle_XML() {
+        def config = new IPojoConfig( outDir: new File( 'build' ), ignoreAnnotations: true )
+        setupWith config, 'src/test/resources/no-ipojo.hello-client.jar.1'
+
+        plugin.ipojoTask( mockProject, inputBundle, config ).run()
+
+        assert outBundle.exists()
+        assertJarEntriesAreTheSame inputBundle, outBundle
+        assertManifestRemainsTheSameExceptForIPojoEntry inputBundle, outBundle
+    }
+
+    @Test( expected = GradleException )
+    void failIfNoXMLAndAnnotationsIgnored() {
+        def config = new IPojoConfig(outDir: new File( 'build' ),
+                ignoreAnnotations: true, failIfNoIPojoComponents: true )
+
+        // providing only annotations in the source but ignoring annotations
+        setupWith config, 'src/test/resources/no-ipojo.spell.checker.jar.1'
+
+        plugin.ipojoTask( mockProject, inputBundle, config ).run()
+    }
+
+
+
     def assertJarEntriesAreTheSame( File input, File output ) {
         assert zipEntryNames( input ) == zipEntryNames( output )
     }
 
     def assertManifestRemainsTheSameExceptForIPojoEntry( File input, File output ) {
-        def inputMap = manifestAsMap( input )
-        def outputMap = manifestAsMap( output )
+        def inputMap = ManifestReader.manifestAsMap( input )
+        def outputMap = ManifestReader.manifestAsMap( output )
         assert inputMap[ 'iPOJO-Components' ] == null
         assert outputMap[ 'iPOJO-Components' ]
         outputMap.remove( 'iPOJO-Components' )
@@ -55,29 +88,6 @@ class IPojoPluginTest {
         def zip = new ZipFile( file )
         try {
             zip.entries().collect { it.name }.toSet()
-        } finally {
-            zip.close()
-        }
-    }
-
-    def manifestAsMap( File file ) {
-        def extractKey = { String line -> line[ 0..<line.indexOf( ':' ) ].trim() }
-        def extractValue = { String line -> line[ ( line.indexOf( ':' ) + 1 )..-1 ].trim() }
-        def zip = new ZipFile( file )
-        try {
-            ZipEntry entry = zip.entries().find { 'META-INF/MANIFEST.MF' }
-            def lines = zip.getInputStream( entry ).readLines()
-            def map = [ : ]
-            def prevKey = null
-            for ( line in lines ) {
-                if ( line.startsWith( ' ' ) ) {
-                    def currentValue = map[ prevKey ]
-                    map[ prevKey ] = currentValue + line.trim()
-                } else if ( !line.trim().empty ) {
-                    map[ prevKey = extractKey( line ) ] = extractValue( line )
-                }
-            }
-            return map
         } finally {
             zip.close()
         }

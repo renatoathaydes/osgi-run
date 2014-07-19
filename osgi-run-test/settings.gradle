@@ -10,5 +10,9 @@ include 'build-with-subprojects',
         'ipojo-example',
         'ipojo-example:hello-service',
         'ipojo-example:hello-client',
-        'ipojo-example:hello-impl'
+        'ipojo-example:hello-impl',
+        'ipojo-xml-example',
+        'ipojo-xml-example:hello-service',
+        'ipojo-xml-example:hello-client',
+        'ipojo-xml-example:hello-impl'
 
