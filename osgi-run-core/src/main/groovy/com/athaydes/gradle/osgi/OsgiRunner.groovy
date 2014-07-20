@@ -32,7 +32,6 @@ class OsgiRunner {
         if ( runnableJar ) {
             log.debug "Running executable jar: ${runnableJar}"
             def process = "java -jar ${runnableJar.absolutePath} ${config.javaArgs}".execute( [ ], config.outDirFile )
-            process.consumeProcessOutput( System.out, System.out )
             delegateProcessTo( process )
         } else {
             throw new GradleException( 'OsgiRuntime does not contain any runnable jar! Cannot start the OSGi environment' )
@@ -44,6 +43,17 @@ class OsgiRunner {
         def scanner = new Scanner( System.in )
         def exit = false
         def line = null;
+
+        // REALLY low-level code necessary here to fix issue #1 (no output in Windows)
+        Thread.startDaemon {
+            byte[] bytes = new byte[64]
+            while (!exit) {
+                def len= process.in.read( bytes )
+                if (len > 0) print new String(bytes[0..<len] as byte[])
+                else exit = true
+            }
+        }
+
         while ( !exit && ( line = scanner.nextLine()?.trim() ) != null ) {
             if ( line in [ 'exit', 'stop 0', 'shutdown', 'quit' ] ) {
                 exit = true
@@ -52,10 +62,13 @@ class OsgiRunner {
             process.outputStream.write( ( line + '\n' ).bytes )
             process.outputStream.flush()
         }
+
         try {
             process.waitForOrKill( 5000 )
         } catch ( e ) {
             log.warn "OSGi process did not die gracefully. $e"
+        } finally {
+            exit = true
         }
     }
 
