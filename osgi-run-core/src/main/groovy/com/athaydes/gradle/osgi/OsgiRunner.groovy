@@ -3,6 +3,7 @@ package com.athaydes.gradle.osgi
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.zip.ZipFile
 
 class OsgiRunner {
@@ -41,22 +42,15 @@ class OsgiRunner {
 
     private void delegateProcessTo( Process process ) {
         def scanner = new Scanner( System.in )
-        def exit = false
+        def exit = new AtomicBoolean( false )
         def line = null;
 
-        // REALLY low-level code necessary here to fix issue #1 (no output in Windows)
-        Thread.startDaemon {
-            byte[] bytes = new byte[64]
-            while (!exit) {
-                def len= process.in.read( bytes )
-                if (len > 0) print new String(bytes[0..<len] as byte[])
-                else exit = true
-            }
-        }
+        consume process.in, exit, System.out
+        consume process.err, exit, System.err
 
-        while ( !exit && ( line = scanner.nextLine()?.trim() ) != null ) {
+        while ( !exit.get() && ( line = scanner.nextLine()?.trim() ) != null ) {
             if ( line in [ 'exit', 'stop 0', 'shutdown', 'quit' ] ) {
-                exit = true
+                exit.set true
                 line = 'stop 0'
             }
             process.outputStream.write( ( line + '\n' ).bytes )
@@ -68,7 +62,19 @@ class OsgiRunner {
         } catch ( e ) {
             log.warn "OSGi process did not die gracefully. $e"
         } finally {
-            exit = true
+            exit.set true
+        }
+    }
+
+    void consume( InputStream stream, AtomicBoolean exit, PrintStream writer ) {
+        // REALLY low-level code necessary here to fix issue #1 (no output in Windows)
+        Thread.startDaemon {
+            byte[] bytes = new byte[64]
+            while ( !exit.get() ) {
+                def len = stream.read( bytes )
+                if ( len > 0 ) writer.write bytes, 0, len
+                else exit.set( true )
+            }
         }
     }
 
