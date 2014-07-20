@@ -1,7 +1,7 @@
 echo "---------- Installing osgi-run-core  --------------"
 cd osgi-run-core
-gradle clean install
+gradlew clean publishToMavenLocal
 echo "----------   Running osgi-run-test   --------------"
 cd ../osgi-run-test
-gradle build-with-subprojects:clean build-with-subprojects:runOsgi
+gradlew build-with-subprojects:clean build-with-subprojects:runOsgi
 cd ..
