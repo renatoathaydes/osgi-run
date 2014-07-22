@@ -25,4 +25,15 @@ class OsgiConfig {
             'org.apache.felix:org.apache.felix.gogo.command:0.14.0',
     ].asImmutable()
 
+    static final IPOJO_BUNDLE = [
+            'org.apache.felix:org.apache.felix.ipojo:1.12.0'
+    ].asImmutable()
+
+    static final IPOJO_ALL_BUNDLES = IPOJO_BUNDLE + [
+            'org.apache.felix:org.apache.felix.shell:1.4.3',
+            'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
+            'org.apache.felix:org.apache.felix.bundlerepository:1.6.0',
+            'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
+    ].asImmutable()
+
 }

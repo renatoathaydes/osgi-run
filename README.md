@@ -78,6 +78,8 @@ For examples of using IPojo and Gradle, see the test projects:
     * ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
     * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
     * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
+    * ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
+    * ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
 
 ## Configurations
 
