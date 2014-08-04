@@ -1,0 +1,27 @@
+apply plugin: 'osgi-run'
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'ipojo'
+
+    dependencies {
+        compile 'org.apache.felix:org.apache.felix.ipojo.annotations:1.12.0'
+    }
+}
+
+dependencies {
+    osgiRuntime( 'org.apache.cxf.dosgi:cxf-dosgi-ri-singlebundle-distribution:1.4.0' ) {
+        transitive = false
+    }
+}
+
+runOsgi {
+    bundles = IPOJO_ALL_BUNDLES + subprojects
+    javaArgs = 'server'
+}

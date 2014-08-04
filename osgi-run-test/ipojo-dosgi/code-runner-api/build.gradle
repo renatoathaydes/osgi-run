@@ -1,0 +1,5 @@
+jar {
+    manifest {
+        instruction 'Export-Package', '*'
+    }
+}
