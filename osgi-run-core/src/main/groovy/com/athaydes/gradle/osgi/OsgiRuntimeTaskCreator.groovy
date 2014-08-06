@@ -21,7 +21,7 @@ class OsgiRuntimeTaskCreator {
             copyBundles( project, "${target}/${osgiConfig.bundlesPath}" )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
-            copyConfigFiles( project, target, osgiConfig )
+            copyConfigFiles( target, osgiConfig )
         }
     }
 
@@ -53,13 +53,13 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyConfigFiles( Project project, String target, OsgiConfig osgiConfig ) {
+    private void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
         if ( !configFile ) return;
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }
-        configFile.write( scapeSlashes( textForConfigFile( project, target, osgiConfig ) ), 'UTF-8' )
+        configFile.write( scapeSlashes( textForConfigFile( target, osgiConfig ) ), 'UTF-8' )
     }
 
     private File getConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -81,16 +81,16 @@ class OsgiRuntimeTaskCreator {
         string.replace( '\\', '\\\\' )
     }
 
-    private String textForConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
+    private String textForConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return this.class.getResource( '/conf/config.properties' ).text
-            case 'equinox': return generateEquinoxConfigFile( project, target, osgiConfig )
+            case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
                     'https://github.com/renatoathaydes/osgi-run/issues' )
         }
     }
 
-    private String generateEquinoxConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
+    private String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
         if ( !bundlesDir.exists() ) {
             bundlesDir.mkdirs()
