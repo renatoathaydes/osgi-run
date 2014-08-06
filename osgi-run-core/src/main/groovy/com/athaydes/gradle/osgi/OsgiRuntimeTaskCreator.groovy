@@ -42,7 +42,7 @@ class OsgiRuntimeTaskCreator {
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
         osgiConfig.bundles.flatten().each {
-            project.dependencies.add( 'osgiRuntime', it )
+            project.dependencies.add( 'osgiRuntime', it )  { transitive = false }
         }
     }
 
