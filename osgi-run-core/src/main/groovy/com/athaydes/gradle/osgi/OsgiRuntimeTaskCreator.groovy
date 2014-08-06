@@ -5,6 +5,11 @@ import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
+import static java.util.Collections.emptyList
+
 /**
  *
  */
@@ -42,7 +47,7 @@ class OsgiRuntimeTaskCreator {
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
         osgiConfig.bundles.flatten().each {
-            project.dependencies.add( 'osgiRuntime', it ) { transitive = false }
+            project.dependencies.add( 'osgiRuntime', it )
         }
     }
 
@@ -51,6 +56,26 @@ class OsgiRuntimeTaskCreator {
             from project.configurations.osgiRuntime
             into bundlesDir
         }
+        nonBundles( new File( bundlesDir ).listFiles() ).each {
+            println "Non Bundle: ${it.name}"
+            assert it.delete()
+        }
+    }
+
+    private Collection<File> nonBundles( File[] files ) {
+        if ( !files ) return emptyList()
+        def notBundle = { File file ->
+            def zip = new ZipFile( file )
+            try {
+                ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
+                assert entry
+                def lines = zip.getInputStream( entry ).readLines()
+                return !lines.any { it.trim().startsWith( 'Bundle' ) }
+            } finally {
+                zip.close()
+            }
+        }
+        files.findAll( notBundle )
     }
 
     private void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
