@@ -42,7 +42,7 @@ class OsgiRuntimeTaskCreator {
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
         osgiConfig.bundles.flatten().each {
-            project.dependencies.add( 'osgiRuntime', it )  { transitive = false }
+            project.dependencies.add( 'osgiRuntime', it ) { transitive = false }
         }
     }
 
@@ -59,7 +59,7 @@ class OsgiRuntimeTaskCreator {
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }
-        configFile << textForConfigFile( project, target, osgiConfig )
+        configFile.write( scapeSlashes( textForConfigFile( project, target, osgiConfig ) ), 'UTF-8' )
     }
 
     private File getConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -75,6 +75,10 @@ class OsgiRuntimeTaskCreator {
         ( osgiConfig.outDir instanceof File ) ?
                 osgiConfig.outDir.absolutePath :
                 "${project.buildDir}/${osgiConfig.outDir}"
+    }
+
+    private String scapeSlashes( String string ) {
+        string.replace( '\\', '\\\\' )
     }
 
     private String textForConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
