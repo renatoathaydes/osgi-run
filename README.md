@@ -98,11 +98,11 @@ osgi.bundles      : [bundle1-location@start,bundle2-location@start,...]
     
 The following constants can be used to provide values for the above properties:
     
-    * ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
-    * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
-    * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
-    * ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
-    * ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
+* ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
+* ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
+* ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
+* ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
+* ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
 
 ## Configurations
 
