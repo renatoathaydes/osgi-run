@@ -31,7 +31,7 @@ From the project's root directory, type:
 gradle runOsgi
 ```
 
-Once the framework starts, type ``ps`` to see all bundles installed and running.
+Once the framework starts, type ``lb`` to see all bundles installed and running.
 To see a list of commands available, type ``help``.
 Stop the OSGi framework by typing ``exit``.
 
@@ -78,7 +78,8 @@ For examples of using IPojo and Gradle, see the test projects:
     * ``bundlesPath``: String with path where the bundles should be copied to (default ``"bundle"``).
     * ``config``: Map of properties that should be added to the container's config file.
         This property is ignored if `configSettings` is set to 'none'.
-        The default for Felix is:
+
+The default `config` for Felix is:
         
 ```groovy
 'felix.auto.deploy.action'  : 'install,start',
@@ -87,15 +88,15 @@ For examples of using IPojo and Gradle, see the test projects:
 'obr.repository.url'        : 'http://felix.apache.org/obr/releases.xml'
 ```
 
-        The default for Equinox is (notice `osgi.bundles` is set dynamically based on the `bundles` property:
+The default `config` for Equinox is (notice `osgi.bundles` is set dynamically based on the `bundles` property:
 
 ```groovy
-eclipse.ignoreApp : true
-osgi.noShutdown   : true
+eclipse.ignoreApp : true,
+osgi.noShutdown   : true,
 osgi.bundles      : [bundle1-location@start,bundle2-location@start,...]
 ```
     
-    The following constants can be used to provide values for the above properties:
+The following constants can be used to provide values for the above properties:
     
     * ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
     * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
@@ -144,7 +145,7 @@ You can immediately run your OSGi container using:
 gradle runOsgi
 ```
 
-To see a list of installed bundles, type ``ps`` (or ``ss`` if using Equinox).
+To see a list of installed bundles, type ``lb`` (or ``ss`` if using Equinox).
 
 
 ### Configuring the ``runOsgi`` extension
@@ -320,10 +321,9 @@ runOsgi {
 def equinoxVersion = '3.6.0.v20100517'
 
 runOsgi {
-  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
-  javaArgs = '-console'
   configSettings = 'equinox'
-  bundlesPath = 'plugins'
+  javaArgs = '-console'
+  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
 }
 ```
 
@@ -339,9 +339,9 @@ repositories {
 }
 
 runOsgi {
+  configSettings = 'none'
   osgiMain = "your.knopflerfish:starter:7.1.2"
   bundles = [ "org.knopflerfish:framework:7.1.2" ]
-  configSettings = 'none'
 }
 ```
 
@@ -353,4 +353,4 @@ runOsgi {
 * [Equinox Quickstart](http://www.eclipse.org/equinox/documents/quickstart-framework.php)
 * [Equinox runtime options](http://help.eclipse.org/indigo/index.jsp?topic=/org.eclipse.platform.doc.isv/reference/misc/runtime-options.html)
 * [Knopflerfish](http://www.knopflerfish.org/index.html)
-
+* [D-OSGi Demo Walkthrough](http://cxf.apache.org/distributed-osgi-greeter-demo-walkthrough.html)
