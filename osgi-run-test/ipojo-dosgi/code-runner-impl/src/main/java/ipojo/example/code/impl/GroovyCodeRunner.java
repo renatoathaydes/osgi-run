@@ -10,7 +10,7 @@ public class GroovyCodeRunner implements CodeRunner {
 
     @Override
     public Object runScript(String script) {
-        return "Hello from Groovy";
+        return "Hello from Groovy! " + script;
     }
 
 }

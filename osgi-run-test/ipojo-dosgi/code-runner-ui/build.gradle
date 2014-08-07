@@ -1,3 +1,5 @@
+apply plugin: 'groovy'
+
 jar {
     manifest {
         instruction 'Export-Package', ''
@@ -5,5 +7,6 @@ jar {
 }
 
 dependencies {
+    compile "org.codehaus.groovy:groovy-all:2.3.3"
     compile project( ':ipojo-dosgi:code-runner-api' )
 }

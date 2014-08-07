@@ -24,4 +24,5 @@ dependencies {
 runOsgi {
     bundles = IPOJO_ALL_BUNDLES + subprojects
     javaArgs = 'server'
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
 }
