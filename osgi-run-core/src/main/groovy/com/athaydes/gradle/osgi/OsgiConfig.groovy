@@ -7,13 +7,62 @@ import groovy.transform.ToString
  */
 @ToString( includeFields = true, includeNames = true )
 class OsgiConfig {
+    // internal
     protected File outDirFile
+
+    // non platform-dependent defaults
     def outDir = "osgi"
-    def bundles = [ ] + FELIX_GOGO_BUNDLES
-    def osgiMain = FELIX
     String javaArgs = ""
-    String bundlesPath = 'bundle'
-    String configSettings = 'felix'
+
+    // platform dependent properties
+    String configSettings
+    String bundlesPath
+    def bundles
+    def osgiMain
+    Map config
+
+    OsgiConfig() {
+        setConfigSettings 'felix'
+    }
+
+    void setConfigSettings( String option ) {
+        this.configSettings = option
+        switch ( option ) {
+            case 'felix': configFelix()
+                break
+            case 'equinox': configEquinox()
+                break
+            default:
+                configNone()
+        }
+    }
+
+    void configFelix() {
+        bundlesPath = 'bundle'
+        bundles = FELIX_GOGO_BUNDLES
+        osgiMain = FELIX
+        config = [ 'felix.auto.deploy.action'  : 'install,start',
+                   'felix.log.level'           : 1,
+                   'org.osgi.service.http.port': 8080,
+                   'obr.repository.url'        : 'http://felix.apache.org/obr/releases.xml' ]
+    }
+
+    void configEquinox() {
+        bundlesPath = 'plugins'
+        bundles = [ ]
+        osgiMain = EQUINOX
+        config = [ 'eclipse.ignoreApp': true,
+                   'osgi.noShutdown'  : true ]
+    }
+
+    void configNone() {
+        bundlesPath = 'bundle'
+        bundles = [ ]
+        osgiMain = FELIX
+        config = [ : ]
+    }
+
+    // CONSTANTS
 
     static final String FELIX = 'org.apache.felix:org.apache.felix.main:4.4.0'
 

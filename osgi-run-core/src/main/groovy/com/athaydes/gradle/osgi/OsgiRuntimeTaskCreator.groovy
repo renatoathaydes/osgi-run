@@ -68,7 +68,7 @@ class OsgiRuntimeTaskCreator {
             def zip = new ZipFile( file )
             try {
                 ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
-                assert entry
+                if ( !entry ) return true
                 def lines = zip.getInputStream( entry ).readLines()
                 return !lines.any { it.trim().startsWith( 'Bundle' ) }
             } finally {
@@ -108,11 +108,15 @@ class OsgiRuntimeTaskCreator {
 
     private String textForConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
-            case 'felix': return this.class.getResource( '/conf/config.properties' ).text
+            case 'felix': return generateFelixConfigFile( osgiConfig )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
                     'https://github.com/renatoathaydes/osgi-run/issues' )
         }
+    }
+
+    private String generateFelixConfigFile( OsgiConfig osgiConfig ) {
+        map2properties osgiConfig.config
     }
 
     private String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -122,10 +126,14 @@ class OsgiRuntimeTaskCreator {
         }
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
-        """eclipse.ignoreApp=true
-           |osgi.noShutdown=true
-           |osgi.bundles=${bundleJars.collect { it + '@start' }.join( ',' )}
-           |""".stripMargin()
+        map2properties( osgiConfig.config +
+                [ 'osgi.bundles': bundleJars.collect { it + '@start' }.join( ',' ) ] )
+    }
+
+    private String map2properties( Map map ) {
+        map.inject( '' ) { acc, key, value ->
+            "${acc}${key} = ${value}\n"
+        }
     }
 
 }
