@@ -10,9 +10,6 @@ dependencies {
 }
 
 runOsgi {
-    osgiMain = EQUINOX
-    bundles = [ ] // declaring all bundles in the dependencies block
-    javaArgs = '-console'
     configSettings = 'equinox'
-    bundlesPath = 'plugins'
+    javaArgs = '-console'
 }
