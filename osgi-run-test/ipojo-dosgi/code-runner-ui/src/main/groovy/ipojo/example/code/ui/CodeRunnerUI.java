@@ -8,14 +8,24 @@ import org.apache.felix.ipojo.annotations.*;
 @Instantiate
 public class CodeRunnerUI {
 
-    @Requires(optional = true, defaultimplementation = NoServiceAvailable.class)
+    @Requires(optional = true)
     private CodeRunner codeRunner;
 
     private MainView mainView;
 
     @Validate
     public void start() {
-        mainView = new MainView(codeRunner);
+        CodeRunner localRunner = new CodeRunner() {
+            @Override
+            public Object runScript(String script) {
+                try {
+                    return codeRunner.runScript(script);
+                } catch (Exception e) {
+                    return e;
+                }
+            }
+        };
+        mainView = new MainView(localRunner);
         mainView.create();
     }
 

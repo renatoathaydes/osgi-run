@@ -1,0 +1,11 @@
+<endpoint-descriptions xmlns="http://www.osgi.org/xmlns/rsa/v1.0.0">
+    <endpoint-description>
+        <property name="objectClass">
+            <array>
+                <value>ipojo.example.code.CodeRunner</value>
+            </array>
+        </property>
+        <property name="endpoint.id">http://localhost:8080/coderunner</property>
+        <property name="service.imported.configs">org.apache.cxf.ws</property>
+    </endpoint-description>
+</endpoint-descriptions>

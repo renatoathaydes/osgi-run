@@ -10,7 +10,7 @@ class MainViewTest {
     public static void main( String[] args ) {
         final view = new MainView( new CodeRunner() {
             @Override
-            Object runScript( String script ) {
+            String runScript( String script ) {
                 'hi ' + script
             }
         } )

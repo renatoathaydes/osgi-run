@@ -21,8 +21,15 @@ dependencies {
     }
 }
 
+def clientConfig = project.hasProperty( 'client' )
+
+def clientBundles = [ 'code-runner-api', 'code-runner-ui' ]
+def serverBundles = [ 'code-runner-api', 'code-runner-impl' ]
+
 runOsgi {
-    bundles = IPOJO_ALL_BUNDLES + subprojects
-    javaArgs = 'server'
+    bundles = IPOJO_ALL_BUNDLES + subprojects.findAll {
+        it.name in ( clientConfig ? clientBundles : serverBundles )
+    }
+    outDir = clientConfig ? 'client' : 'server'
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
 }

@@ -25,7 +25,8 @@ class MainView {
                     vstrut 10
                     hbox {
                         button( text: 'Run', actionPerformed: {
-                            resultText.text = codeRunner.runScript( sourceArea.text )
+                            def result = codeRunner.runScript( sourceArea.text )
+                            resultText.text = result as String
                         } )
                     }
                     vstrut 10
