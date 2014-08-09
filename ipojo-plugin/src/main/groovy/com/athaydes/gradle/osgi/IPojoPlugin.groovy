@@ -37,7 +37,12 @@ class IPojoPlugin implements Plugin<Project> {
             log.info "IPojo input bundle:  ${srcBundle.absolutePath}"
             log.info "IPojo output bundle: ${outBundle.absolutePath}"
 
-            pojo.pojoization( srcBundle, outBundle, metadata as File, project.class.classLoader )
+            try {
+                pojo.pojoization( srcBundle, outBundle, metadata as File, project.class.classLoader )
+            } finally {
+                metadata?.delete()
+            }
+
             def pojoizedOk = confirmIPojoization( srcBundle, outBundle, config )
 
             if ( !config.outDir ) {
