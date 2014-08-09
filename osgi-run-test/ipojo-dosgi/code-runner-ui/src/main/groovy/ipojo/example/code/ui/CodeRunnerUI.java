@@ -8,11 +8,10 @@ import org.apache.felix.ipojo.annotations.*;
 @Instantiate
 public class CodeRunnerUI {
 
-    private MainView mainView;
+    private MainView mainView = new MainView();
 
     @Validate
     public void start() {
-        mainView = new MainView();
         mainView.create();
     }
 

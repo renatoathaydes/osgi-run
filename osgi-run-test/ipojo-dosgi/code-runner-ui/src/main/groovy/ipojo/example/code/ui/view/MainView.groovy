@@ -24,6 +24,7 @@ class MainView {
     private final model = new Model()
 
     void create() {
+        destroy()
         JTextArea resultText = null
         JComboBox langsCombo = null
 
@@ -46,17 +47,19 @@ class MainView {
                         label 'Language:'
                         hstrut 5
                         langsCombo = comboBox( actionPerformed: { event ->
-                            model.codeRunner = model.codeRunners[ event.source.selectedItem ]
-                        } )
+                                    model.codeRunner = model.codeRunners[ event.source.selectedItem ]
+                                } )
                         hstrut 5
                     }
                     vstrut 10
                     resultText = textArea( editable: false, background: new Color( 240, 230, 140 ) )
-                    vstrut 10
                 }
             }
         }
 
+        model.codeRunners.keySet().collect { it.toString() }.each { String lang ->
+            langsCombo.addItem( lang )
+        }
         model.codeRunners.addPropertyChangeListener { PropertyChangeEvent event ->
             switch ( event.newValue ) {
                 case CodeRunner: langsCombo.addItem( event.propertyName ); break
