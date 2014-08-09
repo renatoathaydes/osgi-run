@@ -24,6 +24,11 @@ public class CodeRunnerUI {
                     return e;
                 }
             }
+
+            @Override
+            public String getLanguage() {
+                return codeRunner.getLanguage();
+            }
         };
         mainView = new MainView(localRunner);
         mainView.create();

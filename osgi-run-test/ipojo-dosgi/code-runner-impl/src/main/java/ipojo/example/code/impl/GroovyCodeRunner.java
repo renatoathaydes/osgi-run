@@ -13,4 +13,8 @@ public class GroovyCodeRunner implements CodeRunner {
         return "Hello from Groovy! " + script;
     }
 
+    @Override
+    public String getLanguage() {
+        return "Groovy 2.3.3";
+    }
 }

@@ -6,9 +6,11 @@ package ipojo.example.code;
 public interface CodeRunner {
 
     /**
-     * @param script text
+     * @param script source code to run
      * @return the value returned by the script
      */
     Object runScript(String script);
+
+    String getLanguage();
 
 }
