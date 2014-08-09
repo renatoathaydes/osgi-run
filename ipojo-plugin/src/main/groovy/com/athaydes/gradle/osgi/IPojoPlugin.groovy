@@ -74,6 +74,9 @@ class IPojoPlugin implements Plugin<Project> {
         if ( !outBundle.parentFile.isDirectory() ) {
             assert outBundle.parentFile.mkdirs()
         }
+        if ( outBundle.exists() ) {
+            assert outBundle.delete()
+        }
         assert outBundle.createNewFile()
         return outBundle
     }
