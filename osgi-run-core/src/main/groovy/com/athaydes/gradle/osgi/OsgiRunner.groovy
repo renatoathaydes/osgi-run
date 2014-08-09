@@ -32,7 +32,9 @@ class OsgiRunner {
         def runnableJar = config.outDirFile.listFiles().find( isRunnableJar )
         if ( runnableJar ) {
             log.debug "Running executable jar: ${runnableJar}"
-            def process = "java -jar ${runnableJar.absolutePath} ${config.javaArgs}".execute( [ ], config.outDirFile )
+            def java = javaCmd()
+            log.info "Java to be used to run OSGi: $java"
+            def process = "$java -jar ${runnableJar.absolutePath} ${config.javaArgs}".execute( [ ], config.outDirFile )
             delegateProcessTo( process )
         } else {
             throw new GradleException( 'OsgiRuntime does not contain any runnable jar! Cannot start the OSGi environment' )
@@ -76,6 +78,20 @@ class OsgiRunner {
                 else exit.set( true )
             }
         }
+    }
+
+    static String javaCmd() {
+        def javaHome = System.getenv( 'JAVA_HOME' )
+        if ( javaHome ) {
+            def potentialJavas = [ "$javaHome/bin/java", "$javaHome/jre/bin/java" ]
+                    .collect { it.replace( '//', '/' ).replace( '\\\\', '/' ) }
+            for ( potentialJava in potentialJavas ) {
+                if ( new File( potentialJava ).exists() ) {
+                    return potentialJava
+                }
+            }
+        }
+        return 'java'
     }
 
 }
