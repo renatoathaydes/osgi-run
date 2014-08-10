@@ -2,7 +2,7 @@
        xsi:schemaLocation="org.apache.felix.ipojo http://felix.apache.org/ipojo/schemas/CURRENT/core.xsd"
        xmlns="org.apache.felix.ipojo">
 
-    <instance component="ipojo.example.code.impl.GroovyCodeRunner">
+    <instance component="ipojo.example.code.server.ServerCodeRunner">
         <property name="service.exported.interfaces" value="*"/>
         <property name="service.exported.configs" value="org.apache.cxf.ws"/>
         <property name="org.apache.cxf.ws.address" value="http://localhost:8080/coderunner"/>

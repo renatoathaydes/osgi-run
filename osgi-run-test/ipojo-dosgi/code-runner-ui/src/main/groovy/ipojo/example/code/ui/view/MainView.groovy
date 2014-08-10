@@ -2,31 +2,33 @@ package ipojo.example.code.ui.view
 
 import groovy.beans.Bindable
 import groovy.swing.SwingBuilder
-import ipojo.example.code.CodeRunner
+import ipojo.example.code.CompositeCodeRunner
 
 import javax.swing.*
 import java.awt.*
-import java.beans.PropertyChangeEvent
-import java.beans.PropertyChangeListener
 
 class MainView {
 
-    private final builder = new SwingBuilder()
-    private JFrame theFrame
-
+    @Bindable
     class Model {
-        @Bindable
-        CodeRunner codeRunner
-
-        final Map<String, CodeRunner> codeRunners = [ : ] as ObservableMap
+        String language
     }
 
-    private final model = new Model()
+    private final builder = new SwingBuilder()
+    private final CompositeCodeRunner codeRunner
+    private final Model model = new Model()
+
+    private JFrame theFrame
+    private JComboBox langsCombo = null
+
+
+    MainView( CompositeCodeRunner codeRunner ) {
+        this.codeRunner = codeRunner
+    }
 
     void create() {
         destroy()
         JTextArea resultText = null
-        JComboBox langsCombo = null
 
         builder.edt {
             theFrame = frame( title: 'D-OSGi IPojo Demo', show: true,
@@ -38,17 +40,19 @@ class MainView {
                     hbox {
                         hstrut 5
                         button( text: 'Run',
-                                enabled: bind { model.codeRunner != null },
+                                enabled: bind { model.language != null },
                                 actionPerformed: {
-                                    def result = model.codeRunner?.runScript( sourceArea.text )
-                                    resultText.text = result as String
+                                    resultText.text = codeRunner.runScript( model.language, sourceArea.text )
                                 } )
                         hstrut 5
                         label 'Language:'
                         hstrut 5
                         langsCombo = comboBox( actionPerformed: { event ->
-                                    model.codeRunner = model.codeRunners[ event.source.selectedItem ]
-                                } )
+                            model.language = event.source.selectedItem
+                        } )
+                        hstrut 5
+                        button( text: 'Update Languages',
+                                actionPerformed: { updateLanguages() } )
                         hstrut 5
                     }
                     vstrut 10
@@ -57,27 +61,23 @@ class MainView {
             }
         }
 
-        model.codeRunners.keySet().collect { it.toString() }.each { String lang ->
-            langsCombo.addItem( lang )
-        }
-        model.codeRunners.addPropertyChangeListener { PropertyChangeEvent event ->
-            switch ( event.newValue ) {
-                case CodeRunner: langsCombo.addItem( event.propertyName ); break
-                case null: langsCombo.removeItem( event.propertyName ); break
-            }
-        } as PropertyChangeListener
+        updateLanguages()
     }
 
     void destroy() {
         theFrame?.dispose()
     }
 
-    void addCodeRunner( CodeRunner codeRunner ) {
-        model.codeRunners[ codeRunner.language ] = codeRunner
-    }
-
-    void removeCodeRunner( CodeRunner codeRunner ) {
-        model.codeRunners.remove( codeRunner.language )
+    private void updateLanguages() {
+        if ( langsCombo ) {
+            def item = langsCombo.selectedItem
+            langsCombo.removeAllItems()
+            codeRunner.languages.toList().sort().each { String lang ->
+                langsCombo.addItem( lang )
+            }
+            if ( item )
+                langsCombo.selectedItem = item
+        }
     }
 
 }

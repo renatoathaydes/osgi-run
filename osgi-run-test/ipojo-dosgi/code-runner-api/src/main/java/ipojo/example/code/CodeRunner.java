@@ -1,7 +1,7 @@
 package ipojo.example.code;
 
 /**
- * Defines an interface for services that can run code in different programming languages.
+ * Defines an interface for services that can run code in a single programming language.
  */
 public interface CodeRunner {
 

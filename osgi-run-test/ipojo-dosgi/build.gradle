@@ -24,7 +24,7 @@ dependencies {
 def clientConfig = project.hasProperty( 'client' )
 
 def clientBundles = [ 'code-runner-api', 'code-runner-ui' ]
-def serverBundles = [ 'code-runner-api', 'code-runner-impl' ]
+def serverBundles = [ 'code-runner-api', 'code-runner-server', 'groovy-1-8-6-runner', 'groovy-2-3-3-runner' ]
 
 runOsgi {
     bundles = IPOJO_ALL_BUNDLES + subprojects.findAll {

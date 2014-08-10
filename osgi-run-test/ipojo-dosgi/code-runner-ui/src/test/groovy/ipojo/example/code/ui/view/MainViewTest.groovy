@@ -1,6 +1,6 @@
 package ipojo.example.code.ui.view
 
-import ipojo.example.code.CodeRunner
+import ipojo.example.code.CompositeCodeRunner
 
 /**
  *
@@ -8,26 +8,18 @@ import ipojo.example.code.CodeRunner
 class MainViewTest {
 
     public static void main( String[] args ) {
-        final view = new MainView()
-        view.create()
-
-        sleep 2000
-        println "Adding new code Runner"
-        def run
-        view.addCodeRunner( run = new CodeRunner() {
+        final view = new MainView( new CompositeCodeRunner() {
             @Override
-            String runScript( String script ) {
-                'hi ' + script
+            String runScript( String language, String script ) {
+                return "$language -> $script"
             }
 
             @Override
-            String getLanguage() {
-                return "Java 1.7"
+            Set<String> getLanguages() {
+                [ "Java", "Scala", "Ceylon" ] as Set
             }
         } )
-        sleep 5000
-        println "Removing it now"
-        view.removeCodeRunner( run )
+        view.create()
     }
 
 }

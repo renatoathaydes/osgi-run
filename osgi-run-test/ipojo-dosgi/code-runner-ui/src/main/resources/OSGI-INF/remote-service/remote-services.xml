@@ -2,7 +2,7 @@
     <endpoint-description>
         <property name="objectClass">
             <array>
-                <value>ipojo.example.code.CodeRunner</value>
+                <value>ipojo.example.code.CompositeCodeRunner</value>
             </array>
         </property>
         <property name="endpoint.id">http://localhost:8080/coderunner</property>

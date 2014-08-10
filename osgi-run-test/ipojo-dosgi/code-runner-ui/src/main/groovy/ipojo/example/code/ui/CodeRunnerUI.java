@@ -1,14 +1,22 @@
 package ipojo.example.code.ui;
 
-import ipojo.example.code.CodeRunner;
+import ipojo.example.code.CompositeCodeRunner;
+import ipojo.example.code.LanguageNotAvailableException;
+import ipojo.example.code.RemoteException;
 import ipojo.example.code.ui.view.MainView;
 import org.apache.felix.ipojo.annotations.*;
+
+import java.util.Set;
 
 @Component(name = "CodeRunnerUI")
 @Instantiate
 public class CodeRunnerUI {
 
-    private MainView mainView = new MainView();
+    private MainView mainView;
+
+    public CodeRunnerUI(@Requires CompositeCodeRunner codeRunner) {
+        mainView = new MainView(new ResilientCodeRunner(codeRunner));
+    }
 
     @Validate
     public void start() {
@@ -17,41 +25,32 @@ public class CodeRunnerUI {
 
     @Invalidate
     public void stop() {
-        if ( mainView != null )
+        if (mainView != null)
             mainView.destroy();
     }
 
-    @Bind( aggregate = true )
-    public void bindCodeRunner( CodeRunner codeRunner ) {
-        mainView.addCodeRunner( new ResilientCodeRunner( codeRunner ) );
-    }
+    private static class ResilientCodeRunner implements CompositeCodeRunner {
 
+        private final CompositeCodeRunner delegate;
 
-    @Unbind
-    public void unbindCodeRunner( CodeRunner codeRunner ) {
-        mainView.removeCodeRunner( codeRunner );
-    }
-
-    private static class ResilientCodeRunner implements CodeRunner {
-
-        private final CodeRunner delegate;
-
-        private ResilientCodeRunner( CodeRunner delegate ) {
+        private ResilientCodeRunner(CompositeCodeRunner delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public Object runScript( String script ) {
+        public String runScript(String language, String script) {
             try {
-                return delegate.runScript( script );
-            } catch ( Exception e ) {
-                return e;
+                return delegate.runScript(language, script);
+            } catch (LanguageNotAvailableException | RemoteException e) {
+                return e.getMessage();
+            } catch (Exception e) {
+                return e.toString();
             }
         }
 
         @Override
-        public String getLanguage() {
-            return delegate.getLanguage();
+        public Set<String> getLanguages() {
+            return delegate.getLanguages();
         }
 
     }
