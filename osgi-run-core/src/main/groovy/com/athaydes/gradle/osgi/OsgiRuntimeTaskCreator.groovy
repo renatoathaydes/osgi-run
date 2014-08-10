@@ -57,7 +57,7 @@ class OsgiRuntimeTaskCreator {
             into bundlesDir
         }
         nonBundles( new File( bundlesDir ).listFiles() ).each {
-            println "Non Bundle: ${it.name}"
+            log.info "Removing non-bundle from classpath: ${it.name}"
             assert it.delete()
         }
     }
