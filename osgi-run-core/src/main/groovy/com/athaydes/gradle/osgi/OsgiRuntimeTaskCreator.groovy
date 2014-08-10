@@ -2,6 +2,7 @@ package com.athaydes.gradle.osgi
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -46,20 +47,20 @@ class OsgiRuntimeTaskCreator {
     }
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        def allBundles = osgiConfig.bundles.flatten()
+        def allBundles = osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
         project.configurations { c ->
-            allBundles.size().times { i -> c."osgiRuntime$i" }
+            // create individual configurations for each dependency so that version conflicts need not be resolved
+            allBundles.size().times { i -> c."__osgiRuntime$i" }
         }
-        allBundles.eachWithIndex { bundle, i ->
-            project.dependencies.add( "osgiRuntime$i", bundle ) {
-                transitive = bundle instanceof Project
-            }
+        allBundles.eachWithIndex { Object bundle, i ->
+            def depConfig = ( bundle instanceof Dependency ) ? {} : { transitive = bundle instanceof Project }
+            project.dependencies.add( "__osgiRuntime$i", bundle, depConfig )
         }
     }
 
     private void copyBundles( Project project, String bundlesDir ) {
         project.copy {
-            from project.configurations.findAll { it.name.startsWith( 'osgiRuntime' ) }
+            from project.configurations.findAll { it.name.startsWith( '__osgiRuntime' ) }
             into bundlesDir
         }
         nonBundles( new File( bundlesDir ).listFiles() ).each {
