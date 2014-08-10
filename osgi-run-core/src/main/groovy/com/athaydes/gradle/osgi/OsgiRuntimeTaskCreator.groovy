@@ -46,14 +46,20 @@ class OsgiRuntimeTaskCreator {
     }
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        osgiConfig.bundles.flatten().each {
-            project.dependencies.add( 'osgiRuntime', it )
+        def allBundles = osgiConfig.bundles.flatten()
+        project.configurations { c ->
+            allBundles.size().times { i -> c."osgiRuntime$i" }
+        }
+        allBundles.eachWithIndex { bundle, i ->
+            project.dependencies.add( "osgiRuntime$i", bundle ) {
+                transitive = bundle instanceof Project
+            }
         }
     }
 
     private void copyBundles( Project project, String bundlesDir ) {
         project.copy {
-            from project.configurations.osgiRuntime
+            from project.configurations.findAll { it.name.startsWith( 'osgiRuntime' ) }
             into bundlesDir
         }
         nonBundles( new File( bundlesDir ).listFiles() ).each {
