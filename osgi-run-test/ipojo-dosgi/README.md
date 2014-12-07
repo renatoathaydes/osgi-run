@@ -49,6 +49,14 @@ In the project root folder, type:
 
 > Do not run the `clean` task if the server is already running in the same directory
 
+If this does not work because Java is running in headless mode, you can run the script for your operating system
+directly (set JAVA_HOME if you want to use a specific version of Java):
+
+```
+cd build/client
+./run.sh # in Linux, or run.bat in Windows, or run.command in Mac
+```
+
 The UI should appear in a few seconds. You can then run scripts in the server, in whatever languages are available
 in the server.
 
