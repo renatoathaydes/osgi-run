@@ -19,7 +19,7 @@ interpreters.
 
 In the project root folder, type:
 
-`gradlew clean runOsgi`
+`../gradlew clean runOsgi`
 
 You can verify the server is running by checking the automatically-generated WSDL file with your browser at:
 
@@ -29,7 +29,9 @@ You can verify the server is running by checking the automatically-generated WSD
 
 In the project root folder, type:
 
-`gradlew clean runOsgi -Dclient=true`
+`../gradlew runOsgi -Pclient`
+
+> Do not run the `clean` task if the server is already running in the same directory
 
 The UI should appear in a few seconds. You can then run scripts in the server, in whatever languages are available
 in the server.
@@ -37,7 +39,7 @@ in the server.
 **Notice this is a toy project to show how to use IPojo and D-OSGi work. It is not safe to run code in your server
 without sandboxing it first**.
 
-# Testing the server with SoapUI
+## Testing the server with SoapUI
 
 1. Open [SoapUI](http://soapui.org/downloads).
 2. Select *File > New SOAP Project*.
@@ -46,3 +48,16 @@ without sandboxing it first**.
 
 Now you just need to add new test steps to the auto-generated TestSuites/TestCases to make assertions
 to ensure the results you get from the server are correct.
+
+## Changing or checking the OSGi environment at run-time
+
+Apache Felix's Gogo bundles are installed in the OSGi environment so you can control/inspect the OSGi
+runtime from the command-line.
+
+To see the installed bundles, after starting the OSGi runtime, type:
+
+``ps``
+
+To see more commands, type:
+
+``help``
