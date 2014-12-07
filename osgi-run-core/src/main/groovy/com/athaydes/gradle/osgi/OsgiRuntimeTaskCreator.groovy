@@ -6,6 +6,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import java.util.regex.Pattern
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -28,6 +29,7 @@ class OsgiRuntimeTaskCreator {
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
+            createOSScriptFiles( target )
         }
     }
 
@@ -118,7 +120,8 @@ class OsgiRuntimeTaskCreator {
             case 'felix': return generateFelixConfigFile( osgiConfig )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
-                    'https://github.com/renatoathaydes/osgi-run/issues' )
+                    'https://github.com/renatoathaydes/osgi-run/issues\nInclude the following in your message:\n' +
+                    osgiConfig )
         }
     }
 
@@ -141,6 +144,43 @@ class OsgiRuntimeTaskCreator {
         map.inject( '' ) { acc, key, value ->
             "${acc}${key} = ${value}\n"
         }
+    }
+
+    private void createOSScriptFiles( String target ) {
+        def jars = ( target as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
+        assert jars, 'No main Jar found! Cannot create OSGi runtime.'
+
+        def mainJar = jars.find { it.name.contains( 'main' ) } ?: jars.first()
+
+        def linuxScript = """
+        |#!/bin/sh
+        |
+        |JAVA="java"
+        |
+        |# if JAVA_HOME exists, use it
+        |if [ "x\$JAVA_HOME" = "x" ]
+        |then
+        |  JAVA="\$JAVA_HOME/bin/java"
+        |fi
+        |
+        |"\$JAVA" -jar ${mainJar} "\$@"
+        |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
+
+        def windowsScript = """
+        |set JAVA="java"
+        |
+        |# if JAVA_HOME exists, use it
+        |if exists "%JAVA_HOME%" (
+        |  set JAVA="%JAVA_HOME%/bin/java"
+        |)
+        |
+        |"%JAVA%" -jar ${mainJar} %*
+        |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
+
+
+        new File( "$target/run.sh" ).write( linuxScript, 'utf-8' )
+        new File( "$target/run.command" ).write( linuxScript, 'utf-8' )
+        new File( "$target/run.bat" ).write( windowsScript, 'utf-8' )
     }
 
 }
