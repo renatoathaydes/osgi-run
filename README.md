@@ -18,7 +18,7 @@ buildscript {
     }
 }
 
-apply 'osgi-run'
+apply plugin: 'osgi-run'
 
 runOsgi {
   bundles += subprojects
