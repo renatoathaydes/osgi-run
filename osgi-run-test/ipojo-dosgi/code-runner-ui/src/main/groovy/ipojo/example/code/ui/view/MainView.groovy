@@ -32,7 +32,7 @@ class MainView {
 
         builder.edt {
             theFrame = frame( title: 'D-OSGi IPojo Demo', show: true,
-                    size: [ 400, 500 ], locationRelativeTo: null ) {
+                    size: [ 500, 500 ], locationRelativeTo: null ) {
                 vbox {
                     vstrut 10
                     def sourceArea = textArea( editable: true )
