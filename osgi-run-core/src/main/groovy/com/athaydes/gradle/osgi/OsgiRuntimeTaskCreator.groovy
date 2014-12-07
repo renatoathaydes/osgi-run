@@ -177,10 +177,16 @@ class OsgiRuntimeTaskCreator {
         |"%JAVA%" -jar ${mainJar} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
+        def writeToExecutable = { String fileName, String scriptText ->
+            def file = new File( "$target/$fileName" )
+            def ok = file.setExecutable( true )
+            if ( !ok ) log.warn( "No permission to make file $file executable. Please do it manually." )
+            file.write( scriptText, 'utf-8' )
+        }
 
-        new File( "$target/run.sh" ).write( linuxScript, 'utf-8' )
-        new File( "$target/run.command" ).write( linuxScript, 'utf-8' )
-        new File( "$target/run.bat" ).write( windowsScript, 'utf-8' )
+        writeToExecutable( "run.sh", linuxScript )
+        writeToExecutable( "run.command", linuxScript )
+        writeToExecutable( "run.bat", windowsScript )
     }
 
 }
