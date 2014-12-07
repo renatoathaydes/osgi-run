@@ -17,13 +17,17 @@ interpreters.
 
 ## Running the server
 
+In the project root folder, type:
+
 `gradlew clean runOsgi`
 
 You can verify the server is running by checking the automatically-generated WSDL file with your browser at:
 
-http://localhost:8080/coderunner?wsdl
+[http://localhost:8080/coderunner?wsdl](http://localhost:8080/coderunner?wsdl)
 
 ## Running the client
+
+In the project root folder, type:
 
 `gradlew clean runOsgi -Dclient=true`
 
