@@ -15,7 +15,23 @@ The server-side makes use of [CodeRunner](code-runner-api/src/main/java/ipojo/ex
 implementation services provided by local bundles (like groovy-2-3-3-runner) to provide particular language
 interpreters.
 
-## Running the server
+## Getting started
+
+To run this sample, clone the code with git:
+
+```
+git clone git@github.com:renatoathaydes/osgi-run.git
+```
+
+Enter this demo directory:
+
+```
+cd osgi-run-test/ipojo-dosgi
+```
+
+Follow the instructions below.
+
+### Running the server
 
 In the project root folder, type:
 
@@ -25,7 +41,7 @@ You can verify the server is running by checking the automatically-generated WSD
 
 [http://localhost:8080/coderunner?wsdl](http://localhost:8080/coderunner?wsdl)
 
-## Running the client
+### Running the client
 
 In the project root folder, type:
 
