@@ -18,7 +18,6 @@ include 'build-with-subprojects',
         'ipojo-dosgi',
         'ipojo-dosgi:code-runner-api',
         'ipojo-dosgi:code-runner-server',
-        'ipojo-dosgi:groovy-1-8-6-runner',
         'ipojo-dosgi:groovy-2-3-3-runner',
         'ipojo-dosgi:code-runner-ui'
 
