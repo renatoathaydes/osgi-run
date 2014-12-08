@@ -43,12 +43,12 @@ task updateVersion {
         throw new GradleException( "You must provide a newVersion like this: '-PnewVersion=1.0'" )
     }
     def workingDir = new File( '.' ).absoluteFile.parentFile
-    if (workingDir.name != project.name) {
-        throw new GradleException('This task must be run from the project root directory')
+    if ( workingDir.name != project.name ) {
+        throw new GradleException( 'This task must be run from the project root directory' )
     }
-    def affectedFiles = []
-    workingDir.parentFile.eachFileRecurse (FileType.FILES) { file ->
-        if (file.name == 'build.gradle') {
+    def affectedFiles = [ ]
+    workingDir.parentFile.eachFileRecurse( FileType.FILES ) { file ->
+        if ( file.name == 'build.gradle' ) {
             def txt = file.text
             if ( txt.contains( 'osgiRunVersion' ) ) {
                 affectedFiles << file
@@ -57,7 +57,7 @@ task updateVersion {
             }
         }
     }
-    println "Affected files:\n- ${affectedFiles.join('\n- ')}"
+    println "Affected files:\n- ${affectedFiles.join( '\n- ' )}"
 }
 
 /* Publishing config */
