@@ -63,6 +63,7 @@ For examples of using IPojo and Gradle, see the test projects:
 
 * [ipojo-example](osgi-run-test/ipojo-example) - annotation-based IPojo project
 * [ipojo-xml-example](osgi-run-test/ipojo-xml-example) - XML-configured IPojo project
+* [ipojo-dosgi](osgi-run-test/ipojo-dosgi) - Distributed OSGi with IPojo
 
 ## Tasks
 
