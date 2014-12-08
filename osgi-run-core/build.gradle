@@ -15,7 +15,7 @@ apply plugin: 'idea'
 
 sourceCompatibility = 1.7
 
-def osgiRunVersion = '1.1.1'
+def osgiRunVersion = '1.1'
 
 group = 'com.athaydes.gradle.osgi'
 version = osgiRunVersion

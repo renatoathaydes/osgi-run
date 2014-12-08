@@ -1,15 +1,18 @@
+// use osgi-run-core updateVersion task to update this
+def osgiRunVersion = '1.1'
+
 buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.1.1'
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: osgiRunVersion
         classpath group: 'com.athaydes.gradle.osgi', name: 'ipojo-plugin', version: '1.1'
     }
 }
 
 allprojects {
     group = 'com.athaydes.gradle.osgi'
-    version = '1.1.1'
+    version = osgiRunVersion
 }
