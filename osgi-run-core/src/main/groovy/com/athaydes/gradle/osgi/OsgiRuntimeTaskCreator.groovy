@@ -167,14 +167,16 @@ class OsgiRuntimeTaskCreator {
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
+        |@ECHO OFF
+        |
         |set JAVA="java"
         |
-        |# if JAVA_HOME exists, use it
-        |if exists "%JAVA_HOME%" (
+        |REM if JAVA_HOME exists, use it
+        |if exist "%JAVA_HOME%" (
         |  set JAVA="%JAVA_HOME%/bin/java"
         |)
         |
-        |"%JAVA%" -jar ${mainJar} %*
+        |%JAVA% -jar ${mainJar} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
