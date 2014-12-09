@@ -2,8 +2,15 @@ package com.athaydes.gradle.osgi
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+
+import java.util.regex.Pattern
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
+import static java.util.Collections.emptyList
 
 /**
  *
@@ -21,7 +28,8 @@ class OsgiRuntimeTaskCreator {
             copyBundles( project, "${target}/${osgiConfig.bundlesPath}" )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
-            copyConfigFiles( project, target, osgiConfig )
+            copyConfigFiles( target, osgiConfig )
+            createOSScriptFiles( target )
         }
     }
 
@@ -41,25 +49,51 @@ class OsgiRuntimeTaskCreator {
     }
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        osgiConfig.bundles.flatten().each {
-            project.dependencies.add( 'osgiRuntime', it )
+        def allBundles = osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+        project.configurations { c ->
+            // create individual configurations for each dependency so that version conflicts need not be resolved
+            allBundles.size().times { i -> c."__osgiRuntime$i" }
+        }
+        allBundles.eachWithIndex { Object bundle, i ->
+            def depConfig = ( bundle instanceof Dependency ) ? {} : { transitive = bundle instanceof Project }
+            project.dependencies.add( "__osgiRuntime$i", bundle, depConfig )
         }
     }
 
     private void copyBundles( Project project, String bundlesDir ) {
         project.copy {
-            from project.configurations.osgiRuntime
+            from project.configurations.findAll { it.name.startsWith( '__osgiRuntime' ) }
             into bundlesDir
+        }
+        nonBundles( new File( bundlesDir ).listFiles() ).each {
+            log.info "Removing non-bundle from classpath: ${it.name}"
+            assert it.delete()
         }
     }
 
-    private void copyConfigFiles( Project project, String target, OsgiConfig osgiConfig ) {
+    private Collection<File> nonBundles( File[] files ) {
+        if ( !files ) return emptyList()
+        def notBundle = { File file ->
+            def zip = new ZipFile( file )
+            try {
+                ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
+                if ( !entry ) return true
+                def lines = zip.getInputStream( entry ).readLines()
+                return !lines.any { it.trim().startsWith( 'Bundle' ) }
+            } finally {
+                zip.close()
+            }
+        }
+        files.findAll( notBundle )
+    }
+
+    private void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
         if ( !configFile ) return;
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }
-        configFile << textForConfigFile( project, target, osgiConfig )
+        configFile.write( scapeSlashes( textForConfigFile( target, osgiConfig ) ), 'UTF-8' )
     }
 
     private File getConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -77,26 +111,84 @@ class OsgiRuntimeTaskCreator {
                 "${project.buildDir}/${osgiConfig.outDir}"
     }
 
-    private String textForConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
+    private String scapeSlashes( String string ) {
+        string.replace( '\\', '\\\\' )
+    }
+
+    private String textForConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
-            case 'felix': return this.class.getResource( '/conf/config.properties' ).text
-            case 'equinox': return generateEquinoxConfigFile( project, target, osgiConfig )
+            case 'felix': return generateFelixConfigFile( osgiConfig )
+            case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
-                    'https://github.com/renatoathaydes/osgi-run/issues' )
+                    'https://github.com/renatoathaydes/osgi-run/issues\nInclude the following in your message:\n' +
+                    osgiConfig )
         }
     }
 
-    private String generateEquinoxConfigFile( Project project, String target, OsgiConfig osgiConfig ) {
+    private String generateFelixConfigFile( OsgiConfig osgiConfig ) {
+        map2properties osgiConfig.config
+    }
+
+    private String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
         if ( !bundlesDir.exists() ) {
             bundlesDir.mkdirs()
         }
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
-        """eclipse.ignoreApp=true
-           |osgi.noShutdown=true
-           |osgi.bundles=${bundleJars.collect { it + '@start' }.join( ',' )}
-           |""".stripMargin()
+        map2properties( osgiConfig.config +
+                [ 'osgi.bundles': bundleJars.collect { it + '@start' }.join( ',' ) ] )
+    }
+
+    private String map2properties( Map map ) {
+        map.inject( '' ) { acc, key, value ->
+            "${acc}${key} = ${value}\n"
+        }
+    }
+
+    private void createOSScriptFiles( String target ) {
+        def jars = ( target as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
+        assert jars, 'No main Jar found! Cannot create OSGi runtime.'
+
+        def mainJar = jars.find { it.name.contains( 'main' ) } ?: jars.first()
+
+        def linuxScript = """
+        |#!/bin/sh
+        |
+        |JAVA="java"
+        |
+        |# if JAVA_HOME exists, use it
+        |if [ "x\$JAVA_HOME" = "x" ]
+        |then
+        |  JAVA="\$JAVA_HOME/bin/java"
+        |fi
+        |
+        |"\$JAVA" -jar ${mainJar} "\$@"
+        |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
+
+        def windowsScript = """
+        |@ECHO OFF
+        |
+        |set JAVA="java"
+        |
+        |REM if JAVA_HOME exists, use it
+        |if exist "%JAVA_HOME%" (
+        |  set JAVA="%JAVA_HOME%/bin/java"
+        |)
+        |
+        |%JAVA% -jar ${mainJar} %*
+        |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
+
+        def writeToExecutable = { String fileName, String scriptText ->
+            def file = new File( "$target/$fileName" )
+            def ok = file.setExecutable( true )
+            if ( !ok ) log.warn( "No permission to make file $file executable. Please do it manually." )
+            file.write( scriptText, 'utf-8' )
+        }
+
+        writeToExecutable( "run.sh", linuxScript )
+        writeToExecutable( "run.command", linuxScript )
+        writeToExecutable( "run.bat", windowsScript )
     }
 
 }

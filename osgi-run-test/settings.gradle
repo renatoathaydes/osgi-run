@@ -14,5 +14,12 @@ include 'build-with-subprojects',
         'ipojo-xml-example',
         'ipojo-xml-example:hello-service',
         'ipojo-xml-example:hello-client',
-        'ipojo-xml-example:hello-impl'
+        'ipojo-xml-example:hello-impl',
+        'ipojo-dosgi',
+        'ipojo-dosgi:code-runner-api',
+        'ipojo-dosgi:code-runner-server',
+        'ipojo-dosgi:groovy-2-3-3-runner',
+        'ipojo-dosgi:javascript-runner',
+        'ipojo-dosgi:code-runner-ui'
+
 

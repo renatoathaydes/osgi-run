@@ -30,7 +30,7 @@ class IPojoPluginTest {
     @Test
     void pluginCreatesIPojoExtension() {
         def project = ProjectBuilder.builder().build()
-        project.apply plugin: 'ipojo'
+        project.apply plugin: IPojoPlugin
         assert project.extensions.ipojo instanceof IPojoConfig
     }
 
