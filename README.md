@@ -33,13 +33,15 @@ gradle runOsgi
 
 This will create and run the OSGi environment during the Gradle build.
 
-Alternatively, you can just create the OSGi environment to run it later:
+Alternatively, you can just create the OSGi environment, then run it later using the run scripts created by osgi-run:
 
 ```
 gradle createOsgiRuntime
 ```
 
-To inspect and run the OSGi environment that was created, go to the output directory, which by default is `build/osgi`.
+This will create an OSGi environment in the output directory, which by default is `build/osgi`.
+
+To run it:
 
 ```
 cd build/osgi
@@ -49,9 +51,11 @@ chmod +x run.sh  # may be necessary in Linux
 
 Once the framework starts, type ``lb`` (or ``ps``) to see all bundles installed and running.
 To see a list of commands available, type ``help``.
-Stop the OSGi framework by typing ``exit`` or pressing `Ctrl+C`.
+Stop the OSGi framework by typing ``exit``, ``stop 0`` (stops the system bundle) or pressing `Ctrl+C`.
 
-For complete examples, see below or go straight to the samples in [osgi-run-test](osgi-run-test/).
+Notice that you can include any artifact, such as Maven dependencies, in your bundle environment.
+
+For complete examples, see several examples further below or go straight to the samples in [osgi-run-test](osgi-run-test/).
 
 ### IPojo Plugin
 
