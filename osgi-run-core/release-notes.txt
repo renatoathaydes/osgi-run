@@ -1,0 +1,13 @@
+* 1.2 - 2015-June-10
+
+This release makes paths to files relative so that the whole OSGi environment
+may be moved to a new location and still run just fine.
+
+- made paths in equinox config file relative
+- javaArgs included in OS-specific scripts
+- made path to runnable jar relative to OS-specific scripts
+- better handling of JAVA_HOME in OS-specific scripts
+
+* 1.1 - 2014-Dec-09
+
+- First stable release
