@@ -29,7 +29,7 @@ class OsgiRuntimeTaskCreator {
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
-            createOSScriptFiles( target )
+            createOSScriptFiles( target, osgiConfig )
         }
     }
 
@@ -146,7 +146,7 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void createOSScriptFiles( String target ) {
+    private void createOSScriptFiles( String target, OsgiConfig osgiConfig ) {
         def jars = ( target as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
         assert jars, 'No main Jar found! Cannot create OSGi runtime.'
 
@@ -163,7 +163,7 @@ class OsgiRuntimeTaskCreator {
         |  JAVA="\$JAVA_HOME/bin/java"
         |fi
         |
-        |"\$JAVA" -jar ${mainJar.name} "\$@"
+        |"\$JAVA" -jar ${mainJar.name} ${osgiConfig.javaArgs} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
@@ -176,7 +176,7 @@ class OsgiRuntimeTaskCreator {
         |  set JAVA="%JAVA_HOME%/bin/java"
         |)
         |
-        |%JAVA% -jar ${mainJar} %*
+        |%JAVA% -jar ${mainJar} ${osgiConfig.javaArgs} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
