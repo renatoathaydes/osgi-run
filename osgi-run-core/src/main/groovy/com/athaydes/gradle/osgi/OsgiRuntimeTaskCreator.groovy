@@ -137,7 +137,7 @@ class OsgiRuntimeTaskCreator {
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
         map2properties( osgiConfig.config +
-                [ 'osgi.bundles': bundleJars.collect { it.replace(target,'.') + '@start' }.join( ',' ) ] )
+                [ 'osgi.bundles': bundleJars.collect { it.replace( target, '.' ) + '@start' }.join( ',' ) ] )
     }
 
     private String map2properties( Map map ) {
@@ -163,7 +163,7 @@ class OsgiRuntimeTaskCreator {
         |  JAVA="\$JAVA_HOME/bin/java"
         |fi
         |
-        |"\$JAVA" -jar ${mainJar} "\$@"
+        |"\$JAVA" -jar ${mainJar.name} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
