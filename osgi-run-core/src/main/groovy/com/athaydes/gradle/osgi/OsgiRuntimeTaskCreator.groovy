@@ -152,15 +152,19 @@ class OsgiRuntimeTaskCreator {
 
         def mainJar = jars.find { it.name.contains( 'main' ) } ?: jars.first()
 
-        def linuxScript = """
-        |#!/bin/sh
+        def linuxScript = """|#!/bin/sh
         |
         |JAVA="java"
         |
         |# if JAVA_HOME exists, use it
-        |if [ "x\$JAVA_HOME" = "x" ]
+        |if [ -x "\$JAVA_HOME/bin/java" ]
         |then
         |  JAVA="\$JAVA_HOME/bin/java"
+        |else
+        |  if [ -x "\$JAVA_HOME/jre/bin/java" ]
+        |  then
+        |    JAVA="\$JAVA_HOME/jre/bin/java"
+        |  fi
         |fi
         |
         |"\$JAVA" -jar ${mainJar.name} ${osgiConfig.javaArgs} "\$@"
@@ -172,8 +176,12 @@ class OsgiRuntimeTaskCreator {
         |set JAVA="java"
         |
         |REM if JAVA_HOME exists, use it
-        |if exist "%JAVA_HOME%" (
+        |if exist "%JAVA_HOME%/bin/java" (
         |  set JAVA="%JAVA_HOME%/bin/java"
+        |) else (
+        |  if exist "%JAVA_HOME%/jre/bin/java" (
+        |    set JAVA="%JAVA_HOME%/jre/bin/java"
+        |  )
         |)
         |
         |%JAVA% -jar ${mainJar} ${osgiConfig.javaArgs} %*
