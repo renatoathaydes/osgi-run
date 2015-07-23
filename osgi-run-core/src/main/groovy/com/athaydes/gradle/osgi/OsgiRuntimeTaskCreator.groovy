@@ -87,6 +87,18 @@ class OsgiRuntimeTaskCreator {
         files.findAll( notBundle )
     }
 
+    private static boolean isFragment( file ) {
+        def zip = new ZipFile( file as File )
+        try {
+            ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
+            if ( !entry ) return true
+            def lines = zip.getInputStream( entry ).readLines()
+            return lines.any { it.trim().startsWith( 'Fragment-Host' ) }
+        } finally {
+            zip.close()
+        }
+    }
+
     private void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
         if ( !configFile ) return;
@@ -137,7 +149,11 @@ class OsgiRuntimeTaskCreator {
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
         map2properties( osgiConfig.config +
-                [ 'osgi.bundles': bundleJars.collect { it.replace( target, '.' ) + '@start' }.join( ',' ) ] )
+                [ 'osgi.bundles': bundleJars.collect { equinoxBundleDirective( it, target ) }.join( ',' ) ] )
+    }
+
+    private static String equinoxBundleDirective( String bundleJar, String target ) {
+        bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
     }
 
     private String map2properties( Map map ) {
