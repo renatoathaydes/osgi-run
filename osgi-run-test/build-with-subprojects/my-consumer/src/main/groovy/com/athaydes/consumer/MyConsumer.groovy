@@ -13,13 +13,15 @@ import org.osgi.framework.ServiceReference
  */
 class MyConsumer implements BundleActivator {
 
+    protected volatile ServiceReference _serviceReference
+
     @Override
     void start( BundleContext context ) throws Exception {
         println "Started MyConsumer"
         def ref = context.getServiceReference( MyService )
         println "Got service ref $ref"
         if ( ref ) {
-            printServiceMessage ref
+            printServiceMessage context, ref
         } else {
             // if the service is not there yet, let's listen for when it gets registered
             def serviceFilter = "(objectclass=${MyService.name})"
@@ -36,10 +38,17 @@ class MyConsumer implements BundleActivator {
     @Override
     void stop( BundleContext context ) throws Exception {
         println "Stopped MyConsumer"
+        final ref = _serviceReference // protect against another Thread modifying the variable
+        if ( ref ) {
+            context.ungetService( ref )
+        }
     }
 
     void printServiceMessage( BundleContext context, ServiceReference<MyService> serviceReference ) {
         def service = context.getService( serviceReference )
         println "Got service with message: ${service.message()}"
+
+        // remember service ref so we can unget it later
+        _serviceReference = serviceReference
     }
 }
