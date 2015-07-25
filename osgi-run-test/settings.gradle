@@ -20,6 +20,7 @@ include 'build-with-subprojects',
         'ipojo-dosgi:code-runner-server',
         'ipojo-dosgi:groovy-2-3-3-runner',
         'ipojo-dosgi:javascript-runner',
-        'ipojo-dosgi:code-runner-ui'
-
-
+        'ipojo-dosgi:code-runner-ui',
+        'bundle-with-fragment',
+        'bundle-with-fragment:example-host-bundle',
+        'bundle-with-fragment:example-fragment'
