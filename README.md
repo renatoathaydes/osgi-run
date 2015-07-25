@@ -14,7 +14,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.2"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.2.1"
     }
 }
 

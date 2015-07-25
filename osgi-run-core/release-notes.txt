@@ -1,3 +1,9 @@
+* 1.2.1 - 2015-July-25
+
+- fixed #11 - do not tell Equinox to start fragment bundles
+- Added new example of how to use fragment bundles (running on Equinox)
+- Improved existing build-with-subprojects example, fixing #12
+
 * 1.2 - 2015-June-10
 
 This release makes paths to files relative so that the whole OSGi environment
