@@ -1,0 +1,11 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+        instruction 'Fragment-Host',
+                'com.athaydes.gradle.osgi.example-host-bundle;' +
+                        'bundle-version=' + version
+    }
+}

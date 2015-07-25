@@ -4,10 +4,12 @@ apply plugin: 'osgi'
 jar {
     manifest {
         instruction 'Export-Package', ''
+        instruction 'Bundle-Activator', 'com.athaydes.myimpl.MyImplActivator'
     }
 }
 
 dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.1'
+    compile group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
     compile project( ':build-with-subprojects:my-api' )
 }

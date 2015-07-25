@@ -1,0 +1,13 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+        instruction 'Bundle-Activator', 'com.athaydes.osgi.host.HostBundleActivator'
+    }
+}
+
+dependencies {
+    compile group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
+}
