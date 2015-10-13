@@ -42,7 +42,10 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     def OsgiConfig createExtensions( Project project ) {
-        project.extensions.create( 'runOsgi', OsgiConfig )
+        def osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
+        osgiConfig.extensions.create(
+                'wrapInstructions', WrapInstructionsConfig )
+        return osgiConfig
     }
 
     void createConfigurations( Project project ) {
@@ -60,6 +63,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
         return {
+            log.info( "Jar wrap instructions: {}", osgiConfig.wrapInstructions )
             osgiRunner.run( project, osgiConfig )
         }
     }

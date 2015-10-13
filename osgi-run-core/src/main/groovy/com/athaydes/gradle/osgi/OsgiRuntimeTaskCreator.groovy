@@ -1,19 +1,22 @@
 package com.athaydes.gradle.osgi
 
+import aQute.bnd.osgi.Analyzer
+import aQute.bnd.osgi.Jar
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import java.util.jar.Manifest
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-
-import static java.util.Collections.emptyList
+import java.util.zip.ZipOutputStream
 
 /**
- *
+ * Creates the osgiRun task
  */
 class OsgiRuntimeTaskCreator {
 
@@ -25,7 +28,8 @@ class OsgiRuntimeTaskCreator {
             osgiConfig.outDirFile = target as File
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
-            copyBundles( project, "${target}/${osgiConfig.bundlesPath}" )
+            copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
+                    osgiConfig.wrapInstructions as WrapInstructionsConfig )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -33,7 +37,7 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void configMainDeps( Project project, OsgiConfig osgiConfig ) {
+    private static void configMainDeps( Project project, OsgiConfig osgiConfig ) {
         def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
         if ( !hasOsgiMainDeps ) {
             assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
@@ -60,31 +64,146 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyBundles( Project project, String bundlesDir ) {
+    private void copyBundles( Project project, String bundlesDir,
+                              WrapInstructionsConfig wrapInstructions ) {
+        def nonBundles = [ ] as Set
         project.copy {
+            //noinspection GrUnresolvedAccess
+            //noinspection GroovyAssignabilityCheck
             from project.configurations.findAll { it.name.startsWith( '__osgiRuntime' ) }
             into bundlesDir
+            exclude { FileTreeElement element ->
+                def nonBundle = notBundle( element.file )
+                if ( nonBundle ) nonBundles << element.file
+                return nonBundle
+            }
         }
-        nonBundles( new File( bundlesDir ).listFiles() ).each {
-            log.info "Removing non-bundle from classpath: ${it.name}"
-            assert it.delete()
+
+        if ( wrapInstructions.enabled ) {
+            nonBundles.each { File file ->
+                try {
+                    wrapNonBundle( file, bundlesDir, wrapInstructions )
+                } catch ( e ) {
+                    log.warn( "Unable to wrap ${file.name}", e )
+                }
+            }
+        } else if ( nonBundles ) {
+            log.info "The following jars were kept out of the classpath " +
+                    "as they are not bundles (enable wrapping if they are needed): {}", nonBundles
         }
     }
 
-    private Collection<File> nonBundles( File[] files ) {
-        if ( !files ) return emptyList()
-        def notBundle = { File file ->
-            def zip = new ZipFile( file )
-            try {
-                ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
-                if ( !entry ) return true
-                def lines = zip.getInputStream( entry ).readLines()
-                return !lines.any { it.trim().startsWith( 'Bundle' ) }
-            } finally {
-                zip.close()
-            }
+    private static boolean notBundle( File file ) {
+        def zip = new ZipFile( file )
+        try {
+            ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
+            if ( !entry ) return true
+            def lines = zip.getInputStream( entry ).readLines()
+            return !lines.any { it.trim().startsWith( 'Bundle' ) }
+        } finally {
+            zip.close()
         }
-        files.findAll( notBundle )
+    }
+
+    private static void wrapNonBundle( File jarFile, String bundlesDir,
+                                       WrapInstructionsConfig wrapInstructions ) {
+        log.info "Wrapping non-bundle: {}", jarFile.name
+
+        def newJar = new Jar( jarFile )
+        def currentManifest = newJar.manifest
+
+        Map<Object, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
+
+        if ( !config ) {
+            log.info "No instructions provided to wrap bundle {}, will use defaults", jarFile.name
+        }
+
+        String implVersion = config.remove( 'Bundle-Version' ) ?:
+                currentManifest.mainAttributes.getValue( 'Implementation-Version' ) ?:
+                        versionFromFileName( jarFile.name )
+
+        String implTitle = config.remove( 'Bundle-SymbolicName' ) ?:
+                currentManifest.mainAttributes.getValue( 'Implementation-Title' ) ?:
+                        titleFromFileName( jarFile.name )
+
+        String imports = config.remove( 'Import-Package' )?.join( ',' ) ?: '*'
+        String exports = config.remove( 'Export-Package' )?.join( ',' ) ?: '*'
+
+        def analyzer = new Analyzer().with {
+            jar = newJar
+            bundleVersion = implVersion
+            bundleSymbolicName = implTitle
+            importPackage = imports
+            exportPackage = exports
+            config.each { k, v -> it.setProperty( k as String, v.join( ',' ) ) }
+            return it
+        }
+
+        Manifest manifest = analyzer.calcManifest()
+
+        def bundle = new ZipOutputStream( new File( "$bundlesDir/${jarFile.name}" ).newOutputStream() )
+        def input = new ZipFile( jarFile )
+        try {
+            for ( entry in input.entries() ) {
+                if ( entry.name == 'META-INF/MANIFEST.MF' ) {
+                    bundle.putNextEntry( new ZipEntry( entry.name ) )
+                    manifest.write( bundle )
+                } else {
+                    bundle.putNextEntry( entry )
+                    bundle.write( input.getInputStream( entry ).bytes )
+                }
+            }
+        } finally {
+            bundle.close()
+            input.close()
+        }
+    }
+
+    private static Map getWrapConfig( WrapInstructionsConfig wrapInstructions, File jarFile ) {
+        Map config = wrapInstructions.manifests.find { regx, _ ->
+            try {
+                jarFile.name ==~ regx
+            } catch ( e ) {
+                log.warn( 'Invalid regex in wrapInstructions Map: {}', e as String )
+                return false
+            }
+        }?.value
+
+        config ?: [ : ]
+    }
+
+    static String removeExtensionFrom( String name ) {
+        def dot = name.lastIndexOf( '.' )
+        if ( dot > 0 ) { // exclude extension
+            return name[ 0..<dot ]
+        }
+        return name
+    }
+
+    static String versionFromFileName( String name ) {
+        name = removeExtensionFrom( name )
+        def digitsAfterDash = name.find( /\-\d+.*/ )
+        if ( digitsAfterDash ) {
+            return digitsAfterDash[ 1..-1 ] // without the dash
+        }
+        def digit = name.findIndexOf { it.number }
+        if ( digit > 0 ) {
+            return name[ digit..-1 ]
+        }
+        '1.0.0'
+    }
+
+    static String titleFromFileName( String name ) {
+        name = removeExtensionFrom( name )
+        def digitsAfterDash = name.find( /\-\d+.*/ )
+        if ( digitsAfterDash ) {
+            return name - digitsAfterDash
+        }
+        def digit = name.findIndexOf { it.number }
+        if ( digit > 0 ) {
+            return name[ 0..<digit ]
+        }
+        name
     }
 
     private static boolean isFragment( file ) {
@@ -156,6 +275,7 @@ class OsgiRuntimeTaskCreator {
         bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
     }
 
+    @SuppressWarnings( "GroovyAssignabilityCheck" )
     private String map2properties( Map map ) {
         map.inject( '' ) { acc, key, value ->
             "${acc}${key} = ${value}\n"
