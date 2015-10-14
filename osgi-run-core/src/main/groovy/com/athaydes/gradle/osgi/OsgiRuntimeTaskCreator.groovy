@@ -186,7 +186,7 @@ class OsgiRuntimeTaskCreator {
         if ( digitsAfterDash ) {
             return digitsAfterDash[ 1..-1 ] // without the dash
         }
-        def digit = name.findIndexOf { it.number }
+        int digit = name.findIndexOf { it.number }
         if ( digit > 0 ) {
             return name[ digit..-1 ]
         }
@@ -199,7 +199,7 @@ class OsgiRuntimeTaskCreator {
         if ( digitsAfterDash ) {
             return name - digitsAfterDash
         }
-        def digit = name.findIndexOf { it.number }
+        int digit = name.findIndexOf { it.number }
         if ( digit > 0 ) {
             return name[ 0..<digit ]
         }
@@ -331,7 +331,6 @@ class OsgiRuntimeTaskCreator {
         }
 
         writeToExecutable( "run.sh", linuxScript )
-        writeToExecutable( "run.command", linuxScript )
         writeToExecutable( "run.bat", windowsScript )
     }
 
