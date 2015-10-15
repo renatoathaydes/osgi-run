@@ -13,6 +13,7 @@ class WrapInstructionsConfig {
     static final Logger log = Logging.getLogger( WrapInstructionsConfig )
 
     boolean enabled = true
+    boolean printManifests = false
     Map<Object, Map> manifests = [ : ]
 
     def manifest( regx, Closure config ) {

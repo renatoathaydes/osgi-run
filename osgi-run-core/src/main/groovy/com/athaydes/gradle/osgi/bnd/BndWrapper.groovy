@@ -54,6 +54,12 @@ class BndWrapper {
 
         Manifest manifest = analyzer.calcManifest()
 
+        if ( wrapInstructions.printManifests ) {
+            println " Manifest for ${jarFile.name} ".center( 100, '-' )
+            manifest.write( System.out )
+            println '-' * 100
+        }
+
         def bundle = new ZipOutputStream( new File( "$bundlesDir/${jarFile.name}" ).newOutputStream() )
         def input = new ZipFile( jarFile )
         try {
@@ -75,7 +81,9 @@ class BndWrapper {
     private static Map getWrapConfig( WrapInstructionsConfig wrapInstructions, File jarFile ) {
         Map config = wrapInstructions.manifests.find { regx, _ ->
             try {
-                jarFile.name ==~ regx
+                def match = jarFile.name ==~ regx
+                if ( match ) log.debug( 'Regex {} matched jar file {}', regx, jarFile.name )
+                return match
             } catch ( e ) {
                 log.warn( 'Invalid regex in wrapInstructions Map: {}', e as String )
                 return false
