@@ -8,7 +8,6 @@ repositories {
 dependencies {
     compile 'org.osgi:org.osgi.core:4.3.1'
     compile 'org.apache.pdfbox:pdfbox:1.8.6'
-    osgiRuntime 'commons-logging:commons-logging:1.2'
 }
 
 jar {
@@ -20,4 +19,10 @@ jar {
 
 runOsgi {
     bundles += project
+
+    wrapInstructions {
+        manifest( /commons-logging.*/ ) {
+            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+        }
+    }
 }

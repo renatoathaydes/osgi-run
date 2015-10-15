@@ -173,7 +173,7 @@ The best way to understand how you can configure your OSGi runtime is through ex
 
 Let's have a look at some common use-cases:
 
-#### Use the Gradle project itself as a bundle
+#### Use your Gradle project itself as a bundle
 
 ```groovy
 runOsgi {
@@ -220,7 +220,7 @@ Notice that the above configuration is equivalent to setting ``osgiConfig.bundle
 
 ##### Solving *unresolved constraint* errors
 
-###### Including Apache Commons Logging into your OSGi environment
+###### Including Apache Commons Logging 1.1.1 into your OSGi environment
 
 As another example, suppose you want to run the  [PDF Box library](http://pdfbox.apache.org) in an OSGi environment.
 That seems pretty easy, as PDF Box jars are already OSGi bundles!
@@ -232,29 +232,84 @@ dependencies {
 }
 ```
 
-However, when you do ``gradle clean runOsgi``, you will find out it requires Apache Commons Logging at run-time:
+However, when you do ``gradle clean runOsgi``, you will find out it requires Apache Commons Logging at run-time
+(which will be automatically wrapped as a bundle by `run-osgi`), but this jar itself requires other things:
 
 ```
-(org.osgi.framework.BundleException: Unresolved constraint in bundle org.apache.pdfbox.fontbox [3]:
-  Unable to resolve 3.0: missing requirement [3.0] osgi.wiring.package; (osgi.wiring.package=org.apache.commons.logging))
+(org.osgi.framework.BundleException: Unresolved constraint in bundle org.apache.pdfbox.fontbox [2]: 
+  Unable to resolve 2.0: missing requirement [2.0] osgi.wiring.package; 
+  (osgi.wiring.package=org.apache.commons.logging) 
+  [caused by: Unable to resolve 1.0: missing requirement [1.0] osgi.wiring.package;
+  (osgi.wiring.package=javax.servlet)])
 ```
 
-Luckily, that's easy to fix! Just add Commons Logging to the OSGi runtime:
+To understand why `osgi-run` could not figure out we needed not only commons-logging, but also some bundle to
+provide `javax.servlet`, let's ask Gradle to show us the dependencies of our module:
+
+```
+compile - Compile classpath for source set 'main'.
++--- org.osgi:org.osgi.core:4.3.1
+\--- org.apache.pdfbox:pdfbox:1.8.6
+     +--- org.apache.pdfbox:fontbox:1.8.6
+     |    \--- commons-logging:commons-logging:1.1.1
+     +--- org.apache.pdfbox:jempbox:1.8.6
+     \--- commons-logging:commons-logging:1.1.1
+```
+
+As you can see, it looks as if the commons-logging dependency had no dependencies at all. So `osgi-run`
+has no way of knowing there are other needs for commons-logging to work.
+
+Inspecting the POM file of commons-logging reveals what's going on... it declares several optional dependencies:
+
+```xml
+<dependency>
+  <groupId>log4j</groupId>
+  <artifactId>log4j</artifactId>
+  <version>1.2.12</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>logkit</groupId>
+  <artifactId>logkit</artifactId>
+  <version>1.0.1</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>avalon-framework</groupId>
+  <artifactId>avalon-framework</artifactId>
+  <version>4.1.3</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>javax.servlet</groupId>
+  <artifactId>servlet-api</artifactId>
+  <version>2.3</version>
+  <scope>provided</scope>
+  <optional>true</optional>
+</dependency>
+```
+
+So this is one case where we need to add a little meta-data by hand.
+
+But that's easy, knowing that we probably won't be needing servlets or the Avalon Framework and the other Apache
+dependencies, we can simply tell `osgi-run` that these packages should not be imported at all:
 
 ```groovy
-dependencies {
-    compile 'org.apache.pdfbox:pdfbox:1.8.6'
-    osgiRuntime 'commons-logging:commons-logging:1.2'
+runOsgi {
+    bundles += project
+
+    wrapInstructions {
+        manifest( /commons-logging.*/ ) {
+            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+        }
+    }
 }
 ```
 
-You might notice that Commons Logging is NOT an OSGi bundle.
+The wrap instruction tells `run-osgi` (which itself uses [Bnd](http://www.aqute.biz/Bnd)) that the commons-logging 
+bundle should not import the packages `javax.servlet` and `org.apache.*` when wrapped into an OSGi bundle. 
 
-Still, this works just fine (and you can actually try yourself in the [Installing non-bundles demo](osgi-run-test/installing-non-bundles))
-because non-bundle jars will be wrapped into OSGi bundles automatically.
-
-If you have experience with OSGi you might have thought that it could be difficult to use Commons Logging in OSGi.
-Well, no more!
+A working project demonstrating this can be found in the [Installing non-bundles demo](osgi-run-test/installing-non-bundles)).
 
 ###### Using Groovy's SwingBuilder inside an OSGi environment
 
