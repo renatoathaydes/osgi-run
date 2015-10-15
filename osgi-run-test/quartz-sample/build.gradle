@@ -36,11 +36,18 @@ jar {
     }
 }
 
+// copy manifest to location where the IDE can use it to let us know when we breach OSGi restrictions!
+task copyManifest( dependsOn: jar ) {
+    jar.manifest.writeTo( "$projectDir/generated-sources/MANIFEST.MF" )
+}
+
+createOsgiRuntime.dependsOn copyManifest
+
 runOsgi {
     bundles += project
-    //configSettings = 'equinox'
-    //javaArgs = '-console'
+
     wrapInstructions {
+        // use regex to match file name of dependency
         manifest( "c3p0.*" ) {
             // import everything except the log4j package - should not be needed
             instruction 'Import-Package', '!org.apache.log4j', '*'
