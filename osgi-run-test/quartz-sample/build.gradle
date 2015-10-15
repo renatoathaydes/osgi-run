@@ -1,0 +1,52 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.2.1'
+        classpath group: 'com.athaydes.gradle.osgi', name: 'ipojo-plugin', version: '1.1'
+    }
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+apply plugin: 'java'
+apply plugin: 'osgi-run'
+
+
+dependencies {
+    compile 'org.osgi:org.osgi.core:4.3.1'
+    compile "org.quartz-scheduler:quartz:2.2.1"
+
+    // required as Quartz uses slf4j-api
+    osgiRuntime 'org.slf4j:slf4j-simple:1.6.6'
+
+    // un-comment if log4j gets actually used by the Quartz bundle
+    //osgiRuntime "org.slf4j:log4j-over-slf4j:1.7.5"
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+        instruction 'Bundle-Activator', 'com.athaydes.osgi.quartz.JobStarter'
+    }
+}
+
+runOsgi {
+    bundles += project
+    //configSettings = 'equinox'
+    //javaArgs = '-console'
+    wrapInstructions {
+        manifest( "c3p0.*" ) {
+            // import everything except the log4j package - should not be needed
+            instruction 'Import-Package', '!org.apache.log4j', '*'
+            instruction 'Bundle-Description', 'c3p0 is an easy-to-use library for making traditional ' +
+                    'JDBC drivers "enterprise-ready" by augmenting them with functionality defined by ' +
+                    'the jdbc3 spec and the optional extensions to jdbc2.'
+        }
+    }
+}
