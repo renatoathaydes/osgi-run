@@ -21,6 +21,7 @@ runOsgi {
     bundles += project
 
     wrapInstructions {
+        printManifests = true
         manifest( /commons-logging.*/ ) {
             instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
         }
