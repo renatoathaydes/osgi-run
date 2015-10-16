@@ -34,14 +34,10 @@ jar {
         instruction 'Export-Package', ''
         instruction 'Bundle-Activator', 'com.athaydes.osgi.quartz.JobStarter'
     }
+}.doLast {
+    // copy manifest to location where the IDE can use it to let us know when we breach OSGi restrictions!
+    jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
 }
-
-// copy manifest to location where the IDE can use it to let us know when we breach OSGi restrictions!
-task copyManifest( dependsOn: jar ) {
-    jar.manifest.writeTo( "$projectDir/generated-sources/MANIFEST.MF" )
-}
-
-createOsgiRuntime.dependsOn copyManifest
 
 runOsgi {
     bundles += project
