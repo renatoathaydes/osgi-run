@@ -28,11 +28,12 @@ class OsgiRunPlugin implements Plugin<Project> {
         Task createOsgiRuntimeTask = project.task(
                 group: 'Build',
                 description:
-                'Creates an OSGi environment which can then be started manually or with task runOsgi',
-                'createOsgiRuntime' ) <<
-                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig )
+                'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
+                'createOsgiRuntime' )
+        createOsgiRuntimeTask <<
+                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
         project.task(
-                dependsOn: 'createOsgiRuntime',
+                dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
                 'Runs the OSGi environment, installing and starting the configured bundles',

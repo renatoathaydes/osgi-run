@@ -3,11 +3,13 @@ package com.athaydes.gradle.osgi
 import com.athaydes.gradle.osgi.bnd.BndWrapper
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.bundling.Jar
 
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
@@ -21,10 +23,12 @@ class OsgiRuntimeTaskCreator {
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
     static final String OSGI_DEP_PREFIX = '__osgiRuntime'
 
-    Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig ) {
+    Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
+        String target = getTarget( project, osgiConfig )
+        setTaskInsAndOuts( project, task, target )
+        osgiConfig.outDirFile = target as File
+
         return {
-            String target = getTarget( project, osgiConfig )
-            osgiConfig.outDirFile = target as File
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
             copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
@@ -33,6 +37,13 @@ class OsgiRuntimeTaskCreator {
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
             createOSScriptFiles( target, osgiConfig )
+        }
+    }
+
+    private static setTaskInsAndOuts( Project project, Task task, String target ) {
+        task.outputs.dir( target )
+        project.tasks.withType( Jar ) { Jar jar ->
+            task.inputs.files( jar.outputs.files )
         }
     }
 
