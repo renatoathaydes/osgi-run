@@ -19,8 +19,12 @@ public class PdfBoxDemo implements BundleActivator {
         Scanner scanner = new Scanner( System.in );
         try {
             String fileName = scanner.nextLine();
-            System.out.println( "Creating PDF file at " + fileName );
-            createPdf( fileName );
+            if ( fileName == null || fileName.trim().isEmpty() ) {
+                System.out.println( "No file name given." );
+            } else {
+                System.out.println( "Creating PDF file at " + fileName );
+                createPdf( fileName );
+            }
             System.out.println( "Re-start the installing-non-bundles bundle to create another PDF" );
         } catch ( Exception e ) {
             e.printStackTrace();
