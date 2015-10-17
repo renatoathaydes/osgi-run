@@ -16,7 +16,7 @@ jar {
         instruction 'Bundle-Activator', 'com.athaydes.osgirun.demo.pdfbox.PdfBoxDemo'
     }
 }.doLast {
-    jar.manifest.writeTo( project.file( 'META-INF/MANIFEST.MF' ) )
+    jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
 }
 
 runOsgi {
