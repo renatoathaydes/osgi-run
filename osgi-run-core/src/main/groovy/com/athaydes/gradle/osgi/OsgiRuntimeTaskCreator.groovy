@@ -25,7 +25,7 @@ class OsgiRuntimeTaskCreator {
 
     Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
         String target = getTarget( project, osgiConfig )
-        setTaskInsAndOuts( project, task, target )
+        setTaskInsAndOuts( project, task, target, osgiConfig )
         osgiConfig.outDirFile = target as File
 
         return {
@@ -40,10 +40,26 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private static setTaskInsAndOuts( Project project, Task task, String target ) {
-        task.outputs.dir( target )
-        project.tasks.withType( Jar ) { Jar jar ->
-            task.inputs.files( jar.outputs.files )
+    private static setTaskInsAndOuts( Project project, Task task, String target, OsgiConfig osgiConfig ) {
+        project.afterEvaluate {
+            def allProjectDeps = allRuntimeDependencies( project, osgiConfig ).findAll { it instanceof Project }
+            log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
+                    allProjectDeps*.name
+
+            // inputs
+            if ( project.buildFile ) task.inputs.file( project.buildFile )
+
+            ( allProjectDeps + project ).each { dep ->
+                dep.tasks.withType( Jar ) { Jar jar ->
+                    // we need to run the jar task if the build file changes
+                    if ( dep.buildFile ) jar.inputs.file( dep.buildFile )
+                    // run our task if the jar of any dependency changes
+                    task.inputs.files( jar.outputs.files )
+                }
+            }
+
+            // outputs
+            task.outputs.dir( target )
         }
     }
 
@@ -62,8 +78,12 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
+    private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
+        osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+    }
+
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        def allBundles = osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+        def allBundles = allRuntimeDependencies( project, osgiConfig )
         project.configurations { c ->
             // create individual configurations for each dependency so that version conflicts need not be resolved
             allBundles.size().times { int i -> c[ OSGI_DEP_PREFIX + i ] }
