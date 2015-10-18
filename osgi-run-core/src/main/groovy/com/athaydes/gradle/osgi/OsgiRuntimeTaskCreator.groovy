@@ -178,6 +178,7 @@ class OsgiRuntimeTaskCreator {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return new File( "${target}/conf/config.properties" )
             case 'equinox': return new File( "${target}/configuration/config.ini" )
+            case 'knopflerfish': return new File( "${target}/init.xargs" )
             case 'none': return null
         }
         throw new GradleException( "Unknown OSGi configSettings: ${osgiConfig.configSettings}" )
@@ -197,6 +198,7 @@ class OsgiRuntimeTaskCreator {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return generateFelixConfigFile( osgiConfig )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
+            case 'knopflerfish': return generateKnopflerfishConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
                     'https://github.com/renatoathaydes/osgi-run/issues\nInclude the following in your message:\n' +
                     osgiConfig )
@@ -222,10 +224,34 @@ class OsgiRuntimeTaskCreator {
         bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
     }
 
+    private String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
+        if ( !bundlesDir.exists() ) {
+            bundlesDir.mkdirs()
+        }
+        def bundleJars = new FileNameByRegexFinder().getFileNames(
+                bundlesDir.absolutePath, /.+\.jar/ )
+
+        knopflerfishEntries( osgiConfig.config ) + knopflerfishBundleInstructions( bundleJars )
+    }
+
+    static String knopflerfishBundleInstructions( List<String> bundleJars ) {
+        bundleJars.inject( '\n' ) { acc, bundle ->
+            acc + ( isFragment( bundle ) ? "-install ${bundle}\n" : "-istart ${bundle}\n" )
+        }
+    }
+
     @SuppressWarnings( "GroovyAssignabilityCheck" )
     private String map2properties( Map map ) {
         map.inject( '' ) { acc, key, value ->
             "${acc}${key} = ${value}\n"
+        }
+    }
+
+    private String knopflerfishEntries( Map map ) {
+        map.inject( '' ) { acc, key, value ->
+            def separator = key ==~ /\s*-[DF].*/ ? '=' : ''
+            "${acc}${key} ${separator} ${value}\n"
         }
     }
 

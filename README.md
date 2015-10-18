@@ -73,7 +73,9 @@ Stop the OSGi framework by typing ``exit``, ``stop 0`` (stops the system bundle)
 
 Notice that you can include any artifact, such as Maven dependencies, in your bundle environment.
 
-For complete examples, see several examples further below or go straight to the samples in [osgi-run-test](osgi-run-test/).
+The default OSGi container is Apache Felix, but you can easily use Equinox and Knopflerfish as well.
+
+For complete examples, continue reading the next sections or go straight to the samples in [osgi-run-test](osgi-run-test/).
 
 ### IPojo Plugin
 
@@ -100,7 +102,7 @@ For examples of using IPojo and Gradle, see the test projects:
   * ``runOsgi``: allows configuration of the OSGi runtime.
     It contains the following settable properties (all properties are optional):
     
-    * ``configSettings``: String, one of ``['equinox', 'felix', 'none']`` (default ``"felix"``).
+    * ``configSettings``: String, one of ``['equinox', 'felix', 'knopflerfish', 'none']`` (default ``"felix"``).
         This is used to generate a default config file for the OSGi container selected and affects the
         defaults used for most other properties. **Always make this the first property you declare** otherwise
         it will overwrite other properties with the default values for the container selected.
@@ -111,7 +113,7 @@ For examples of using IPojo and Gradle, see the test projects:
         (defaults: in Felix: ``runOsgi.FELIX_GOGO_BUNDLES``, in Equinox: ``[]``).
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time 
-        (defaults: in Felix: ``runOsgi.FELIX``, in Equinox: ``runOsgi.EQUINOX``).
+        (default: ``FELIX``, set to ``EQUINOX``, or ``KNOPFLERFISH`` depending on `configSettings`).
         Accepts anything accepted by ``Project.files(Object... paths)``.
     * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
     * ``programArgs``: String with arguments to be passed to the main Java class (main args).
@@ -137,12 +139,32 @@ eclipse.ignoreApp : true,
 osgi.noShutdown   : true,
 osgi.bundles      : [bundle1-location@start,bundle2-location@start,...]
 ```
+
+The default `config` for Knopflerfish is (notice `bundle-1` and `fragment-1` are actually derived from
+the `bundles` property):
+
+```groovy
+-Dorg.knopflerfish.framework.main.verbosity  =  0
+-Forg.knopflerfish.framework.debug.resolver  =  false
+-Forg.knopflerfish.framework.debug.errors  =  true
+-Forg.knopflerfish.framework.debug.classloader  =  false
+-Forg.osgi.framework.system.packages.extra  =  
+-Forg.knopflerfish.startlevel.use  =  true
+-init   
+-launch   
+
+-istart $bundle-1
+-install $fragment-1
+```
+
+> Notice that to use Knopflerfish, you need to add its Maven Repository to your build file.
     
 The following constants can be used to provide values for the above properties:
     
 * ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
 * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
 * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
+* ``KNOPFLERFISH``: The Knopflerfish Framework jar. Can be used to set ``osgiMain``.
 * ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
 * ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
 
@@ -472,8 +494,8 @@ repositories {
 
 runOsgi {
   configSettings = 'none'
-  osgiMain = "your.knopflerfish:starter:7.1.2"
-  bundles = [ "org.knopflerfish:framework:7.1.2" ]
+  osgiMain = "org.knopflerfish:framework:7.1.2"
+  bundles = subprojects // your bundles 
 }
 ```
 

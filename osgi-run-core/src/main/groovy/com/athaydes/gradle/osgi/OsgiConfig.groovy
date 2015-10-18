@@ -33,6 +33,8 @@ class OsgiConfig {
                 break
             case 'equinox': configEquinox()
                 break
+            case 'knopflerfish': configKnopflerfish()
+                break
             default:
                 configNone()
         }
@@ -56,6 +58,23 @@ class OsgiConfig {
                    'osgi.noShutdown'  : true ]
     }
 
+    void configKnopflerfish() {
+        bundlesPath = 'jars'
+        bundles = [ ]
+        osgiMain = KNOPFLERFISH
+
+        config = [
+                '-Dorg.knopflerfish.framework.main.verbosity'   : 0,
+                '-Forg.knopflerfish.framework.debug.resolver'   : false,
+                '-Forg.knopflerfish.framework.debug.errors'     : true,
+                '-Forg.knopflerfish.framework.debug.classloader': false,
+                '-Forg.osgi.framework.system.packages.extra'    : '',
+                '-Forg.knopflerfish.startlevel.use'             : true,
+                '-init'                                         : '',
+                '-launch'                                       : '',
+        ]
+    }
+
     void configNone() {
         bundlesPath = 'bundle'
         bundles = [ ]
@@ -68,6 +87,8 @@ class OsgiConfig {
     static final String FELIX = 'org.apache.felix:org.apache.felix.main:4.4.0'
 
     static final String EQUINOX = 'org.eclipse.osgi:org.eclipse.osgi:3.7.1'
+
+    static final String KNOPFLERFISH = 'org.knopflerfish:framework:7.1.2'
 
     static final FELIX_GOGO_BUNDLES = [
             'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1',
