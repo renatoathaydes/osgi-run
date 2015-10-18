@@ -1,12 +1,17 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
 
+apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
@@ -17,17 +22,16 @@ group = 'com.athaydes.gradle.osgi'
 version = '1.3.0'
 
 repositories {
-    mavenLocal()
-    mavenCentral()
+    jcenter()
 }
 
 dependencies {
     compile gradleApi()
     compile group: 'biz.aQute.bnd', name: 'bndlib', version: '2.4.0'
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
-task sourcesJar( type: Jar, dependsOn: classes ) {
+task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
     classifier "sources"
     extension "jar"
@@ -37,7 +41,7 @@ task sourcesJar( type: Jar, dependsOn: classes ) {
 
 publishing {
     publications {
-        mavenJava( MavenPublication ) {
+        mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
         }
@@ -47,20 +51,36 @@ publishing {
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
-    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
-    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
-    publications = [ "mavenJava" ]
+    user = project.hasProperty("bintrayUserName") ? bintrayUserName : null
+    key = project.hasProperty("bintrayApiKey") ? bintrayApiKey : null
+    publications = ["mavenJava"]
     publish = true
     pkg {
         repo = 'maven'
         name = 'osgi-run-core'
-        licenses = [ 'Apache-2.0' ]
+        licenses = ['Apache-2.0']
         desc = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
         websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
         issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
-        labels = [ 'osgi', 'ipojo', 'modular' ]
+        labels = ['osgi', 'ipojo', 'modular']
         publicDownloadNumbers = true
     }
 }
 
+pluginBundle {
+    website = 'https://github.com/renatoathaydes/osgi-run'
+    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        osgiRunPlugin {
+            id = 'com.athaydes.osgi-run'
+            displayName = 'Osgi-run Gradle Plugin'
+            description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
+            tags = ['osgi', 'ipojo', 'modular']
+        }
+    }
+}
+
 bintrayUpload.dependsOn build, sourcesJar
+publishPlugins.dependsOn build, sourcesJar

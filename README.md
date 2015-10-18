@@ -3,11 +3,18 @@ osgi-run
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless
 
-## Quick Start
+## Apply the osgi-run plugin
 
-Given a Gradle project whose sub-projects are OSGi bundles:
+### Gradle 2.1+
 
-*build.gradle*
+```groovy
+plugins {
+    id "com.athaydes.osgi-run" version "1.3.0"
+}
+```
+
+### Older Gradle versions
+
 ```groovy
 buildscript {
     repositories {
@@ -19,20 +26,26 @@ buildscript {
 }
 
 apply plugin: 'osgi-run'
+```
 
+## Quick Start
+
+Given a Gradle project whose sub-projects are OSGi bundles, create an OSGi environment
+containing the sub-projects' bundles, running it with Apache Felix and the Gogo bundles:
+
+*build.gradle*
+```groovy
 runOsgi {
   bundles += subprojects
 }
 ```
 
 Or if your OSGi environment consists of the Gradle project itself,
-its compile-time dependencies, plus some existing bundle such as the 
+its compile-time dependencies, plus some existing bundle such as the
 [Felix implementation](http://felix.apache.org/documentation/subprojects/apache-felix-config-admin.html) 
 of the OSGi Config Admin Service:
 
 ```groovy
-apply plugin: 'osgi-run'
-
 dependencies {
     compile group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
     osgiRuntime group: 'org.apache.felix', name: 'org.apache.felix.configadmin', version: '1.8.8'
