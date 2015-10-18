@@ -39,7 +39,7 @@ class IPojoPluginTest {
         def config = new IPojoConfig( outDir: new File( 'build' ) )
         setupWith config, 'src/test/resources/no-ipojo.spell.checker.jar.1'
 
-        plugin.ipojoTask( mockProject, inputBundle, config ).run()
+        plugin.ipojoTask( mockProject, { inputBundle }, config ).run()
 
         assert outBundle.exists()
         assertJarEntriesAreTheSame inputBundle, outBundle
@@ -51,7 +51,7 @@ class IPojoPluginTest {
         def config = new IPojoConfig( outDir: new File( 'build' ), ignoreAnnotations: true )
         setupWith config, 'src/test/resources/no-ipojo.hello-client.jar.1'
 
-        plugin.ipojoTask( mockProject, inputBundle, config ).run()
+        plugin.ipojoTask( mockProject, { inputBundle }, config ).run()
 
         assert outBundle.exists()
         assertJarEntriesAreTheSame inputBundle, outBundle
@@ -66,7 +66,7 @@ class IPojoPluginTest {
         // providing only annotations in the source but ignoring annotations
         setupWith config, 'src/test/resources/no-ipojo.spell.checker.jar.1'
 
-        plugin.ipojoTask( mockProject, inputBundle, config ).run()
+        plugin.ipojoTask( mockProject, { inputBundle }, config ).run()
     }
 
 
