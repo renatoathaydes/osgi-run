@@ -1,0 +1,27 @@
+apply plugin: 'java'
+apply plugin: 'osgi-run'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceCompatibility = 1.7
+
+dependencies {
+    compile 'org.osgi:org.osgi.core:4.3.1'
+    compile group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
+    osgiRuntime group: 'org.apache.felix', name: 'org.apache.felix.configadmin', version: '1.8.8'
+}
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+        instruction 'Bundle-Activator', 'com.athaydes.osgirun.sample.config.example.ServiceRegistrator'
+    }
+}
+
+runOsgi {
+    bundles += allprojects
+    javaArgs = "-Dexample.configFile=${file( 'config-example.properties' ).absolutePath}"
+}
