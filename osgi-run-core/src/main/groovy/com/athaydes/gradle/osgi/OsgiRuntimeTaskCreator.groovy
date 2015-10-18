@@ -23,7 +23,6 @@ class OsgiRuntimeTaskCreator {
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
     static final String OSGI_DEP_PREFIX = '__osgiRuntime'
 
-    // TODO specify version of imports on project dependencies
     Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
         String target = getTarget( project, osgiConfig )
         setTaskInsAndOuts( project, task, target, osgiConfig )
