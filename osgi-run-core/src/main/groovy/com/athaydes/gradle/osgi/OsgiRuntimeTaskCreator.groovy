@@ -23,6 +23,7 @@ class OsgiRuntimeTaskCreator {
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
     static final String OSGI_DEP_PREFIX = '__osgiRuntime'
 
+    // TODO specify version of imports on project dependencies
     Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
         String target = getTarget( project, osgiConfig )
         setTaskInsAndOuts( project, task, target, osgiConfig )
@@ -250,7 +251,7 @@ class OsgiRuntimeTaskCreator {
         |  fi
         |fi
         |
-        |"\$JAVA" -jar ${mainJar.name} ${osgiConfig.javaArgs} "\$@"
+        |"\$JAVA" ${osgiConfig.javaArgs} -jar ${mainJar.name} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
@@ -267,7 +268,7 @@ class OsgiRuntimeTaskCreator {
         |  )
         |)
         |
-        |%JAVA% -jar ${mainJar} ${osgiConfig.javaArgs} %*
+        |%JAVA% ${osgiConfig.javaArgs} -jar ${mainJar} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
