@@ -1,12 +1,17 @@
 buildscript {
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
 
+apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
@@ -63,4 +68,20 @@ bintray {
     }
 }
 
+pluginBundle {
+    website = 'https://github.com/renatoathaydes/osgi-run/tree/master/ipojo-plugin'
+    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        osgiRunPlugin {
+            id = 'com.athaydes.ipojo'
+            displayName = 'IPojo Gradle Plugin'
+            description = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project.'
+            tags = ['osgi', 'ipojo', 'modular']
+        }
+    }
+}
+
 bintrayUpload.dependsOn build, sourcesJar
+publishPlugins.dependsOn build, sourcesJar

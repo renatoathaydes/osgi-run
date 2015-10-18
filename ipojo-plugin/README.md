@@ -3,9 +3,17 @@
 The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from [IPojo](http://felix.apache.org/documentation/subprojects/apache-felix-ipojo.html)
 in any Gradle project.
 
-## How to use
+## Apply the IPojo plugin
 
-Add to your ``build.gradle`` file:
+### Gradle 2.1+
+
+```groovy
+plugins {
+    id "com.athaydes.ipojo" version "1.1"
+}
+```
+
+### Older Gradle versions
 
 ```groovy
 buildscript {
@@ -13,12 +21,16 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:ipojo-plugin:1.0"
+        classpath "com.athaydes.gradle.osgi:ipojo-plugin:1.1"
     }
 }
 
 apply plugin: 'ipojo'
 ```
+
+## How to use
+
+All you need to do is apply the plugin as shown above.
 
 Now, when the ``jar`` task runs, the IPojo Plugin will add IPojo metadata to the jars automatically.
 
