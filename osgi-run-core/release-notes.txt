@@ -1,5 +1,7 @@
 * 1.3.0 - 2015-October-18
 
+This is the first version that is available in Gradle's Plugin Repository!
+
 - automatically wrap non-bundles dependencies and add them to the OSGi runtime
 - allow customizing non-bundle wrapping with instructions for Bnd
 - createOsgiRuntime task supports incremental build - only runs if needed
