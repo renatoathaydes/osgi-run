@@ -251,7 +251,7 @@ class OsgiRuntimeTaskCreator {
         |  fi
         |fi
         |
-        |"\$JAVA" ${osgiConfig.javaArgs} -jar ${mainJar.name} "\$@"
+        |"\$JAVA" ${osgiConfig.javaArgs} -jar ${mainJar.name} ${osgiConfig.programArgs} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
@@ -268,7 +268,7 @@ class OsgiRuntimeTaskCreator {
         |  )
         |)
         |
-        |%JAVA% ${osgiConfig.javaArgs} -jar ${mainJar} %*
+        |%JAVA% ${osgiConfig.javaArgs} -jar ${mainJar} ${osgiConfig.programArgs} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->

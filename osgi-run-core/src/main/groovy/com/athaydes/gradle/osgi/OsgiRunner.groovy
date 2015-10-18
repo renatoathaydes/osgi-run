@@ -34,7 +34,10 @@ class OsgiRunner {
             log.debug "Running executable jar: ${runnableJar}"
             def java = javaCmd()
             log.info "Java to be used to run OSGi: $java"
-            def process = "$java ${config.javaArgs} -jar ${runnableJar.absolutePath}".execute( [ ], config.outDirFile )
+
+            def process = "$java ${config.javaArgs} -jar ${runnableJar.absolutePath} ${config.programArgs}"
+                    .execute( [ ], config.outDirFile )
+
             delegateProcessTo( process )
         } else {
             throw new GradleException( 'OsgiRuntime does not contain any runnable jar! Cannot start the OSGi environment' )

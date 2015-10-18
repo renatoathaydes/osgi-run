@@ -13,6 +13,7 @@ class OsgiConfig {
     // non platform-dependent defaults
     def outDir = "osgi"
     String javaArgs = ""
+    String programArgs = ""
 
     // platform dependent properties
     String configSettings
