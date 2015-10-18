@@ -23,4 +23,9 @@ include 'build-with-subprojects',
         'ipojo-dosgi:code-runner-ui',
         'bundle-with-fragment',
         'bundle-with-fragment:example-host-bundle',
-        'bundle-with-fragment:example-fragment'
+        'bundle-with-fragment:example-fragment',
+        'quartz-sample',
+        'using-config-admin-service',
+        'using-config-admin-service:configurator',
+        'using-knopflerfish'
+

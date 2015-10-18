@@ -1,31 +1,38 @@
 package com.athaydes.gradle.osgi
 
+import com.athaydes.gradle.osgi.bnd.BndWrapper
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
+import org.gradle.api.Task
+import org.gradle.api.artifacts.ExcludeRule
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.bundling.Jar
 
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-import static java.util.Collections.emptyList
-
 /**
- *
+ * Creates the osgiRun task
  */
 class OsgiRuntimeTaskCreator {
 
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
+    static final String OSGI_DEP_PREFIX = '__osgiRuntime'
 
-    Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig ) {
+    Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
+        String target = getTarget( project, osgiConfig )
+        setTaskInsAndOuts( project, task, target, osgiConfig )
+        osgiConfig.outDirFile = target as File
+
         return {
-            String target = getTarget( project, osgiConfig )
-            osgiConfig.outDirFile = target as File
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
-            copyBundles( project, "${target}/${osgiConfig.bundlesPath}" )
+            copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
+                    osgiConfig.wrapInstructions as WrapInstructionsConfig )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -33,7 +40,30 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void configMainDeps( Project project, OsgiConfig osgiConfig ) {
+    private static setTaskInsAndOuts( Project project, Task task, String target, OsgiConfig osgiConfig ) {
+        project.afterEvaluate {
+            def allProjectDeps = allRuntimeDependencies( project, osgiConfig ).findAll { it instanceof Project }
+            log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
+                    allProjectDeps*.name
+
+            // inputs
+            if ( project.buildFile ) task.inputs.file( project.buildFile )
+
+            ( allProjectDeps + project ).each { dep ->
+                dep.tasks.withType( Jar ) { Jar jar ->
+                    // we need to run the jar task if the build file changes
+                    if ( dep.buildFile ) jar.inputs.file( dep.buildFile )
+                    // run our task if the jar of any dependency changes
+                    task.inputs.files( jar.outputs.files )
+                }
+            }
+
+            // outputs
+            task.outputs.dir( target )
+        }
+    }
+
+    private static void configMainDeps( Project project, OsgiConfig osgiConfig ) {
         def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
         if ( !hasOsgiMainDeps ) {
             assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
@@ -48,44 +78,80 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
+    private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
+        osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+    }
+
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        def allBundles = osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+        def allBundles = allRuntimeDependencies( project, osgiConfig )
         project.configurations { c ->
             // create individual configurations for each dependency so that version conflicts need not be resolved
-            allBundles.size().times { i -> c."__osgiRuntime$i" }
+            allBundles.size().times { int i -> c[ OSGI_DEP_PREFIX + i ] }
         }
-        allBundles.eachWithIndex { Object bundle, i ->
-            def depConfig = ( bundle instanceof Dependency ) ? {} : { transitive = bundle instanceof Project }
-            project.dependencies.add( "__osgiRuntime$i", bundle, depConfig )
+        allBundles.eachWithIndex { Object bundle, int i ->
+
+            // by default, all project dependencies are transitive
+            boolean transitiveDep = bundle instanceof Project
+            def exclusions = [ ] as Set
+            if ( bundle instanceof ModuleDependency ) {
+                transitiveDep = bundle.transitive
+                exclusions = bundle.excludeRules
+            }
+            def depConfig = {
+                transitive = transitiveDep
+                exclusions.each { ExcludeRule rule ->
+                    def excludeMap = [ : ]
+                    if ( rule.group ) excludeMap.group = rule.group
+                    if ( rule.module ) excludeMap.module = rule.module
+                    exclude excludeMap
+                }
+            }
+            project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
         }
     }
 
-    private void copyBundles( Project project, String bundlesDir ) {
+    private void copyBundles( Project project, String bundlesDir,
+                              WrapInstructionsConfig wrapInstructions ) {
+        def nonBundles = [ ] as Set
+        //noinspection GroovyAssignabilityCheck
+        def allDeps = project.configurations.findAll { it.name.startsWith( OSGI_DEP_PREFIX ) }
+
         project.copy {
-            from project.configurations.findAll { it.name.startsWith( '__osgiRuntime' ) }
+            from allDeps
             into bundlesDir
-        }
-        nonBundles( new File( bundlesDir ).listFiles() ).each {
-            log.info "Removing non-bundle from classpath: ${it.name}"
-            assert it.delete()
-        }
-    }
-
-    private Collection<File> nonBundles( File[] files ) {
-        if ( !files ) return emptyList()
-        def notBundle = { File file ->
-            def zip = new ZipFile( file )
-            try {
-                ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
-                if ( !entry ) return true
-                def lines = zip.getInputStream( entry ).readLines()
-                return !lines.any { it.trim().startsWith( 'Bundle' ) }
-            } finally {
-                zip.close()
+            exclude { FileTreeElement element ->
+                def nonBundle = notBundle( element.file )
+                if ( nonBundle ) nonBundles << element.file
+                return nonBundle
             }
         }
-        files.findAll( notBundle )
+
+        if ( wrapInstructions.enabled ) {
+            nonBundles.each { File file ->
+                try {
+                    BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
+                } catch ( e ) {
+                    log.warn( "Unable to wrap ${file.name}", e )
+                }
+            }
+        } else if ( nonBundles ) {
+            log.info "The following jars were kept out of the classpath " +
+                    "as they are not bundles (enable wrapping if they are needed): {}", nonBundles
+        }
     }
+
+    private static boolean notBundle( File file ) {
+        def zip = new ZipFile( file )
+        try {
+            ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
+            if ( !entry ) return true
+            def lines = zip.getInputStream( entry ).readLines()
+            return !lines.any { it.trim().startsWith( 'Bundle' ) }
+        } finally {
+            zip.close()
+        }
+    }
+
 
     private static boolean isFragment( file ) {
         def zip = new ZipFile( file as File )
@@ -112,6 +178,7 @@ class OsgiRuntimeTaskCreator {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return new File( "${target}/conf/config.properties" )
             case 'equinox': return new File( "${target}/configuration/config.ini" )
+            case 'knopflerfish': return new File( "${target}/init.xargs" )
             case 'none': return null
         }
         throw new GradleException( "Unknown OSGi configSettings: ${osgiConfig.configSettings}" )
@@ -131,6 +198,7 @@ class OsgiRuntimeTaskCreator {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return generateFelixConfigFile( osgiConfig )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
+            case 'knopflerfish': return generateKnopflerfishConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
                     'https://github.com/renatoathaydes/osgi-run/issues\nInclude the following in your message:\n' +
                     osgiConfig )
@@ -156,9 +224,34 @@ class OsgiRuntimeTaskCreator {
         bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
     }
 
+    private String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
+        if ( !bundlesDir.exists() ) {
+            bundlesDir.mkdirs()
+        }
+        def bundleJars = new FileNameByRegexFinder().getFileNames(
+                bundlesDir.absolutePath, /.+\.jar/ )
+
+        knopflerfishEntries( osgiConfig.config ) + knopflerfishBundleInstructions( bundleJars )
+    }
+
+    static String knopflerfishBundleInstructions( List<String> bundleJars ) {
+        bundleJars.inject( '\n' ) { acc, bundle ->
+            acc + ( isFragment( bundle ) ? "-install ${bundle}\n" : "-istart ${bundle}\n" )
+        }
+    }
+
+    @SuppressWarnings( "GroovyAssignabilityCheck" )
     private String map2properties( Map map ) {
         map.inject( '' ) { acc, key, value ->
             "${acc}${key} = ${value}\n"
+        }
+    }
+
+    private String knopflerfishEntries( Map map ) {
+        map.inject( '' ) { acc, key, value ->
+            def separator = key ==~ /\s*-[DF].*/ ? '=' : ''
+            "${acc}${key} ${separator} ${value}\n"
         }
     }
 
@@ -183,7 +276,7 @@ class OsgiRuntimeTaskCreator {
         |  fi
         |fi
         |
-        |"\$JAVA" -jar ${mainJar.name} ${osgiConfig.javaArgs} "\$@"
+        |"\$JAVA" ${osgiConfig.javaArgs} -jar ${mainJar.name} ${osgiConfig.programArgs} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
@@ -200,7 +293,7 @@ class OsgiRuntimeTaskCreator {
         |  )
         |)
         |
-        |%JAVA% -jar ${mainJar} ${osgiConfig.javaArgs} %*
+        |%JAVA% ${osgiConfig.javaArgs} -jar ${mainJar} ${osgiConfig.programArgs} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
@@ -211,7 +304,6 @@ class OsgiRuntimeTaskCreator {
         }
 
         writeToExecutable( "run.sh", linuxScript )
-        writeToExecutable( "run.command", linuxScript )
         writeToExecutable( "run.bat", windowsScript )
     }
 

@@ -8,7 +8,6 @@ repositories {
 dependencies {
     compile 'org.osgi:org.osgi.core:4.3.1'
     compile 'org.apache.pdfbox:pdfbox:1.8.6'
-    osgiRuntime 'commons-logging:commons-logging:1.2'
 }
 
 jar {
@@ -16,8 +15,17 @@ jar {
         instruction 'Export-Package', ''
         instruction 'Bundle-Activator', 'com.athaydes.osgirun.demo.pdfbox.PdfBoxDemo'
     }
+}.doLast {
+    jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
 }
 
 runOsgi {
     bundles += project
+
+    wrapInstructions {
+        printManifests = true
+        manifest( /commons-logging.*/ ) {
+            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+        }
+    }
 }

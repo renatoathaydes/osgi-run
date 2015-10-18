@@ -25,6 +25,24 @@ runOsgi {
 }
 ```
 
+Or if your OSGi environment consists of the Gradle project itself,
+its compile-time dependencies, plus some existing bundle such as the 
+[Felix implementation](http://felix.apache.org/documentation/subprojects/apache-felix-config-admin.html) 
+of the OSGi Config Admin Service:
+
+```groovy
+apply plugin: 'osgi-run'
+
+dependencies {
+    compile group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
+    osgiRuntime group: 'org.apache.felix', name: 'org.apache.felix.configadmin', version: '1.8.8'
+}
+
+runOsgi {
+  bundles += project
+}
+```
+
 From the project's root directory, type:
 
 ```
@@ -45,8 +63,8 @@ To run it:
 
 ```
 cd build/osgi
-chmod +x run.sh  # may be necessary in Linux
-./run.sh # In Windows, use run.bat, in Mac, use run.command
+chmod +x run.sh  # may be necessary in Linux/Mac
+./run.sh # In Windows, use run.bat
 ```
 
 Once the framework starts, type ``lb`` (or ``ps``) to see all bundles installed and running.
@@ -55,7 +73,9 @@ Stop the OSGi framework by typing ``exit``, ``stop 0`` (stops the system bundle)
 
 Notice that you can include any artifact, such as Maven dependencies, in your bundle environment.
 
-For complete examples, see several examples further below or go straight to the samples in [osgi-run-test](osgi-run-test/).
+The default OSGi container is Apache Felix, but you can easily use Equinox and Knopflerfish as well.
+
+For complete examples, continue reading the next sections or go straight to the samples in [osgi-run-test](osgi-run-test/).
 
 ### IPojo Plugin
 
@@ -75,28 +95,33 @@ For examples of using IPojo and Gradle, see the test projects:
       This task depends on the ``jar`` task of the project and its sub-projects.
   * ``runOsgi``: starts the OSGi runtime (depends on ``createOsgiRuntime``).
 
-## Extensions
+## Configuring osgi-run
 
-  * ``runOsgi``: allows configuration of the plugin.
+`osgi-run` accepts the following configuration:
+
+  * ``runOsgi``: allows configuration of the OSGi runtime.
     It contains the following settable properties (all properties are optional):
     
-    * ``configSettings``: String, one of ``['equinox', 'felix', 'none']`` (default ``"felix"``).
+    * ``configSettings``: String, one of ``['equinox', 'felix', 'knopflerfish', 'none']`` (default ``"felix"``).
         This is used to generate a default config file for the OSGi container selected and affects the
-        defaults used for most other properties. Always make this the first property you declare otherwise
-        it may overwrite other properties with the default values for the container selected.
+        defaults used for most other properties. **Always make this the first property you declare** otherwise
+        it will overwrite other properties with the default values for the container selected.
         Set to ``none`` if you want to provide your own config file.
-    * ``outDir``: output directory (defaut: ``"osgi"``).
+    * ``outDir``: output directory (default: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
     * ``bundles``: Extra resources to include in the OSGi ``bundle`` folder 
         (defaults: in Felix: ``runOsgi.FELIX_GOGO_BUNDLES``, in Equinox: ``[]``).
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time 
-        (defaults: in Felix: ``runOsgi.FELIX``, in Equinox: ``runOsgi.EQUINOX``).
+        (default: ``FELIX``, set to ``EQUINOX``, or ``KNOPFLERFISH`` depending on `configSettings`).
         Accepts anything accepted by ``Project.files(Object... paths)``.
     * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
-    * ``bundlesPath``: String with path where the bundles should be copied to (default ``"bundle"``).
+    * ``programArgs``: String with arguments to be passed to the main Java class (main args).
+    * ``bundlesPath``: String with path where the bundles should be copied to 
+      (default for Felix: ``"bundle"``, for Equinox: ``"plugins"``).
     * ``config``: Map of properties that should be added to the container's config file.
         This property is ignored if `configSettings` is set to 'none'.
+    * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
 
 The default `config` for Felix is:
         
@@ -114,23 +139,93 @@ eclipse.ignoreApp : true,
 osgi.noShutdown   : true,
 osgi.bundles      : [bundle1-location@start,bundle2-location@start,...]
 ```
+
+The default `config` for Knopflerfish is (notice `bundle-1` and `fragment-1` are actually derived from
+the `bundles` property):
+
+```groovy
+-Dorg.knopflerfish.framework.main.verbosity  =  0
+-Forg.knopflerfish.framework.debug.resolver  =  false
+-Forg.knopflerfish.framework.debug.errors  =  true
+-Forg.knopflerfish.framework.debug.classloader  =  false
+-Forg.osgi.framework.system.packages.extra  =  
+-Forg.knopflerfish.startlevel.use  =  true
+-init   
+-launch   
+
+-istart $bundle-1
+-install $fragment-1
+```
+
+> Notice that to use Knopflerfish, you need to add its Maven Repository to your build file.
     
 The following constants can be used to provide values for the above properties:
     
 * ``FELIX``: the Apache Felix main jar. Can be used to set ``osgiMain``.
 * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
 * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
+* ``KNOPFLERFISH``: The Knopflerfish Framework jar. Can be used to set ``osgiMain``.
 * ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
 * ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
 
-## Configurations
+Here's an example setting most properties (notice that normally you won't need to set nearly as many):
 
-  * ``osgiMain``: same as the ``runOsgi.osgiMain`` property, but declaring this configuration in a project ``dependencies``
-      overrides that property. It is preferrable to use that property over this configuration.
-  * ``osgiRuntime``: same as the extension ``runOsgi.bundles`` property.
+```groovy
+runOsgi {
+    configSettings = 'equinox'            // use Equinox's config file instead of Felix's
+    osgiMain = 'org.eclipse.osgi:org.eclipse.osgi:3.7.1' // use a specific version of Equinox
+    javaArgs = '-DmyProp=someValue'       // pass some args to the Java process
+    programArgs = '-console'              // pass some arguments to the Equinox starter
+    bundles += allprojects.toList() + IPOJO_BUNDLE // bundles are: this project + subprojects + IPojo
+    config += [ 'osgi.clean': true ]      // add properties to the Equinox config
+    outDir = 'runtime'                    // the environment will be built at "${project.buildDir}/runtime"
+}
+```
+
+### Wrapping non-bundles (flat jars)
+
+If any of the artifacts you include in the OSGi environment are not OSGi bundles
+(ie. they are flat jars which do not contain OSGi meta-data), they will be automatically
+wrapped by `osgi-run` into OSGi bundles which export all of their contents.
+
+This allows you to use any Java artifact whatsoever, so you are not limited to only OSGi bundles.
+
+The actual wrapping is done by [Bnd](http://www.aqute.biz/Bnd/Bnd).
+
+If you want to provide extra meta-data for ``Bnd`` to improve the wrapping results, you can use
+`wrapInstructions` as follows:
+
+```groovy
+runOsgi {
+    bundles += project
+
+    wrapInstructions {
+        // use regex to match file name of dependency
+        manifest( "c3p0.*" ) {
+            // import everything except the log4j package - should not be needed
+            instruction 'Import-Package', '!org.apache.log4j', '*'
+            instruction 'Bundle-Description', 'c3p0 is an easy-to-use library for making traditional ' +
+                    'JDBC drivers "enterprise-ready" by augmenting them with functionality defined by ' +
+                    'the jdbc3 spec and the optional extensions to jdbc2.'
+        }
+    }
+}
+```
+
+The example above is used in the [quartz-sample](osgi-run-test/quartz-sample) 
+to provide extra meta-data for wrapping the `c3p0` jar, which is required by the `Quartz` bundle.
+
+## Gradle Configurations
+
+`osgi-run` adds the following Gradle configurations to the project:
+
+  * ``osgiMain``: same as the ``runOsgi.osgiMain`` property, but declaring this configuration in a project's
+      ``dependencies`` overrides that property. 
+      It is preferrable to use that property over this configuration.
+  * ``osgiRuntime``: has the same purpose as the ``runOsgi.bundles`` property.
       Both the property and the configuration are applied.
       Notice that properties and configurations, by default, consider all transitive dependencies of the bundles/jars.
-      However, any non-bundle (simple jar) transitive dependency is discarded from the OSGi runtime.
+      Non-bundles (simple jar) are wrapped into OSGi bundles automatically by default.
       If you do not want any transitive dependency of an artifact to be included in the OSGi runtime, you can do:
       
 ```groovy
@@ -139,7 +234,7 @@ dependencies {
     ...
     
     osgiRuntime( "your:dependency:1.0" ) {
-        transitive = false // transitive dependencies not included in OSGi runtime, even the ones that are OSGi bundles
+        transitive = false // transitive dependencies not included in OSGi runtime
     }
 }
 ```
@@ -150,30 +245,14 @@ The ``osgi-run`` plugin applies the following plugins:
 
   * [OSGi plugin](http://www.gradle.org/docs/current/userguide/osgi_plugin.html)
 
-## Using the osgi-run plugin
 
-To use the ``osgi-run`` plugin you only need to apply it to your Gradle build:
-
-```groovy
-apply plugin: 'osgi-run'
-```
-
-You can immediately run your OSGi container using:
-
-```groovy
-gradle runOsgi
-```
-
-To see a list of installed bundles, type ``lb`` (or ``ss`` if using Equinox).
-
-
-### Configuring the ``runOsgi`` extension
+### More usage examples
 
 The best way to understand how you can configure your OSGi runtime is through examples.
 
 Let's have a look at some common use-cases:
 
-#### Use the Gradle project itself as a bundle
+#### Use your Gradle project itself as a bundle
 
 ```groovy
 runOsgi {
@@ -205,7 +284,7 @@ runOsgi {
 }
 ```
 
-#### Use artifacts as runtime bundles
+#### Use Maven artifacts as runtime bundles
 
 ```groovy
 dependencies {
@@ -220,7 +299,7 @@ Notice that the above configuration is equivalent to setting ``osgiConfig.bundle
 
 ##### Solving *unresolved constraint* errors
 
-###### Including Apache Commons Logging into your OSGi environment
+###### Including Apache Commons Logging 1.1.1 into your OSGi environment
 
 As another example, suppose you want to run the  [PDF Box library](http://pdfbox.apache.org) in an OSGi environment.
 That seems pretty easy, as PDF Box jars are already OSGi bundles!
@@ -232,29 +311,85 @@ dependencies {
 }
 ```
 
-However, when you do ``gradle clean runOsgi``, you will find out it requires Apache Commons Logging at run-time:
+However, when you do ``gradle clean runOsgi``, you will find out it requires Apache Commons Logging at run-time
+(which will be automatically wrapped as a bundle by `run-osgi`), but this jar itself requires other things:
 
 ```
-(org.osgi.framework.BundleException: Unresolved constraint in bundle org.apache.pdfbox.fontbox [3]:
-  Unable to resolve 3.0: missing requirement [3.0] osgi.wiring.package; (osgi.wiring.package=org.apache.commons.logging))
+(org.osgi.framework.BundleException: Unresolved constraint in bundle org.apache.pdfbox.fontbox [2]: 
+  Unable to resolve 2.0: missing requirement [2.0] osgi.wiring.package; 
+  (osgi.wiring.package=org.apache.commons.logging) 
+  [caused by: Unable to resolve 1.0: missing requirement [1.0] osgi.wiring.package;
+  (osgi.wiring.package=javax.servlet)])
 ```
 
-Luckily, that's easy to fix! Just add Commons Logging to the OSGi runtime:
+To understand why `osgi-run` could not figure out we needed not only commons-logging, but also some bundle to
+provide `javax.servlet`, let's ask Gradle to show us the dependencies of our module:
+
+```
+compile - Compile classpath for source set 'main'.
++--- org.osgi:org.osgi.core:4.3.1
+\--- org.apache.pdfbox:pdfbox:1.8.6
+     +--- org.apache.pdfbox:fontbox:1.8.6
+     |    \--- commons-logging:commons-logging:1.1.1
+     +--- org.apache.pdfbox:jempbox:1.8.6
+     \--- commons-logging:commons-logging:1.1.1
+```
+
+As you can see, it looks as if the commons-logging dependency had no dependencies at all. So `osgi-run`
+has no way of knowing there are other needs for commons-logging to work.
+
+Inspecting the POM file of commons-logging reveals what's going on... it declares several optional dependencies:
+
+```xml
+<dependency>
+  <groupId>log4j</groupId>
+  <artifactId>log4j</artifactId>
+  <version>1.2.12</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>logkit</groupId>
+  <artifactId>logkit</artifactId>
+  <version>1.0.1</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>avalon-framework</groupId>
+  <artifactId>avalon-framework</artifactId>
+  <version>4.1.3</version>
+  <optional>true</optional>
+</dependency>
+<dependency>
+  <groupId>javax.servlet</groupId>
+  <artifactId>servlet-api</artifactId>
+  <version>2.3</version>
+  <scope>provided</scope>
+  <optional>true</optional>
+</dependency>
+```
+
+So this is one case where we need to add a little meta-data by hand.
+
+But that's easy, knowing that we probably won't be needing servlets or the Avalon Framework and the other Apache
+dependencies, we can simply tell `osgi-run` that these packages should not be imported at all:
 
 ```groovy
-dependencies {
-    compile 'org.apache.pdfbox:pdfbox:1.8.6'
-    osgiRuntime 'commons-logging:commons-logging:1.2'
+runOsgi {
+    bundles += project
+
+    wrapInstructions {
+        manifest( /commons-logging.*/ ) {
+            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+        }
+    }
 }
 ```
 
-You might notice that Commons Logging is NOT an OSGi bundle.
+The wrap instruction tells `run-osgi` that the commons-logging bundle should not import the packages 
+`javax.servlet` and `org.apache.*` (notice that you may use wildcards), but should import everything else that is
+ required when wrapped into an OSGi bundle. 
 
-Still, this works just fine (and you can actually try yourself in the [Installing non-bundles demo](osgi-run-test/installing-non-bundles))
-because non-bundle jars will be wrapped into OSGi bundles automatically.
-
-If you have experience with OSGi you might have thought that it could be difficult to use Commons Logging in OSGi.
-Well, no more!
+A working project demonstrating this can be found in the [Installing non-bundles demo](osgi-run-test/installing-non-bundles)).
 
 ###### Using Groovy's SwingBuilder inside an OSGi environment
 
@@ -296,7 +431,7 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  javaArgs = '-console'
+  programArgs = '-console'
 }
 ```
 
@@ -309,7 +444,7 @@ try something like this:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  javaArgs = '-console'
+  programArgs = '-console'
   bundles = subprojects
 }
 ```
@@ -341,7 +476,7 @@ def equinoxVersion = '3.6.0.v20100517'
 
 runOsgi {
   configSettings = 'equinox'
-  javaArgs = '-console'
+  programArgs = '-console'
   osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
 }
 ```
@@ -359,8 +494,8 @@ repositories {
 
 runOsgi {
   configSettings = 'none'
-  osgiMain = "your.knopflerfish:starter:7.1.2"
-  bundles = [ "org.knopflerfish:framework:7.1.2" ]
+  osgiMain = "org.knopflerfish:framework:7.1.2"
+  bundles = subprojects // your bundles 
 }
 ```
 

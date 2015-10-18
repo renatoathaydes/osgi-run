@@ -9,10 +9,19 @@ allprojects {
     }
 }
 
+subprojects {
+    afterEvaluate { project ->
+        project.jar.doLast {
+            project.jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
+        }
+    }
+}
+
 dependencies {
     osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
 }
 
 runOsgi {
     bundles += subprojects
+    config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
 }

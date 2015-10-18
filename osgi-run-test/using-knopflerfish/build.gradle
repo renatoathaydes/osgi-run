@@ -1,0 +1,16 @@
+apply plugin: 'osgi-run'
+
+repositories {
+    mavenLocal()
+    maven {
+        url 'http://www.knopflerfish.org/maven2'
+    }
+    mavenCentral()
+}
+
+runOsgi {
+    configSettings = 'knopflerfish'
+    bundles = [ 'org.knopflerfish.bundle:desktop:5.0.1',
+                'org.knopflerfish.bundle:console:4.0.1',
+                'org.knopflerfish.bundle:commons-logging:2.0.0.kf4-001' ]
+}

@@ -28,11 +28,12 @@ class OsgiRunPlugin implements Plugin<Project> {
         Task createOsgiRuntimeTask = project.task(
                 group: 'Build',
                 description:
-                'Creates an OSGi environment which can then be started manually or with task runOsgi',
-                'createOsgiRuntime' ) <<
-                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig )
+                'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
+                'createOsgiRuntime' )
+        createOsgiRuntimeTask <<
+                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
         project.task(
-                dependsOn: 'createOsgiRuntime',
+                dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
                 'Runs the OSGi environment, installing and starting the configured bundles',
@@ -42,7 +43,10 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     def OsgiConfig createExtensions( Project project ) {
-        project.extensions.create( 'runOsgi', OsgiConfig )
+        def osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
+        osgiConfig.extensions.create(
+                'wrapInstructions', WrapInstructionsConfig )
+        return osgiConfig
     }
 
     void createConfigurations( Project project ) {
@@ -60,6 +64,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
         return {
+            log.info( "Jar wrap instructions: {}", osgiConfig.wrapInstructions )
             osgiRunner.run( project, osgiConfig )
         }
     }

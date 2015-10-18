@@ -1,3 +1,14 @@
+* 1.3.0 - 2015-October-18
+
+- automatically wrap non-bundles dependencies and add them to the OSGi runtime
+- allow customizing non-bundle wrapping with instructions for Bnd
+- createOsgiRuntime task supports incremental build - only runs if needed
+- Added support to for Knopflerfish
+- Fixed issue with javaArgs not being passed to the java process but to the program
+- Added programArgs to allow passing arguments to the Java application (old javaArgs behaviour)
+- Improved how the main-class from osgiMain's jar gets found (not case-sensitive, as some jars use different casing)
+- Removed Mac command script as the sh command is more appropriate
+
 * 1.2.1 - 2015-July-25
 
 - fixed #11 - do not tell Equinox to start fragment bundles
