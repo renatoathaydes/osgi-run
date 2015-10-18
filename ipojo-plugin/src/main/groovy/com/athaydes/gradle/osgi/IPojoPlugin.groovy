@@ -23,14 +23,18 @@ class IPojoPlugin implements Plugin<Project> {
         project.apply( plugin: 'java' )
         project.apply( plugin: 'osgi' )
         IPojoConfig config = project.extensions.create( 'ipojo', IPojoConfig )
-        project.tasks.jar.doLast ipojoTask( project, project.tasks.jar.archivePath, config )
+        project.tasks.jar.doLast ipojoTask( project, { project.tasks.jar.archivePath }, config )
     }
 
-    def ipojoTask( Project project, jarPath, IPojoConfig config ) {
+    def ipojoTask( Project project, jarPathCallable, IPojoConfig config ) {
         return {
             def pojo = createIPojo( config )
-            File srcBundle = jarPath as File
-            assert srcBundle.isFile()
+
+            File srcBundle = jarPathCallable.call() as File
+            if ( !srcBundle.isFile() ) {
+                throw new GradleException( "Jar task does not seem to have created the expected jar: $srcBundle" )
+            }
+
             File outBundle = resolveOutBundle( srcBundle, project, config )
             def metadata = resolveMetadata( config.metadata, srcBundle )
 
@@ -72,12 +76,22 @@ class IPojoPlugin implements Plugin<Project> {
             outBundle.deleteOnExit()
         }
         if ( !outBundle.parentFile.isDirectory() ) {
-            assert outBundle.parentFile.mkdirs()
+            if ( !outBundle.parentFile.mkdirs() ) {
+                throw new GradleException( 'Cannot create directory for IPojo bundle: ' + outBundle )
+            }
         }
         if ( outBundle.exists() ) {
-            assert outBundle.delete()
+            def deletionOK = outBundle.delete()
+            if ( !deletionOK ) {
+                throw new GradleException( "Could not delete old bundle at $outBundle" )
+            }
         }
-        assert outBundle.createNewFile()
+        def newBundleCreated = outBundle.createNewFile()
+
+        if ( !newBundleCreated ) {
+            throw new GradleException( "Unable to create new bundle at $outBundle" )
+        }
+
         return outBundle
     }
 
