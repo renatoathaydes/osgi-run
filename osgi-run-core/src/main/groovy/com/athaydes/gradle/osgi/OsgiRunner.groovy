@@ -17,7 +17,7 @@ class OsgiRunner {
                 def manifest = zip.getEntry( 'META-INF/MANIFEST.MF' )
                 if ( manifest ) {
                     return zip.getInputStream( manifest ).readLines().any {
-                        it.trim().startsWith( 'Main-Class' )
+                        it ==~ /^(?i)main-class\s*:.*/
                     }
                 }
             } finally {
