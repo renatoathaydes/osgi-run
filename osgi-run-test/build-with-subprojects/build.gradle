@@ -23,4 +23,5 @@ dependencies {
 
 runOsgi {
     bundles += subprojects
+    config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
 }
