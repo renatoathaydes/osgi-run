@@ -24,7 +24,7 @@ configure( subprojects.findAll { it.name == 'hello-service' } ) {
 }
 
 configure( subprojects.findAll { !( it.name in apiModules ) } ) {
-    apply plugin: 'ipojo'
+    apply plugin: 'com.athaydes.ipojo'
 
     ipojo {
         ignoreAnnotations = true
