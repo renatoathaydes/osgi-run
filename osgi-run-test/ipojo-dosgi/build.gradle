@@ -1,8 +1,9 @@
-apply plugin: 'osgi-run'
+apply plugin: 'com.athaydes.osgi-run'
 
 allprojects {
     repositories {
         mavenLocal()
+        jcenter()
         mavenCentral()
     }
 }

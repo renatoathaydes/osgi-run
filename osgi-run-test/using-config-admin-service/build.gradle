@@ -1,5 +1,5 @@
 apply plugin: 'java'
-apply plugin: 'osgi-run'
+apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     mavenLocal()
