@@ -88,6 +88,8 @@ class OsgiRuntimeTaskCreator {
             // create individual configurations for each dependency so that version conflicts need not be resolved
             allBundles.size().times { int i -> c[ OSGI_DEP_PREFIX + i ] }
         }
+
+        //noinspection GroovyAssignabilityCheck
         allBundles.eachWithIndex { Object bundle, int i ->
 
             // by default, all project dependencies are transitive
@@ -165,7 +167,7 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
+    private static void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
         if ( !configFile ) return;
         if ( !configFile.exists() ) {
@@ -174,7 +176,7 @@ class OsgiRuntimeTaskCreator {
         configFile.write( scapeSlashes( textForConfigFile( target, osgiConfig ) ), 'UTF-8' )
     }
 
-    private File getConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static File getConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return new File( "${target}/conf/config.properties" )
             case 'equinox': return new File( "${target}/configuration/config.ini" )
@@ -184,17 +186,17 @@ class OsgiRuntimeTaskCreator {
         throw new GradleException( "Unknown OSGi configSettings: ${osgiConfig.configSettings}" )
     }
 
-    private String getTarget( Project project, OsgiConfig osgiConfig ) {
+    private static String getTarget( Project project, OsgiConfig osgiConfig ) {
         ( osgiConfig.outDir instanceof File ) ?
                 osgiConfig.outDir.absolutePath :
                 "${project.buildDir}/${osgiConfig.outDir}"
     }
 
-    private String scapeSlashes( String string ) {
+    private static String scapeSlashes( String string ) {
         string.replace( '\\', '\\\\' )
     }
 
-    private String textForConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static String textForConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return generateFelixConfigFile( osgiConfig )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
@@ -205,11 +207,11 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private String generateFelixConfigFile( OsgiConfig osgiConfig ) {
+    private static String generateFelixConfigFile( OsgiConfig osgiConfig ) {
         map2properties osgiConfig.config
     }
 
-    private String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
         if ( !bundlesDir.exists() ) {
             bundlesDir.mkdirs()
@@ -224,7 +226,7 @@ class OsgiRuntimeTaskCreator {
         bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
     }
 
-    private String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
         if ( !bundlesDir.exists() ) {
             bundlesDir.mkdirs()
@@ -242,20 +244,21 @@ class OsgiRuntimeTaskCreator {
     }
 
     @SuppressWarnings( "GroovyAssignabilityCheck" )
-    private String map2properties( Map map ) {
+    private static String map2properties( Map map ) {
         map.inject( '' ) { acc, key, value ->
             "${acc}${key} = ${value}\n"
         }
     }
 
-    private String knopflerfishEntries( Map map ) {
+    @SuppressWarnings( "GroovyAssignabilityCheck" )
+    private static String knopflerfishEntries( Map map ) {
         map.inject( '' ) { acc, key, value ->
             def separator = key ==~ /\s*-[DF].*/ ? '=' : ''
             "${acc}${key} ${separator} ${value}\n"
         }
     }
 
-    private void createOSScriptFiles( String target, OsgiConfig osgiConfig ) {
+    private static void createOSScriptFiles( String target, OsgiConfig osgiConfig ) {
         def jars = ( target as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
         assert jars, 'No main Jar found! Cannot create OSGi runtime.'
 
