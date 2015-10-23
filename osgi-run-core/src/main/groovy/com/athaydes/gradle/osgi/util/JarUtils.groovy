@@ -9,13 +9,16 @@ import java.util.zip.ZipOutputStream
  */
 class JarUtils {
 
-    static void copyJar( File source, File destination, Closure copyFunction ) {
+    static void copyJar( File source, File destination,
+                         Closure copyFunction,
+                         Closure afterFunction = { _ -> } ) {
         def destinationStream = new ZipOutputStream( destination.newOutputStream() )
         def input = new ZipFile( source )
         try {
             for ( entry in input.entries() ) {
                 copyFunction( input, destinationStream, entry )
             }
+            afterFunction( destinationStream )
         } finally {
             try {
                 destinationStream.close()
@@ -38,6 +41,10 @@ class JarUtils {
         } finally {
             zip.close()
         }
+    }
+
+    static boolean isBundle( File file ) {
+        !notBundle( file )
     }
 
     static boolean isFragment( file ) {

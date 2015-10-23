@@ -33,7 +33,7 @@ class OsgiRuntimeTaskCreator {
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
             copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
-                    osgiConfig."$WRAP_EXTENSION" as WrapInstructionsConfig )
+                    osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
