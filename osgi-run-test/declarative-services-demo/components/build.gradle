@@ -1,0 +1,20 @@
+apply plugin: 'java'
+apply plugin: 'com.athaydes.osgi-run'
+
+dependencies {
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles += project
+    declarativeServices {
+        component( name: 'abc', immediate: true ) {
+            implementation( 'class': 'com.athaydes.osgi.ds.EventBus' )
+//            service {
+//                provide('interface': 'java.lang.Runnable')
+//            }
+        }
+        see()
+    }
+}
