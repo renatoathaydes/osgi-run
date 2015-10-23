@@ -1,6 +1,7 @@
 package com.athaydes.gradle.osgi
 
 import com.athaydes.gradle.osgi.bnd.BndWrapper
+import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -12,8 +13,8 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.bundling.Jar
 
 import java.util.regex.Pattern
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
+
+import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
 
 /**
  * Creates the osgiRun task
@@ -32,7 +33,7 @@ class OsgiRuntimeTaskCreator {
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
             copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
-                    osgiConfig.wrapInstructions as WrapInstructionsConfig )
+                    osgiConfig."$WRAP_EXTENSION" as WrapInstructionsConfig )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -122,7 +123,7 @@ class OsgiRuntimeTaskCreator {
             from allDeps
             into bundlesDir
             exclude { FileTreeElement element ->
-                def nonBundle = notBundle( element.file )
+                def nonBundle = JarUtils.notBundle( element.file )
                 if ( nonBundle ) nonBundles << element.file
                 return nonBundle
             }
@@ -139,31 +140,6 @@ class OsgiRuntimeTaskCreator {
         } else if ( nonBundles ) {
             log.info "The following jars were kept out of the classpath " +
                     "as they are not bundles (enable wrapping if they are needed): {}", nonBundles
-        }
-    }
-
-    private static boolean notBundle( File file ) {
-        def zip = new ZipFile( file )
-        try {
-            ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
-            if ( !entry ) return true
-            def lines = zip.getInputStream( entry ).readLines()
-            return !lines.any { it.trim().startsWith( 'Bundle' ) }
-        } finally {
-            zip.close()
-        }
-    }
-
-
-    private static boolean isFragment( file ) {
-        def zip = new ZipFile( file as File )
-        try {
-            ZipEntry entry = zip.getEntry( 'META-INF/MANIFEST.MF' )
-            if ( !entry ) return true
-            def lines = zip.getInputStream( entry ).readLines()
-            return lines.any { it.trim().startsWith( 'Fragment-Host' ) }
-        } finally {
-            zip.close()
         }
     }
 
@@ -223,7 +199,7 @@ class OsgiRuntimeTaskCreator {
     }
 
     private static String equinoxBundleDirective( String bundleJar, String target ) {
-        bundleJar.replace( target, '.' ) + ( isFragment( bundleJar ) ? '' : '@start' )
+        bundleJar.replace( target, '.' ) + ( JarUtils.isFragment( bundleJar ) ? '' : '@start' )
     }
 
     private static String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -239,7 +215,7 @@ class OsgiRuntimeTaskCreator {
 
     static String knopflerfishBundleInstructions( List<String> bundleJars ) {
         bundleJars.inject( '\n' ) { acc, bundle ->
-            acc + ( isFragment( bundle ) ? "-install ${bundle}\n" : "-istart ${bundle}\n" )
+            acc + ( JarUtils.isFragment( bundle ) ? "-install ${bundle}\n" : "-istart ${bundle}\n" )
         }
     }
 
