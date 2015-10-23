@@ -3,6 +3,7 @@ package com.athaydes.gradle.osgi.bnd
 import aQute.bnd.osgi.Analyzer
 import aQute.bnd.osgi.Jar
 import com.athaydes.gradle.osgi.WrapInstructionsConfig
+import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -60,21 +61,17 @@ class BndWrapper {
             println '-' * 100
         }
 
-        def bundle = new ZipOutputStream( new File( "$bundlesDir/${jarFile.name}" ).newOutputStream() )
-        def input = new ZipFile( jarFile )
-        try {
-            for ( entry in input.entries() ) {
+        def bundle = new File( "$bundlesDir/${jarFile.name}" )
+
+        JarUtils.copyJar( jarFile, bundle ) {
+            ZipFile input, ZipOutputStream out, ZipEntry entry ->
                 if ( entry.name == 'META-INF/MANIFEST.MF' ) {
-                    bundle.putNextEntry( new ZipEntry( entry.name ) )
-                    manifest.write( bundle )
+                    out.putNextEntry( new ZipEntry( entry.name ) )
+                    manifest.write( out )
                 } else {
-                    bundle.putNextEntry( entry )
-                    bundle.write( input.getInputStream( entry ).bytes )
+                    out.putNextEntry( entry )
+                    out.write( input.getInputStream( entry ).bytes )
                 }
-            }
-        } finally {
-            bundle.close()
-            input.close()
         }
     }
 
