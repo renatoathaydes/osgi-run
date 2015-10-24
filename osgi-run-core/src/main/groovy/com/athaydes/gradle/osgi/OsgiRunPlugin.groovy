@@ -1,7 +1,5 @@
 package com.athaydes.gradle.osgi
 
-import com.athaydes.gradle.osgi.ds.DSJarBuilder
-import com.athaydes.gradle.osgi.ds.DeclarativeServicesConfig
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -15,12 +13,10 @@ import org.gradle.api.tasks.bundling.Jar
 class OsgiRunPlugin implements Plugin<Project> {
 
     static final Logger log = Logging.getLogger( OsgiRunPlugin )
-    static final DS_EXTENSION = 'declarativeServices'
     static final WRAP_EXTENSION = 'wrapInstructions'
 
     def osgiRunner = new OsgiRunner()
     def runtimeCreator = new OsgiRuntimeTaskCreator()
-    def dsJarBuilder = new DSJarBuilder()
 
     @Override
     void apply( Project project ) {
@@ -45,15 +41,13 @@ class OsgiRunPlugin implements Plugin<Project> {
                         'Runs the OSGi environment, installing and starting the configured bundles',
                 'runOsgi' ) <<
                 runOsgiTask( project, osgiConfig )
-        addTaskDependencies( project, createOsgiRuntimeTask, osgiConfig )
+        addTaskDependencies( project, createOsgiRuntimeTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
         def osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
         osgiConfig.extensions.create(
                 WRAP_EXTENSION, WrapInstructionsConfig )
-        osgiConfig.extensions.create(
-                DS_EXTENSION, DeclarativeServicesConfig )
         return osgiConfig
     }
 
@@ -62,20 +56,11 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.configurations.create( 'osgiMain' )
     }
 
-    void addTaskDependencies( Project project,
-                              Task createOsgiRuntimeTask,
-                              OsgiConfig osgiConfig ) {
+    static void addTaskDependencies( Project project,
+                                     Task createOsgiRuntimeTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createOsgiRuntimeTask.dependsOn jarTask
-                jarTask.doLast {
-                    if ( jarTask.didWork ) {
-                        jarTask.outputs.files.each { File output ->
-                            dsJarBuilder.addDeclarativeServices(
-                                    output, osgiConfig[ DS_EXTENSION ] as DeclarativeServicesConfig )
-                        }
-                    }
-                }
             }
         }
     }

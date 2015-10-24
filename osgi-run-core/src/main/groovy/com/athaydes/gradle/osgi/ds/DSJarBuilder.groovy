@@ -15,7 +15,7 @@ class DSJarBuilder {
     final ant = new AntBuilder()
 
     void addDeclarativeServices( File jar, DeclarativeServicesConfig config ) {
-        def dsXml = config._writer.toString()
+        def dsXml = config.xmlFileContents
 
         if ( dsXml && JarUtils.isBundle( jar ) ) {
             def tempJar = new File( File.createTempDir(), jar.name )
@@ -24,7 +24,7 @@ class DSJarBuilder {
                 if ( entry.name == 'META-INF/MANIFEST.MF' ) {
                     def lines = input.getInputStream( entry ).readLines()
                     if ( !lines.any { it ==~ /^Service-Component.*:.+/ } ) {
-                        lines = lines + "Service-Component: ${config.dsFile}"
+                        lines = lines + "Service-Component: ${config.xmlFileName}"
                     }
                     lines.each { line ->
                         if ( line ) out.write( "$line\n".bytes )
@@ -33,7 +33,7 @@ class DSJarBuilder {
                     out.write( input.getInputStream( entry ).bytes )
                 }
             }, { ZipOutputStream out ->
-                out.putNextEntry( new ZipEntry( config.dsFile ) )
+                out.putNextEntry( new ZipEntry( config.xmlFileName ) )
                 out.write( '<?xml version="1.0" encoding="UTF-8"?>\n'.bytes )
                 out.write( dsXml.bytes )
             } )
