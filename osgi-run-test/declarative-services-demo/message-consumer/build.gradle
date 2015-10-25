@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+
+jar {
+    manifest {
+        instruction 'Export-Package', ''
+    }
+}
+
+dependencies {
+    compile project( ':declarative-services-demo:messaging-api' )
+}
+
+declarativeServices {
+    declarations = project.file( 'src/main/osgi/declarativeServices.groovy' )
+}

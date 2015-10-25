@@ -1,7 +1,18 @@
+apply plugin: 'com.athaydes.osgi-run'
+
 allprojects {
     repositories {
         mavenLocal()
         jcenter()
         mavenCentral()
     }
+}
+
+dependencies {
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+}
+
+runOsgi {
+    bundles += subprojects
 }

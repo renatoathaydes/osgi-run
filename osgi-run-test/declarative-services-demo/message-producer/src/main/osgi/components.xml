@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<component name='producer' immediate="true">
+    <implementation class='com.athaydes.osgi.producer.MessageProducer'/>
+    <reference name="message-bus" interface="com.athaydes.osgi.messaging.MessageBus"
+               cardinality="0..1" policy="dynamic"
+               bind="setMessageBus" unbind="removeMessageBus"/>
+</component>

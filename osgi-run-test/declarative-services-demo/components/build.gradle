@@ -1,20 +1,23 @@
 apply plugin: 'java'
-apply plugin: 'com.athaydes.osgi-run'
+apply plugin: 'groovy'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
 
 dependencies {
-    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
-    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+    compile project( ':declarative-services-demo:messaging-api' )
+    compile "com.google.guava:guava:18.0"
+    testCompile "org.codehaus.groovy:groovy-all:2.4.5"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
 
-runOsgi {
-    bundles += project
-    declarativeServices {
-        component( name: 'abc', immediate: true ) {
-            implementation( 'class': 'com.athaydes.osgi.ds.EventBus' )
-//            service {
-//                provide('interface': 'java.lang.Runnable')
-//            }
+declarativeServices {
+    declarations {
+        component( name: 'classTrieMessageBus' ) {
+            implementation( 'class': 'com.athaydes.osgi.ds.ClassTrieMessageBus' )
+            service {
+                provide( 'interface': 'com.athaydes.osgi.messaging.MessageBus' )
+            }
         }
-        see()
     }
+    show()
 }
