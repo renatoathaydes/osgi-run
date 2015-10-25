@@ -34,7 +34,9 @@ class DSJarBuilder {
                 }
             }, { ZipOutputStream out ->
                 out.putNextEntry( new ZipEntry( config.xmlFileName ) )
-                out.write( '<?xml version="1.0" encoding="UTF-8"?>\n'.bytes )
+                if ( !dsXml.startsWith( '<?' ) ) {
+                    out.write( '<?xml version="1.0" encoding="UTF-8"?>\n'.bytes )
+                }
                 out.write( dsXml.bytes )
             } )
 
