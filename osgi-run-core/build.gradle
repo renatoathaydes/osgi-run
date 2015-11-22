@@ -6,7 +6,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.5"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4"
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.3.1-SNAPSHOT'
+version = '1.3.1'
 
 repositories {
     jcenter()
@@ -60,10 +60,14 @@ bintray {
         name = 'osgi-run-core'
         licenses = ['Apache-2.0']
         desc = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
+        vcsUrl = 'https://github.com/renatoathaydes/osgi-run.git'
         websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
         issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
         labels = ['osgi', 'ipojo', 'modular']
         publicDownloadNumbers = true
+        version {
+            name = project.version
+        }
     }
 }
 

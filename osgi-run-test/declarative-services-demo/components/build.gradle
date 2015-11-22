@@ -19,5 +19,7 @@ declarativeServices {
             }
         }
     }
-    show()
+
+    // uncomment to print the generated XML file when building
+    // show()
 }

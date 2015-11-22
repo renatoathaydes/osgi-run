@@ -7,6 +7,11 @@ available:
 * as a separate Groovy script: See [message-consumer](message-consumer/build.gradle) sample. 
 * as a separate, standard DS XML file: See [components](components/build.gradle) sample. 
 
+To apply the Declarative Services Plugin, add this line to your build file:
+
+```groovy
+apply plugin: 'com.athaydes.osgi-ds'
+```
 
 ## Config embedded in the Gradle build
 

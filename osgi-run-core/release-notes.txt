@@ -1,3 +1,8 @@
+* 1.3.1 - 2015-November-22
+
+- #17 added support for Declarative Services
+- fixed #19 wrapped bundle MANIFEST instructions were resolving to Object[].toString()
+
 * 1.3.0 - 2015-October-18
 
 This is the first version that is available in Gradle's Plugin Repository!

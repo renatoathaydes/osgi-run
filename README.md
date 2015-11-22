@@ -9,7 +9,7 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.3.0"
+    id "com.athaydes.osgi-run" version "1.3.1"
 }
 ```
 
@@ -21,11 +21,11 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.3.0"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.3.1"
     }
 }
 
-apply plugin: 'osgi-run'
+apply plugin: 'com.athaydes.osgi-run'
 ```
 
 ## Quick Start
@@ -89,6 +89,30 @@ Notice that you can include any artifact, such as Maven dependencies, in your bu
 The default OSGi container is Apache Felix, but you can easily use Equinox and Knopflerfish as well.
 
 For complete examples, continue reading the next sections or go straight to the samples in [osgi-run-test](osgi-run-test/).
+
+### Declarative Services Plugin
+
+If you use OSGi Declarative Services, you should have a look at the `osgi-ds` plugin, which is part of the
+`osgi-run` core distribution.
+
+Here's an example of how you can use it:
+
+```groovy
+apply plugin: 'com.athaydes.osgi-ds'
+
+declarativeServices {
+    declarations {
+        component( name: 'classTrieMessageBus' ) {
+            implementation( 'class': 'com.athaydes.osgi.ds.ClassTrieMessageBus' )
+            service {
+                provide( 'interface': 'com.athaydes.osgi.messaging.MessageBus' )
+            }
+        }
+    }
+}
+```
+
+For more information, have a look at the [DS Plugin Demo](osgi-run-test/declarative-services-demo).
 
 ### IPojo Plugin
 
