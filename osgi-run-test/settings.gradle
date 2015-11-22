@@ -1,5 +1,4 @@
 rootProject.name = 'osgi-run-test'
-
 include 'build-with-subprojects',
         'build-with-subprojects:my-api',
         'build-with-subprojects:my-impl',
@@ -27,5 +26,11 @@ include 'build-with-subprojects',
         'quartz-sample',
         'using-config-admin-service',
         'using-config-admin-service:configurator',
-        'using-knopflerfish'
+        'using-knopflerfish',
+        'declarative-services-demo',
+        'declarative-services-demo:messaging-api',
+        'declarative-services-demo:components',
+        'declarative-services-demo:message-producer',
+        'declarative-services-demo:message-consumer'
+
 

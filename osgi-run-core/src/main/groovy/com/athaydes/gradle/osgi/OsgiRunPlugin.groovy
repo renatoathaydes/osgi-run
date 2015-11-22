@@ -13,6 +13,8 @@ import org.gradle.api.tasks.bundling.Jar
 class OsgiRunPlugin implements Plugin<Project> {
 
     static final Logger log = Logging.getLogger( OsgiRunPlugin )
+    static final WRAP_EXTENSION = 'wrapInstructions'
+
     def osgiRunner = new OsgiRunner()
     def runtimeCreator = new OsgiRuntimeTaskCreator()
 
@@ -28,7 +30,7 @@ class OsgiRunPlugin implements Plugin<Project> {
         Task createOsgiRuntimeTask = project.task(
                 group: 'Build',
                 description:
-                'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
+                        'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
                 'createOsgiRuntime' )
         createOsgiRuntimeTask <<
                 runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
@@ -36,25 +38,26 @@ class OsgiRunPlugin implements Plugin<Project> {
                 dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
-                'Runs the OSGi environment, installing and starting the configured bundles',
+                        'Runs the OSGi environment, installing and starting the configured bundles',
                 'runOsgi' ) <<
                 runOsgiTask( project, osgiConfig )
         addTaskDependencies( project, createOsgiRuntimeTask )
     }
 
-    def OsgiConfig createExtensions( Project project ) {
+    static OsgiConfig createExtensions( Project project ) {
         def osgiConfig = project.extensions.create( 'runOsgi', OsgiConfig )
         osgiConfig.extensions.create(
-                'wrapInstructions', WrapInstructionsConfig )
+                WRAP_EXTENSION, WrapInstructionsConfig )
         return osgiConfig
     }
 
-    void createConfigurations( Project project ) {
+    static void createConfigurations( Project project ) {
         project.configurations.create( 'osgiRuntime' )
         project.configurations.create( 'osgiMain' )
     }
 
-    void addTaskDependencies( Project project, createOsgiRuntimeTask ) {
+    static void addTaskDependencies( Project project,
+                                     Task createOsgiRuntimeTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createOsgiRuntimeTask.dependsOn jarTask
@@ -64,7 +67,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
         return {
-            log.info( "Jar wrap instructions: {}", osgiConfig.wrapInstructions )
+            log.info( "Jar wrap instructions: {}", osgiConfig[ WRAP_EXTENSION ] )
             osgiRunner.run( project, osgiConfig )
         }
     }

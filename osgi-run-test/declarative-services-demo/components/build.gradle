@@ -1,0 +1,23 @@
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'osgi'
+apply plugin: 'com.athaydes.osgi-ds'
+
+dependencies {
+    compile project( ':declarative-services-demo:messaging-api' )
+    compile "com.google.guava:guava:18.0"
+    testCompile "org.codehaus.groovy:groovy-all:2.4.5"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+}
+
+declarativeServices {
+    declarations {
+        component( name: 'classTrieMessageBus' ) {
+            implementation( 'class': 'com.athaydes.osgi.ds.ClassTrieMessageBus' )
+            service {
+                provide( 'interface': 'com.athaydes.osgi.messaging.MessageBus' )
+            }
+        }
+    }
+    show()
+}
