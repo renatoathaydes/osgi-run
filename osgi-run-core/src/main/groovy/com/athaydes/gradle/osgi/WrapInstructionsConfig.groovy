@@ -14,7 +14,7 @@ class WrapInstructionsConfig {
 
     boolean enabled = true
     boolean printManifests = false
-    Map<Object, Map> manifests = [ : ]
+    Map<Object, Map<String, Object[]>> manifests = [ : ]
 
     def manifest( regx, Closure config ) {
         manifests[ regx ] = [ : ]

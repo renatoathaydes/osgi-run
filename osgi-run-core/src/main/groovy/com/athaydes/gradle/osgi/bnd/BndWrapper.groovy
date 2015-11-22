@@ -27,21 +27,26 @@ class BndWrapper {
         def currentManifest = newJar.manifest
 
         Map<Object, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
+        def consumeValue = { String key ->
+            Object[] items = config.remove( key )
+            if ( items ) items.join( ',' )
+            else null
+        }
 
         if ( !config ) {
             log.info "No instructions provided to wrap bundle {}, will use defaults", jarFile.name
         }
 
-        String implVersion = config.remove( 'Bundle-Version' ) ?:
+        String implVersion = consumeValue( 'Bundle-Version' ) ?:
                 currentManifest.mainAttributes.getValue( 'Implementation-Version' ) ?:
                         versionFromFileName( jarFile.name )
 
-        String implTitle = config.remove( 'Bundle-SymbolicName' ) ?:
+        String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?:
                 currentManifest.mainAttributes.getValue( 'Implementation-Title' ) ?:
                         titleFromFileName( jarFile.name )
 
-        String imports = config.remove( 'Import-Package' )?.join( ',' ) ?: '*'
-        String exports = config.remove( 'Export-Package' )?.join( ',' ) ?: '*'
+        String imports = consumeValue( 'Import-Package' ) ?: '*'
+        String exports = consumeValue( 'Export-Package' ) ?: '*'
 
         def analyzer = new Analyzer().with {
             jar = newJar
@@ -75,8 +80,9 @@ class BndWrapper {
         }
     }
 
-    private static Map getWrapConfig( WrapInstructionsConfig wrapInstructions, File jarFile ) {
-        Map config = wrapInstructions.manifests.find { regx, _ ->
+    private static Map<String, Object[]> getWrapConfig(
+            WrapInstructionsConfig wrapInstructions, File jarFile ) {
+        Map<String, Object[]> config = wrapInstructions.manifests.find { regx, _ ->
             try {
                 def match = jarFile.name ==~ regx
                 if ( match ) log.debug( 'Regex {} matched jar file {}', regx, jarFile.name )

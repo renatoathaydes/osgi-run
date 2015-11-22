@@ -25,7 +25,8 @@ runOsgi {
     wrapInstructions {
         printManifests = true
         manifest( /commons-logging.*/ ) {
-            instruction 'Import-Package', '!javax.servlet,!org.apache.*,*'
+            instruction 'Import-Package', '!javax.servlet', '!org.apache.*', '*'
+            instruction 'Bundle-SymbolicName', 'org.apache.commons.logging'
         }
     }
 }
