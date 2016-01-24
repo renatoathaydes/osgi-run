@@ -9,7 +9,7 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.3.1"
+    id "com.athaydes.osgi-run" version "1.4.0"
 }
 ```
 
@@ -21,7 +21,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.3.1"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.0"
     }
 }
 

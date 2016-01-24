@@ -1,3 +1,11 @@
+* 1.4.0 - 2016-January-24
+
+- Updated Bnd Lib version to 3.1.0
+- Updated Apache Felix version 5.4.0
+- Updated Apache Felix bundlerepository version to 2.0.6
+- Updated gogo bundles versions
+- Updated IPojo version to 1.12.1
+
 * 1.3.1 - 2015-November-22
 
 - #17 added support for Declarative Services
