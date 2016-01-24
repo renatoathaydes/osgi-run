@@ -44,10 +44,10 @@ configure( subprojects.findAll { !( it.name in apiModules ) } ) {
 runOsgi {
     bundles = [
             subprojects,
-            'org.apache.felix:org.apache.felix.ipojo:1.12.0',
+            'org.apache.felix:org.apache.felix.ipojo:1.12.1',
             'org.apache.felix:org.apache.felix.shell:1.4.3',
             'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
-            'org.apache.felix:org.apache.felix.bundlerepository:1.6.0',
+            'org.apache.felix:org.apache.felix.bundlerepository:2.0.6',
             'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
     ]
 }
