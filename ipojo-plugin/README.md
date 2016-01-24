@@ -9,7 +9,7 @@ in any Gradle project.
 
 ```groovy
 plugins {
-    id "com.athaydes.ipojo" version "1.1.1"
+    id "com.athaydes.ipojo" version "1.2.0"
 }
 ```
 
@@ -21,7 +21,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:ipojo-plugin:1.1.1"
+        classpath "com.athaydes.gradle.osgi:ipojo-plugin:1.2.0"
     }
 }
 
