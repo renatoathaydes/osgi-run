@@ -23,7 +23,7 @@ class JarUtils {
      * @param manifestMissing callable to run in case the entry is not found
      * @return whatever the function that ran returned.
      */
-    static withManifestEntry( file, Closure consumeManifest, Callable manifestMissing ) {
+    static withManifestEntry( file, Closure consumeManifest, Callable manifestMissing = { -> } ) {
         withJarEntry( file, 'META-INF/MANIFEST.MF', consumeManifest, manifestMissing )
     }
 

@@ -14,6 +14,7 @@ class OsgiConfig {
     def outDir = "osgi"
     String javaArgs = ""
     String programArgs = ""
+    def copyManifestTo = null
 
     // platform dependent properties
     String configSettings
