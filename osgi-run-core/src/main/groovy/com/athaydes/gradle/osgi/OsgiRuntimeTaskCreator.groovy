@@ -80,7 +80,8 @@ class OsgiRuntimeTaskCreator {
     }
 
     private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
-        osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+        (osgiConfig.bundles as List).flatten() +
+                project.configurations.osgiRuntime.allDependencies.asList()
     }
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
