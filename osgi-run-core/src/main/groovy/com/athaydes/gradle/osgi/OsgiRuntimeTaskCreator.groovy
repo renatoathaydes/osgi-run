@@ -243,6 +243,8 @@ class OsgiRuntimeTaskCreator {
 
         def linuxScript = """|#!/bin/sh
         |
+        |cd "\$( dirname "\${BASH_SOURCE[ 0 ]}" )"
+        |
         |JAVA="java"
         |
         |# if JAVA_HOME exists, use it
@@ -261,6 +263,8 @@ class OsgiRuntimeTaskCreator {
 
         def windowsScript = """
         |@ECHO OFF
+        |
+        |cd /d %~dp0
         |
         |set JAVA="java"
         |
