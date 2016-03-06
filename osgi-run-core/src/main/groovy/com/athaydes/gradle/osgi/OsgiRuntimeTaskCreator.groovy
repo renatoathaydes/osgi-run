@@ -32,8 +32,7 @@ class OsgiRuntimeTaskCreator {
         return {
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
-            copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
-                    osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig )
+            copyBundles( project, osgiConfig, target )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -80,7 +79,7 @@ class OsgiRuntimeTaskCreator {
     }
 
     private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
-        (osgiConfig.bundles as List).flatten() +
+        ( osgiConfig.bundles as List ).flatten() +
                 project.configurations.osgiRuntime.allDependencies.asList()
     }
 
@@ -114,8 +113,10 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyBundles( Project project, String bundlesDir,
-                              WrapInstructionsConfig wrapInstructions ) {
+    private void copyBundles( Project project, OsgiConfig osgiConfig, String target ) {
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}"
+        def wrapInstructions = osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig
+
         def nonBundles = [ ] as Set
         //noinspection GroovyAssignabilityCheck
         def allDeps = project.configurations.findAll { it.name.startsWith( OSGI_DEP_PREFIX ) }
@@ -124,6 +125,11 @@ class OsgiRuntimeTaskCreator {
             from allDeps
             into bundlesDir
             exclude { FileTreeElement element ->
+                def excluded = osgiConfig.excludedBundles.any { element.name ==~ it }
+                if ( excluded ) {
+                    log.info( 'Excluding bundle from runtime: {}', element.name )
+                    return excluded
+                }
                 def nonBundle = JarUtils.notBundle( element.file )
                 if ( nonBundle ) nonBundles << element.file
                 return nonBundle
