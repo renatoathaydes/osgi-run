@@ -32,8 +32,7 @@ class OsgiRuntimeTaskCreator {
         return {
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
-            copyBundles( project, "${target}/${osgiConfig.bundlesPath}",
-                    osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig )
+            copyBundles( project, osgiConfig, target )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -80,7 +79,8 @@ class OsgiRuntimeTaskCreator {
     }
 
     private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
-        osgiConfig.bundles.flatten() + project.configurations.osgiRuntime.allDependencies.asList()
+        ( osgiConfig.bundles as List ).flatten() +
+                project.configurations.osgiRuntime.allDependencies.asList()
     }
 
     private void configBundles( Project project, OsgiConfig osgiConfig ) {
@@ -113,8 +113,10 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void copyBundles( Project project, String bundlesDir,
-                              WrapInstructionsConfig wrapInstructions ) {
+    private void copyBundles( Project project, OsgiConfig osgiConfig, String target ) {
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}"
+        def wrapInstructions = osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig
+
         def nonBundles = [ ] as Set
         //noinspection GroovyAssignabilityCheck
         def allDeps = project.configurations.findAll { it.name.startsWith( OSGI_DEP_PREFIX ) }
@@ -123,6 +125,11 @@ class OsgiRuntimeTaskCreator {
             from allDeps
             into bundlesDir
             exclude { FileTreeElement element ->
+                def excluded = osgiConfig.excludedBundles.any { element.name ==~ it }
+                if ( excluded ) {
+                    log.info( 'Excluding bundle from runtime: {}', element.name )
+                    return excluded
+                }
                 def nonBundle = JarUtils.notBundle( element.file )
                 if ( nonBundle ) nonBundles << element.file
                 return nonBundle
@@ -131,10 +138,14 @@ class OsgiRuntimeTaskCreator {
 
         if ( wrapInstructions.enabled ) {
             nonBundles.each { File file ->
-                try {
-                    BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
-                } catch ( e ) {
-                    log.warn( "Unable to wrap ${file.name}", e )
+                if ( JarUtils.hasManifest( file ) ) {
+                    try {
+                        BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
+                    } catch ( e ) {
+                        log.warn( "Unable to wrap ${file.name}", e )
+                    }
+                } else {
+                    log.warn( 'Jar without manifest found, unable to wrap it into a bundle: {}', file.name )
                 }
             }
         } else if ( nonBundles ) {
@@ -242,6 +253,8 @@ class OsgiRuntimeTaskCreator {
 
         def linuxScript = """|#!/bin/sh
         |
+        |cd "\$( dirname "\${BASH_SOURCE[ 0 ]}" )"
+        |
         |JAVA="java"
         |
         |# if JAVA_HOME exists, use it
@@ -260,6 +273,8 @@ class OsgiRuntimeTaskCreator {
 
         def windowsScript = """
         |@ECHO OFF
+        |
+        |cd /d %~dp0
         |
         |set JAVA="java"
         |

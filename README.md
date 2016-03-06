@@ -9,7 +9,7 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.4.0"
+    id "com.athaydes.osgi-run" version "1.4.2"
 }
 ```
 
@@ -21,7 +21,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.0"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.2"
     }
 }
 
@@ -159,6 +159,8 @@ For examples of using IPojo and Gradle, see the test projects:
     * ``config``: Map of properties that should be added to the container's config file.
         This property is ignored if `configSettings` is set to 'none'.
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
+    * ``excludedBundles``: List of regular expressions to match against bundle file names
+        which must not be added to the OSGi runtime.
 
 The default `config` for Felix is:
         

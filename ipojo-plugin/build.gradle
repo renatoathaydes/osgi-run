@@ -6,20 +6,21 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6"
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
     }
 }
 
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'groovy'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
 apply plugin: 'idea'
 
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
 version = '1.2.0'
+description = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project'
 
 repositories {
     mavenLocal()
@@ -38,33 +39,48 @@ task sourcesJar( type: Jar, dependsOn: classes ) {
     extension "jar"
 }
 
-/* Publishing config */
-
-publishing {
-    publications {
-        mavenJava( MavenPublication ) {
-            from components.java
-            artifact sourcesJar
-        }
-    }
+task javadocJar( type: Jar ) {
+    classifier "javadoc"
+    from javadoc
 }
 
-apply plugin: 'com.jfrog.bintray'
+/* Publishing config */
 
-bintray {
-    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
-    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
-    publications = [ "mavenJava" ]
-    publish = true
-    pkg {
-        repo = 'maven'
-        name = 'osgi-run-ipojo'
-        licenses = [ 'Apache-2.0' ]
-        desc = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project.'
-        websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
-        issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
-        labels = [ 'osgi', 'ipojo', 'modular' ]
-        publicDownloadNumbers = true
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+// add all the info required by Maven Central to the pom
+configure( install.repositories.mavenInstaller ) {
+    //repository(url: "file://$buildDir")
+    pom.project {
+        inceptionYear '2014'
+        name project.name
+        packaging 'jar'
+        description project.description
+
+        url 'https://github.com/renatoathaydes/osgi-run/tree/master/ipojo-plugin'
+
+        scm {
+            connection 'git@github.com:renatoathaydes/osgi-run.git'
+            developerConnection 'git@github.com:renatoathaydes/osgi-run.git'
+            url 'https://github.com/renatoathaydes/osgi-run'
+        }
+
+        licenses {
+            license {
+                name 'The Apache License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+
+        developers {
+            developer {
+                id 'renatoathaydes'
+                name 'Renato Athaydes'
+                email 'renato@athaydes.com'
+            }
+        }
     }
 }
 
@@ -77,8 +93,46 @@ pluginBundle {
         osgiRunPlugin {
             id = 'com.athaydes.ipojo'
             displayName = 'IPojo Gradle Plugin'
-            description = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project.'
-            tags = ['osgi', 'ipojo', 'modular']
+            description = project.description
+            tags = [ 'osgi', 'ipojo', 'modular' ]
+        }
+    }
+}
+
+apply plugin: 'com.jfrog.bintray'
+
+bintray {
+    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
+    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
+    configurations = [ 'archives' ]
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'osgi-run-ipojo'
+        licenses = [ 'Apache-2.0' ]
+        desc = project.description
+        websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
+        issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
+        vcsUrl = 'https://github.com/renatoathaydes/osgi-run.git'
+        labels = [ 'osgi', 'ipojo', 'modular' ]
+        publicDownloadNumbers = true
+        version {
+            name = project.version
+        }
+    }
+
+    //noinspection GroovyAssignabilityCheck
+    version {
+        name = project.version
+        vcsTag = project.version
+        gpg {
+            sign = true
+        }
+        mavenCentralSync {
+            sync = true
+            user = ossrhUsername
+            password = ossrhPassword
+            close = '1' // '0' to NOT close
         }
     }
 }

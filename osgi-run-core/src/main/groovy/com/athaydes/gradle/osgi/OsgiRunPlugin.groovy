@@ -34,6 +34,9 @@ class OsgiRunPlugin implements Plugin<Project> {
                 'createOsgiRuntime' )
         createOsgiRuntimeTask <<
                 runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
+
+        createOsgiRuntimeTask.doLast { ManifestFileCopier.run( project, osgiConfig ) }
+
         project.task(
                 dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
@@ -41,6 +44,7 @@ class OsgiRunPlugin implements Plugin<Project> {
                         'Runs the OSGi environment, installing and starting the configured bundles',
                 'runOsgi' ) <<
                 runOsgiTask( project, osgiConfig )
+
         addTaskDependencies( project, createOsgiRuntimeTask )
     }
 
