@@ -138,10 +138,14 @@ class OsgiRuntimeTaskCreator {
 
         if ( wrapInstructions.enabled ) {
             nonBundles.each { File file ->
-                try {
-                    BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
-                } catch ( e ) {
-                    log.warn( "Unable to wrap ${file.name}", e )
+                if ( JarUtils.hasManifest( file ) ) {
+                    try {
+                        BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
+                    } catch ( e ) {
+                        log.warn( "Unable to wrap ${file.name}", e )
+                    }
+                } else {
+                    log.warn( 'Jar without manifest found, unable to wrap it into a bundle: {}', file.name )
                 }
             }
         } else if ( nonBundles ) {

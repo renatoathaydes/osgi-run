@@ -76,6 +76,10 @@ class JarUtils {
         }
     }
 
+    static boolean hasManifest( File file ) {
+        withManifestEntry( file, { ZipFile zip, ZipEntry entry -> true }, { false } )
+    }
+
     static boolean notBundle( File file ) {
         withManifestEntry( file, { ZipFile zip, ZipEntry entry ->
             def lines = zip.getInputStream( entry ).readLines()
