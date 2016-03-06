@@ -84,6 +84,21 @@ configure( install.repositories.mavenInstaller ) {
     }
 }
 
+pluginBundle {
+    website = 'https://github.com/renatoathaydes/osgi-run/tree/master/ipojo-plugin'
+    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        osgiRunPlugin {
+            id = 'com.athaydes.ipojo'
+            displayName = 'IPojo Gradle Plugin'
+            description = project.description
+            tags = [ 'osgi', 'ipojo', 'modular' ]
+        }
+    }
+}
+
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
@@ -118,21 +133,6 @@ bintray {
             user = ossrhUsername
             password = ossrhPassword
             close = '1' // '0' to NOT close
-        }
-    }
-}
-
-pluginBundle {
-    website = 'https://github.com/renatoathaydes/osgi-run/tree/master/ipojo-plugin'
-    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
-
-    //noinspection GroovyAssignabilityCheck
-    plugins {
-        osgiRunPlugin {
-            id = 'com.athaydes.ipojo'
-            displayName = 'IPojo Gradle Plugin'
-            description = project.description
-            tags = ['osgi', 'ipojo', 'modular']
         }
     }
 }

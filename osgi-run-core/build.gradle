@@ -83,6 +83,22 @@ configure( install.repositories.mavenInstaller ) {
     }
 }
 
+pluginBundle {
+    website = 'https://github.com/renatoathaydes/osgi-run'
+    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
+
+    //noinspection GroovyAssignabilityCheck
+    plugins {
+        osgiRunPlugin {
+            id = 'com.athaydes.osgi-run'
+            displayName = 'Osgi-run Gradle Plugin'
+            description = project.description
+            version = project.version
+            tags = [ 'osgi', 'ipojo', 'modular' ]
+        }
+    }
+}
+
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
@@ -117,21 +133,6 @@ bintray {
             user = ossrhUsername
             password = ossrhPassword
             close = '1' // '0' to NOT close
-        }
-    }
-}
-
-pluginBundle {
-    website = 'https://github.com/renatoathaydes/osgi-run'
-    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
-
-    //noinspection GroovyAssignabilityCheck
-    plugins {
-        osgiRunPlugin {
-            id = 'com.athaydes.osgi-run'
-            displayName = 'Osgi-run Gradle Plugin'
-            description = project.description
-            tags = ['osgi', 'ipojo', 'modular']
         }
     }
 }
