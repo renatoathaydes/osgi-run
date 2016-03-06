@@ -1,3 +1,11 @@
+* 1.4.1 - 2016-March-06
+
+- Fixed bug where subprojects could not be assigned to bundles
+- Added 'copyManifestTo' config option to facilitate OSGi IDE support
+- Modified run scripts to allow running from any working directory
+- Added excludedBundles option to allow removal of bundles from the runtime at the last possible time
+- Fixed #24: do not try to wrap jar without manifest entry as Bnd will throw a NPE
+
 * 1.4.0 - 2016-January-24
 
 - Updated Bnd Lib version to 3.1.0

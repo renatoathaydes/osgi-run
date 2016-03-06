@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.4.1-SNAPSHOT'
+version = '1.4.1'
 
 repositories {
     jcenter()
