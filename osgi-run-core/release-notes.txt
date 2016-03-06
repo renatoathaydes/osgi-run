@@ -1,3 +1,8 @@
+* 1.4.2 - 2016-March-06
+
+- this release just fixes the 1.4.1 release which failed due to invalid version declaration
+- published osgi-run to Maven Central as well as Gradle Plugin Repository and Bintray
+
 * 1.4.1 - 2016-March-06
 
 - Fixed bug where subprojects could not be assigned to bundles
