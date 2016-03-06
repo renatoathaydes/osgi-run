@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.4.1'
+version = '1.4.2'
 description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
 
 repositories {
@@ -116,25 +116,23 @@ bintray {
         issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
         labels = ['osgi', 'ipojo', 'modular']
         publicDownloadNumbers = true
+
+        //noinspection GroovyAssignabilityCheck
         version {
             name = project.version
+            vcsTag = project.version
+            gpg {
+                sign = true
+            }
+            mavenCentralSync {
+                sync = true
+                user = ossrhUsername
+                password = ossrhPassword
+                close = '1' // '0' to NOT close
+            }
         }
     }
 
-    //noinspection GroovyAssignabilityCheck
-    version {
-        name = project.version
-        vcsTag = project.version
-        gpg {
-            sign = true
-        }
-        mavenCentralSync {
-            sync = true
-            user = ossrhUsername
-            password = ossrhPassword
-            close = '1' // '0' to NOT close
-        }
-    }
 }
 
 bintrayUpload.dependsOn build, sourcesJar

@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.4.1'
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.4.2'
         classpath group: 'com.athaydes.gradle.osgi', name: 'ipojo-plugin', version: '1.2.0'
     }
 }
