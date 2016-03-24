@@ -46,27 +46,45 @@ class OsgiRunner {
     }
 
     private void delegateProcessTo( Process process ) {
-        def scanner = new Scanner( System.in )
         def exit = new AtomicBoolean( false )
         def line = null;
 
         consume process.in, exit, System.out
         consume process.err, exit, System.err
 
-        while ( !exit.get() && ( line = scanner.nextLine()?.trim() ) != null ) {
+        def input = System.in.newReader()
+
+        def readAtLeastOneLine = false
+
+        while ( !exit.get() && ( line = input.readLine()?.trim() ) != null ) {
             if ( line in [ 'exit', 'stop 0', 'shutdown', 'quit' ] ) {
                 exit.set true
                 line = 'stop 0'
             }
+            readAtLeastOneLine = true
+
             process.outputStream.write( ( line + '\n' ).bytes )
             process.outputStream.flush()
         }
 
-        try {
-            process.waitForOrKill( 5000 )
-        } catch ( e ) {
-            log.warn "OSGi process did not die gracefully. $e"
-        } finally {
+        if ( readAtLeastOneLine ) {
+            try {
+                process.waitForOrKill( 5000 )
+            } catch ( e ) {
+                log.warn "OSGi process did not die gracefully. $e"
+            } finally {
+                exit.set true
+            }
+        } else {
+            def stars = '*' * 50
+            println "$stars\n" +
+                    "The osgi-run process does not have access to the\n" +
+                    "JVM console (may happen when running from an IDE).\n" +
+                    "For this reason, the command-line will not work.\n" +
+                    "Blocking until the OSGi process is killed.\n" +
+                    "$stars"
+
+            process.waitFor()
             exit.set true
         }
     }
