@@ -23,5 +23,6 @@ jar {
 
 runOsgi {
     bundles += allprojects
+    excludedBundles = [ '.*org.osgi.*' ]
     javaArgs = "-Dexample.configFile=${file( 'config-example.properties' ).absolutePath}"
 }
