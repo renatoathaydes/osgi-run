@@ -73,12 +73,12 @@ Alternatively, you can just create the OSGi environment, then run it later using
 gradle createOsgiRuntime
 ```
 
-This will create an OSGi environment in the output directory, which by default is `build/osgi`.
+This will create an OSGi environment in the output directory, which by default is `generated/osgi`.
 
 To run it:
 
 ```
-cd build/osgi
+cd generated/osgi
 chmod +x run.sh  # may be necessary in Linux/Mac
 ./run.sh # In Windows, use run.bat
 ```
