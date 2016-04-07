@@ -21,7 +21,7 @@ Plenty of examples are available in the [osgi-run-test](osgi-run-test/) director
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.4.2"
+    id "com.athaydes.osgi-run" version "1.4.3"
 }
 ```
 
@@ -33,7 +33,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.2"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.3"
     }
 }
 
