@@ -1,7 +1,9 @@
 osgi-run
 ========
 
-Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless
+Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
+osgi-run uses Bnd to wrap Gradle dependencies as bundles if necessary before adding them to the OSGi runtime.
+The Gradle OSGi Plugin is included by osgi-run.
 
 ## Apply the osgi-run plugin
 
