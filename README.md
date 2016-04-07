@@ -64,8 +64,6 @@ dependencies {
 }
 
 runOsgi {
-    // OSGi bundles should not be included in the runtime
-    excludedBundles = [ '.*org.osgi.*' ]
     javaArgs = "-Dexample.configFile=${file( 'config-example.properties' ).absolutePath}"
     bundles += project
 }
