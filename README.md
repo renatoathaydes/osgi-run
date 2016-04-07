@@ -2,8 +2,18 @@ osgi-run
 ========
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
-osgi-run uses Bnd to wrap Gradle dependencies as bundles if necessary before adding them to the OSGi runtime.
-The Gradle OSGi Plugin is included by osgi-run.
+
+Osgi-run can create and run an OSGi environment using any OSGi container. It uses Bnd to wrap Gradle dependencies as 
+bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
+flat jars becomes as easy as possible.
+
+To turn your project's jar into an OSGi bundle, use one of the existing Gradle Plugins
+([osgi](https://docs.gradle.org/current/userguide/osgi_plugin.html),
+ [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin),
+ [biz.aQute.bnd](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)),
+then run it with osgi-run.
+
+Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory.
 
 ## Apply the osgi-run plugin
 
@@ -136,6 +146,13 @@ For examples of using IPojo and Gradle, see the test projects:
   * ``createOsgiRuntime``: create the OSGi runtime based on configuration provided (or the defaults).
       This task depends on the ``jar`` task of the project and its sub-projects.
   * ``runOsgi``: starts the OSGi runtime (depends on ``createOsgiRuntime``).
+  * ``cleanOsgiRuntime``: deletes the `outputDir` directory.
+  
+Notice that Gradle lets you write the shortest unambiguous task name possible, so instead of using the full name of
+a task, say `createOsgiRuntime`, you can just do `gradle crOsgi` and Gradle will get it.
+
+The `cleanOsgiRuntime` task will make any existing `clean` task (normally added by the Java plugin)
+depend on itself, so you just need to type `gradle clean` to obliterate the OSGi runtime.
 
 ## Configuring osgi-run
 
@@ -282,13 +299,6 @@ dependencies {
     }
 }
 ```
-
-## Implicitly applied plugins
-
-The ``osgi-run`` plugin applies the following plugins:
-
-  * [OSGi plugin](http://www.gradle.org/docs/current/userguide/osgi_plugin.html)
-
 
 ### More usage examples
 
