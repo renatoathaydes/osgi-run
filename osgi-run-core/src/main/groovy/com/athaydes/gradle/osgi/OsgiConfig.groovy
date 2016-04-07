@@ -20,7 +20,7 @@ class OsgiConfig {
     String configSettings
     String bundlesPath
     def bundles
-    def excludedBundles = [ ]
+    def excludedBundles = [ 'org.osgi.*' ]
     def osgiMain
     Map config
 

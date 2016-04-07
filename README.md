@@ -182,7 +182,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         This property is ignored if `configSettings` is set to 'none'.
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
     * ``excludedBundles``: List of regular expressions to match against bundle file names
-        which must not be added to the OSGi runtime.
+        which must not be added to the OSGi runtime. Defaults to `['org.osgi.*']`.
 
 The default `config` for Felix is:
         

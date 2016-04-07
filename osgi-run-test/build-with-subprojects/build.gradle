@@ -34,7 +34,4 @@ dependencies {
 runOsgi {
     bundles += subprojects
     config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
-
-    // OSGi bundles should not be included in the runtime
-    excludedBundles = [ 'org.osgi.*' ]
 }

@@ -13,7 +13,4 @@ subprojects {
 
 runOsgi {
     bundles += subprojects
-
-    // OSGi bundles should not be included in the runtime
-    excludedBundles = [ 'org.osgi.*' ]
 }
