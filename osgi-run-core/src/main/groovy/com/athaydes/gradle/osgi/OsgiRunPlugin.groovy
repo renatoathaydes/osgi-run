@@ -5,6 +5,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
 
 /**
@@ -44,7 +45,15 @@ class OsgiRunPlugin implements Plugin<Project> {
                 'runOsgi' ) <<
                 runOsgiTask( project, osgiConfig )
 
-        addTaskDependencies( project, createOsgiRuntimeTask )
+        Task cleanTask = project.task(
+                type: Delete,
+                group: 'Build',
+                description: 'Cleans the OSGi environment created by the createOsgiRuntime task',
+                'cleanOsgiRuntime' ) {
+            delete OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+        }
+
+        addTaskDependencies( project, createOsgiRuntimeTask, cleanTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
@@ -60,10 +69,16 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     static void addTaskDependencies( Project project,
-                                     Task createOsgiRuntimeTask ) {
+                                     Task createOsgiRuntimeTask,
+                                     Task cleanTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createOsgiRuntimeTask.dependsOn jarTask
+            }
+            it.tasks.withType( Delete ) { delTask ->
+                if ( delTask.name == 'clean' ) {
+                    delTask.dependsOn cleanTask
+                }
             }
         }
     }

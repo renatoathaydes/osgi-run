@@ -173,7 +173,7 @@ class OsgiRuntimeTaskCreator {
         throw new GradleException( "Unknown OSGi configSettings: ${osgiConfig.configSettings}" )
     }
 
-    private static String getTarget( Project project, OsgiConfig osgiConfig ) {
+    static String getTarget( Project project, OsgiConfig osgiConfig ) {
         ( osgiConfig.outDir instanceof File ) ?
                 osgiConfig.outDir.absolutePath :
                 "${project.buildDir}/${osgiConfig.outDir}"
