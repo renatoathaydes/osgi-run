@@ -20,7 +20,6 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     @Override
     void apply( Project project ) {
-        project.apply( plugin: 'osgi' )
         createConfigurations( project )
         OsgiConfig osgiConfig = createExtensions( project )
         createTasks( project, osgiConfig )

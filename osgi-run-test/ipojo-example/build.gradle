@@ -9,6 +9,7 @@ allprojects {
 }
 
 subprojects {
+    apply plugin: 'osgi'
     apply plugin: 'com.athaydes.ipojo'
 
     dependencies {

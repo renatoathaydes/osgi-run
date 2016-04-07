@@ -1,3 +1,13 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.dm.gradle:gradle-bundle-plugin:0.8.2'
+    }
+}
+
 apply plugin: 'com.athaydes.osgi-run'
 
 allprojects {
@@ -24,4 +34,7 @@ dependencies {
 runOsgi {
     bundles += subprojects
     config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
+
+    // OSGi bundles should not be included in the runtime
+    excludedBundles = [ 'org.osgi.*' ]
 }

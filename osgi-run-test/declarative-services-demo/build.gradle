@@ -8,6 +8,10 @@ allprojects {
     }
 }
 
+subprojects {
+    apply plugin: 'osgi'
+}
+
 dependencies {
     osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
     osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"

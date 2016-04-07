@@ -1,10 +1,9 @@
 apply plugin: 'groovy'
-apply plugin: 'osgi'
+apply plugin: 'org.dm.bundle'
 
 jar {
     manifest {
-        instruction 'Export-Package', ''
-        instruction 'Bundle-Activator', 'com.athaydes.myimpl.MyImplActivator'
+        attributes 'Bundle-Activator': 'com.athaydes.myimpl.MyImplActivator'
     }
 }
 

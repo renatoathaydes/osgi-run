@@ -7,13 +7,13 @@ allprojects {
     }
 }
 
-dependencies {
-    // run the bundle 'Common Eclipse Runtime'
-    osgiRuntime 'org.eclipse.equinox:common:3.6.200-v20130402-1505'
+subprojects {
+    apply plugin: 'osgi'
 }
 
 runOsgi {
-    configSettings = 'equinox'
-    programArgs = '-console'
     bundles += subprojects
+
+    // OSGi bundles should not be included in the runtime
+    excludedBundles = [ 'org.osgi.*' ]
 }

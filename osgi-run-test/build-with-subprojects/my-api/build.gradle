@@ -1,2 +1,7 @@
 apply plugin: 'java'
-apply plugin: 'osgi'
+apply plugin: 'org.dm.bundle'
+
+bundle {
+    instruction 'Export-Package', '*'
+    trace = true
+}

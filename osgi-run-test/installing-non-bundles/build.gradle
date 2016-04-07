@@ -1,9 +1,11 @@
 apply plugin: 'java'
 apply plugin: 'com.athaydes.osgi-run'
+apply plugin: 'osgi'
 
 repositories {
     mavenCentral()
 }
+
 
 dependencies {
     compile 'org.osgi:org.osgi.core:4.3.1'
