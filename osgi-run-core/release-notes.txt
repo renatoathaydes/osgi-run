@@ -1,3 +1,11 @@
+* 1.4.3 - 2016-April-07
+
+- **BREAKING CHANGE**: stopped applying the 'osgi' plugin automatically.
+  This allows other (more complete) OSGi plugins to be used instead with 'osgi-run'.
+- Fixed #27 do not kill OSGi runtime during build when the console is unavailable.
+- Made excludedBundles default to ['org\\.osgi\\..*']. OSGi API bundles should not be included in the runtime.
+- Created 'cleanOsgiRuntime' task. Made 'clean' task depend on it to make the build flow easy.
+
 * 1.4.2 - 2016-March-06
 
 - this release just fixes the 1.4.1 release which failed due to invalid version declaration

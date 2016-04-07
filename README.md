@@ -13,7 +13,10 @@ To turn your project's jar into an OSGi bundle, use one of the existing Gradle P
  [biz.aQute.bnd](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)),
 then run it with osgi-run.
 
-Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory.
+> Versions prior to 1.4.3 applied the 'osgi' plugin automatically, but since 1.4.3 any of the above will work.
+
+Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
+except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
 
 ## Apply the osgi-run plugin
 
@@ -180,7 +183,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         This property is ignored if `configSettings` is set to 'none'.
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
     * ``excludedBundles``: List of regular expressions to match against bundle file names
-        which must not be added to the OSGi runtime. Defaults to `['org.osgi.*']`.
+        which must not be added to the OSGi runtime. Defaults to `['org\\.osgi\\..*']`.
 
 The default `config` for Felix is:
         
