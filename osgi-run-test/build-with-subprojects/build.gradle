@@ -10,20 +10,23 @@ buildscript {
 
 apply plugin: 'com.athaydes.osgi-run'
 
-allprojects {
-    apply plugin: 'idea'
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 
+subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
     }
-}
 
-subprojects {
-    afterEvaluate { project ->
-        project.jar.doLast {
-            project.jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
-        }
+    apply plugin: 'com.athaydes.osgi-run'
+
+    // make a simple environment for each sub-project
+    runOsgi {
+        bundles += project
+        copyManifestTo file( 'generated-sources/MANIFEST.MF' )
     }
 }
 
