@@ -184,6 +184,9 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
     * ``excludedBundles``: List of regular expressions to match against bundle file names
         which must not be added to the OSGi runtime. Defaults to `['org\\.osgi\\..*']`.
+    * ``copyManifestTo``: Copies the bundle's Manifest to the given location.
+        This is useful to keep an up-to-date, auto-generated version of the Manifest in a location
+        where the IDE can use it to provide OSGi support.
 
 The default `config` for Felix is:
         
@@ -241,6 +244,7 @@ runOsgi {
     bundles += allprojects.toList() + IPOJO_BUNDLE // bundles are: this project + subprojects + IPojo
     config += [ 'osgi.clean': true ]      // add properties to the Equinox config
     outDir = 'runtime'                    // the environment will be built at "${project.buildDir}/runtime"
+    copyManifestTo file( 'auto-generated/MANIFEST.MF' ) // make the manifest visible to the IDE for OSGi support
 }
 ```
 
