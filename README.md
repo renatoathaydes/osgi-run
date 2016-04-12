@@ -166,7 +166,9 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         This is used to generate a default config file for the OSGi container selected and affects the
         defaults used for most other properties. **Always make this the first property you declare** otherwise
         it will overwrite other properties with the default values for the container selected.
-        Set to ``none`` if you want to provide your own config file.
+        Set to ``none`` if you want to provide your own config file.  
+        You can configure several environments and select which to use by passing a Gradle property, e.g. `gradle runOsgi -Pequinox`.
+        See the [build-with-subprojects](osgi-run-test/build-with-subprojects) example.
     * ``outDir``: output directory (default: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
     * ``bundles``: Extra resources to include in the OSGi ``bundle`` folder 
@@ -281,7 +283,7 @@ runOsgi {
 The example above is used in the [quartz-sample](osgi-run-test/quartz-sample) 
 to provide extra meta-data for wrapping the `c3p0` jar, which is required by the `Quartz` bundle.
 
-## Gradle Configurations
+## Gradle configurations additions
 
 `osgi-run` adds the following Gradle configurations to the project:
 
@@ -305,7 +307,7 @@ dependencies {
 }
 ```
 
-### More usage examples
+## More usage examples
 
 The best way to understand how you can configure your OSGi runtime is through examples.
 
