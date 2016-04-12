@@ -167,8 +167,8 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         defaults used for most other properties. **Always make this the first property you declare** otherwise
         it will overwrite other properties with the default values for the container selected.
         Set to ``none`` if you want to provide your own config file.  
-        You can configure several environment and select by passing gradle property, e.g. `gradle runOSGi -Pequinox`.
-        See [build-with-subprojects](osgi-run-test/build-with-subprojects) example.
+        You can configure several environments and select which to use by passing a Gradle property, e.g. `gradle runOsgi -Pequinox`.
+        See the [build-with-subprojects](osgi-run-test/build-with-subprojects) example.
     * ``outDir``: output directory (default: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
     * ``bundles``: Extra resources to include in the OSGi ``bundle`` folder 
