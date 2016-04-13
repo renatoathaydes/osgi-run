@@ -251,7 +251,7 @@ class OsgiRuntimeTaskCreator {
 
         def mainJar = jars.find { it.name.contains( 'main' ) } ?: jars.first()
 
-        def linuxScript = """|#!/bin/sh
+        def linuxScript = """|#!/bin/bash
         |
         |cd "\$( dirname "\${BASH_SOURCE[ 0 ]}" )"
         |
