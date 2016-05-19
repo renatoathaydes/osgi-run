@@ -36,6 +36,7 @@ class OsgiRuntimeTaskCreator {
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
+            osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
             createOSScriptFiles( target, osgiConfig )
         }
     }
