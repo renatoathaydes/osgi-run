@@ -1,3 +1,8 @@
+* 1.4.4 - ?????????????
+
+- #41 sh file should use bash shebang, not sh
+- #43 automatically remove new-lines from javaArgs
+
 * 1.4.3 - 2016-April-07
 
 - **BREAKING CHANGE**: stopped applying the 'osgi' plugin automatically.
