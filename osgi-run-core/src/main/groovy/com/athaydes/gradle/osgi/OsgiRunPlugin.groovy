@@ -66,6 +66,7 @@ class OsgiRunPlugin implements Plugin<Project> {
     static void createConfigurations( Project project ) {
         project.configurations.create( 'osgiRuntime' )
         project.configurations.create( 'osgiMain' )
+        project.configurations.create( 'systemLib' )
     }
 
     static void addTaskDependencies( Project project,

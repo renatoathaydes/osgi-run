@@ -33,6 +33,7 @@ class OsgiRuntimeTaskCreator {
             log.info( "Will copy osgi runtime resources into $target" )
             configBundles( project, osgiConfig )
             copyBundles( project, osgiConfig, target )
+            copySystemLibs( project, osgiConfig, target )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
@@ -111,6 +112,14 @@ class OsgiRuntimeTaskCreator {
                 }
             }
             project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
+        }
+    }
+
+    private void copySystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
+        def systemLibsDir = "${target}/system-libs"
+        project.copy {
+            from project.configurations.systemLibs
+            into systemLibsDir
         }
     }
 
