@@ -12,7 +12,10 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.bundling.Jar
 
+import java.util.jar.Manifest
 import java.util.regex.Pattern
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
 import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
 
@@ -23,6 +26,7 @@ class OsgiRuntimeTaskCreator {
 
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
     static final String OSGI_DEP_PREFIX = '__osgiRuntime'
+    static final String SYSTEM_LIBS = 'system-libs'
 
     Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
         String target = getTarget( project, osgiConfig )
@@ -34,11 +38,13 @@ class OsgiRuntimeTaskCreator {
             configBundles( project, osgiConfig )
             copyBundles( project, osgiConfig, target )
             copySystemLibs( project, osgiConfig, target )
+            updateConfigWithSystemLibs( project, osgiConfig, target )
             configMainDeps( project, osgiConfig )
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
             osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
-            createOSScriptFiles( target, osgiConfig )
+            def mainClass = selectMainClass( project, osgiConfig )
+            createOSScriptFiles( target, osgiConfig, mainClass )
         }
     }
 
@@ -69,15 +75,39 @@ class OsgiRuntimeTaskCreator {
         def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
         if ( !hasOsgiMainDeps ) {
             assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
-            project.dependencies.add( 'osgiMain', osgiConfig.osgiMain )
+            project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
+                transitive = false
+            }
         }
     }
 
     private void copyMainDeps( Project project, String target ) {
         project.copy {
             from project.configurations.osgiMain
-            into target
+            into "${target}/${SYSTEM_LIBS}"
         }
+    }
+
+    private static String selectMainClass( Project project, OsgiConfig osgiConfig ) {
+        String mainClass = null
+        def mainJars = project.configurations.osgiMain.resolvedConfiguration.resolvedArtifacts
+        for ( artifact in mainJars ) {
+            mainClass = JarUtils.withManifestEntry( artifact.file ) { ZipFile file, ZipEntry manifestEntry ->
+                def manifest = new Manifest( file.getInputStream( manifestEntry ) )
+                manifest.mainAttributes.getValue( 'Main-Class' )
+            }
+            if ( mainClass ) {
+                break
+            }
+        }
+
+        if ( !mainClass ) {
+            throw new GradleException( "None of the osgiMain jars [${mainJars.collect { it.file }}] contain a " +
+                    "Main-Class in its Manifest.\nPlease specify a runnable jar as a osgiMain dependency " +
+                    "or the osgiMain property." )
+        }
+
+        return mainClass
     }
 
     private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
@@ -116,11 +146,38 @@ class OsgiRuntimeTaskCreator {
     }
 
     private void copySystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = "${target}/system-libs"
+        def systemLibsDir = "${target}/${SYSTEM_LIBS}"
         project.copy {
-            from project.configurations.systemLibs
+            from project.configurations.systemLib
             into systemLibsDir
         }
+    }
+
+    private void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
+        def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
+
+        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
+            Set packages = [ ]
+            for ( entry in new ZipFile( jar ).entries() ) {
+                if ( entry.name.endsWith( '.class' ) ) {
+                    def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
+                    def entryName = lastSlashIndex > 0 ?
+                            entry.toString().substring( 0, lastSlashIndex ) :
+                            entry.toString()
+
+                    packages << entryName.replace( '/', '.' )
+                }
+            }
+
+            def extrasKey = 'org.osgi.framework.system.packages.extra'
+
+            def extras = osgiConfig.config.get( extrasKey, '' )
+            if ( extras && packages ) {
+                extras = extras + ','
+            }
+            osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
+        }
+
     }
 
     private void copyBundles( Project project, OsgiConfig osgiConfig, String target ) {
@@ -255,11 +312,14 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private static void createOSScriptFiles( String target, OsgiConfig osgiConfig ) {
-        def jars = ( target as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
-        assert jars, 'No main Jar found! Cannot create OSGi runtime.'
+    private static void createOSScriptFiles( String target, OsgiConfig osgiConfig, String mainClass ) {
+        def systemLibs = ( "${target}/${SYSTEM_LIBS}" as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
 
-        def mainJar = jars.find { it.name.contains( 'main' ) } ?: jars.first()
+        def classPathWith = { String separator ->
+            systemLibs ?
+                    '-cp ' + systemLibs.collect { "${SYSTEM_LIBS}/${it.name}" }.join( separator ) :
+                    ''
+        }
 
         def linuxScript = """|#!/bin/bash
         |
@@ -278,7 +338,7 @@ class OsgiRuntimeTaskCreator {
         |  fi
         |fi
         |
-        |"\$JAVA" ${osgiConfig.javaArgs} -jar ${mainJar.name} ${osgiConfig.programArgs} "\$@"
+        |"\$JAVA" ${osgiConfig.javaArgs} ${classPathWith( ':' )} ${mainClass} ${osgiConfig.programArgs} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
 
         def windowsScript = """
@@ -297,7 +357,7 @@ class OsgiRuntimeTaskCreator {
         |  )
         |)
         |
-        |%JAVA% ${osgiConfig.javaArgs} -jar ${mainJar} ${osgiConfig.programArgs} %*
+        |%JAVA% ${osgiConfig.javaArgs} ${classPathWith( ';' )} ${mainClass} ${osgiConfig.programArgs} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
