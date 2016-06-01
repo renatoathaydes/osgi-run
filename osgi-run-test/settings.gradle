@@ -31,6 +31,6 @@ include 'build-with-subprojects',
         'declarative-services-demo:messaging-api',
         'declarative-services-demo:components',
         'declarative-services-demo:message-producer',
-        'declarative-services-demo:message-consumer'
-
+        'declarative-services-demo:message-consumer',
+        'frege-as-system-lib'
 

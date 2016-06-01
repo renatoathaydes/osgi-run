@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: 'com.athaydes.osgi-run'
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+dependencies {
+    systemLib 'org.frege-lang:frege-interpreter-core:1.2'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli:1.0-SNAPSHOT'
+    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-groovy:1.0-SNAPSHOT'
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+}
+
+runOsgi {
+    bundles = [ project ]
+}
