@@ -7,6 +7,11 @@ Osgi-run can create and run an OSGi environment using any OSGi container. It use
 bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
 flat jars becomes as easy as possible.
 
+If some of your dependencies assume a flat classpath like in regular Java and worn't work any other way
+(eg. loads classes at runtime, scans the classpath, uses JVM internals),
+you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
+(see the system libs section below).
+
 To turn your project's jar into an OSGi bundle, use one of the existing Gradle Plugins
 ([osgi](https://docs.gradle.org/current/userguide/osgi_plugin.html),
  [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin),
@@ -250,6 +255,33 @@ runOsgi {
 }
 ```
 
+## Gradle configurations additions
+
+`osgi-run` adds the following Gradle configurations to the project:
+
+  * ``osgiMain``: same as the ``runOsgi.osgiMain`` property, but declaring this configuration in a project's
+      ``dependencies`` overrides that property. 
+      It is preferrable to use that property over this configuration.
+  * ``osgiRuntime``: has the same purpose as the ``runOsgi.bundles`` property.
+      Both the property and the configuration are applied.
+      Notice that properties and configurations, by default, consider all transitive dependencies of the bundles/jars.
+      Non-bundles (simple jar) are wrapped into OSGi bundles automatically by default.
+      If you do not want any transitive dependency of an artifact to be included in the OSGi runtime, you can do:
+  * ``systemLib``: system libs which should be added to the runtime not as bundles, but as simple jars in the system
+      classpath. All system libs are excluded automatically from the bundle directory and export all their packages
+      as system packages (using the `org.osgi.framework.system.packages.extra` config property).
+      
+```groovy
+dependencies {
+    // all your usual dependencies
+    ...
+    
+    osgiRuntime( "your:dependency:1.0" ) {
+        transitive = false // transitive dependencies not included in OSGi runtime
+    }
+}
+```
+
 ### Wrapping non-bundles (flat jars)
 
 If any of the artifacts you include in the OSGi environment are not OSGi bundles
@@ -283,29 +315,24 @@ runOsgi {
 The example above is used in the [quartz-sample](osgi-run-test/quartz-sample) 
 to provide extra meta-data for wrapping the `c3p0` jar, which is required by the `Quartz` bundle.
 
-## Gradle configurations additions
+### System Libs
 
-`osgi-run` adds the following Gradle configurations to the project:
+If the library you want to use cannot work within the OSGi environment even as a wrapped bundle (as discussed above),
+then you have only one option: add your jar to the system classpath by making it a system lib.
 
-  * ``osgiMain``: same as the ``runOsgi.osgiMain`` property, but declaring this configuration in a project's
-      ``dependencies`` overrides that property. 
-      It is preferrable to use that property over this configuration.
-  * ``osgiRuntime``: has the same purpose as the ``runOsgi.bundles`` property.
-      Both the property and the configuration are applied.
-      Notice that properties and configurations, by default, consider all transitive dependencies of the bundles/jars.
-      Non-bundles (simple jar) are wrapped into OSGi bundles automatically by default.
-      If you do not want any transitive dependency of an artifact to be included in the OSGi runtime, you can do:
-      
+For example, if you want to add [Frege](https://github.com/Frege/frege) scripting to your application, you'll find
+that [it's basically impossible](https://github.com/Frege/frege-interpreter/issues/31) to make the Frege interpreter
+work in OSGi because it uses its own complex classloader.
+
+However, by turning the Frege REPL into a system lib, it will start just as if it were in a regular Java application:
+
 ```groovy
 dependencies {
-    // all your usual dependencies
-    ...
-    
-    osgiRuntime( "your:dependency:1.0" ) {
-        transitive = false // transitive dependencies not included in OSGi runtime
-    }
+    systemLib 'org.frege-lang:frege-repl-core:1.2'
 }
 ```
+
+See the [frege-as-system-lib](osgi-run-test/frege-as-system-lib) sample for a working example.
 
 ## More usage examples
 
