@@ -1,48 +1,35 @@
 package com.athaydes.gradle.osgi
 
-import org.gradle.api.GradleException
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Project
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.zip.ZipFile
+
+import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.createJavaRunArgs
+import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.getTarget
+import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.selectMainClass
 
 class OsgiRunner {
 
     static log = OsgiRunPlugin.log
 
-    def isRunnableJar = { File file ->
-        if ( file.name.endsWith( '.jar' ) ) {
-            def zip = new ZipFile( file )
-            try {
-                def manifest = zip.getEntry( 'META-INF/MANIFEST.MF' )
-                if ( manifest ) {
-                    return zip.getInputStream( manifest ).readLines().any {
-                        it ==~ /^(?i)main-class\s*:.*/
-                    }
-                }
-            } finally {
-                zip.close()
-            }
-        }
-        return false
-    }
-
     void run( Project project, OsgiConfig config ) {
         log.info "Running project ${project.name}"
-        def runnableJar = config.outDirFile.listFiles().find( isRunnableJar )
-        if ( runnableJar ) {
-            log.debug "Running executable jar: ${runnableJar}"
-            def java = javaCmd()
-            log.info "Java to be used to run OSGi: $java"
 
-            def process = "$java ${config.javaArgs} -jar ${runnableJar.absolutePath} ${config.programArgs}"
-                    .execute( [ ], config.outDirFile )
+        def mainClass = selectMainClass( project )
+        String target = getTarget( project, config )
 
-            delegateProcessTo( process )
-        } else {
-            throw new GradleException( 'OsgiRuntime does not contain any runnable jar! Cannot start the OSGi environment' )
-        }
+        def separator = Os.isFamily( Os.FAMILY_WINDOWS ) ? ';' : ':'
 
+        def javaArgs = createJavaRunArgs( target, config, mainClass, separator )
+
+        def command = "${javaCmd()} ${javaArgs}"
+
+        log.info "Running command: ${command}"
+
+        def process = command.execute( ( List ) null, config.outDirFile )
+
+        delegateProcessTo( process )
     }
 
     private void delegateProcessTo( Process process ) {
@@ -102,7 +89,7 @@ class OsgiRunner {
     }
 
     static String javaCmd() {
-        def javaHome = System.getenv( 'JAVA_HOME' )
+        def javaHome = System.getenv( 'JAVA_HOME' ) ?: System.getProperty( 'java.home' )
         if ( javaHome ) {
             def potentialJavas = [ "$javaHome/bin/java", "$javaHome/jre/bin/java" ]
                     .collect { it.replace( '//', '/' ).replace( '\\\\', '/' ) }

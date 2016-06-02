@@ -43,7 +43,7 @@ class OsgiRuntimeTaskCreator {
             copyMainDeps( project, target )
             copyConfigFiles( target, osgiConfig )
             osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
-            def mainClass = selectMainClass( project, osgiConfig )
+            def mainClass = selectMainClass( project )
             createOSScriptFiles( target, osgiConfig, mainClass )
         }
     }
@@ -88,7 +88,7 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private static String selectMainClass( Project project, OsgiConfig osgiConfig ) {
+    static String selectMainClass( Project project ) {
         String mainClass = null
         def mainJars = project.configurations.osgiMain.resolvedConfiguration.resolvedArtifacts
         for ( artifact in mainJars ) {
@@ -319,14 +319,22 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private static void createOSScriptFiles( String target, OsgiConfig osgiConfig, String mainClass ) {
+    static String createJavaRunArgs( String target,
+                                     OsgiConfig osgiConfig,
+                                     String mainClass,
+                                     String classpathSeparator ) {
         def systemLibs = ( "${target}/${SYSTEM_LIBS}" as File ).listFiles()?.findAll { it.name.endsWith( 'jar' ) }
 
-        def classPathWith = { String separator ->
+        def classPath = {
             systemLibs ?
-                    '-cp ' + systemLibs.collect { "${SYSTEM_LIBS}/${it.name}" }.join( separator ) :
+                    '-cp ' + systemLibs.collect { "${SYSTEM_LIBS}/${it.name}" }.join( classpathSeparator ) :
                     ''
         }
+        "${osgiConfig.javaArgs} ${classPath()} ${mainClass} ${osgiConfig.programArgs}"
+    }
+
+    private static void createOSScriptFiles( String target, OsgiConfig osgiConfig, String mainClass ) {
+        def linuxJavaArgs = createJavaRunArgs( target, osgiConfig, mainClass, ':' )
 
         def linuxScript = """|#!/bin/bash
         |
@@ -345,8 +353,10 @@ class OsgiRuntimeTaskCreator {
         |  fi
         |fi
         |
-        |"\$JAVA" ${osgiConfig.javaArgs} ${classPathWith( ':' )} ${mainClass} ${osgiConfig.programArgs} "\$@"
+        |"\$JAVA" ${linuxJavaArgs} "\$@"
         |""".stripMargin().replaceAll( Pattern.quote( '\r\n' ), '\n' )
+
+        def windowsJavaArgs = createJavaRunArgs( target, osgiConfig, mainClass, ';' )
 
         def windowsScript = """
         |@ECHO OFF
@@ -364,7 +374,7 @@ class OsgiRuntimeTaskCreator {
         |  )
         |)
         |
-        |%JAVA% ${osgiConfig.javaArgs} ${classPathWith( ';' )} ${mainClass} ${osgiConfig.programArgs} %*
+        |%JAVA% ${windowsJavaArgs} %*
         |""".stripMargin().replaceAll( Pattern.quote( '\n' ), '\r\n' )
 
         def writeToExecutable = { String fileName, String scriptText ->
