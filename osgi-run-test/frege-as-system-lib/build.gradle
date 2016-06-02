@@ -1,4 +1,8 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id 'org.dm.bundle' version '0.8.2'
+}
+
 apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
@@ -6,13 +10,18 @@ repositories {
     mavenLocal()
 }
 
+jar {
+    manifest {
+        attributes 'Bundle-Activator': 'com.athaydes.frege.osgi.FregeMain'
+    }
+}
+
 dependencies {
-    systemLib 'org.frege-lang:frege-interpreter-core:1.2'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli:1.0-SNAPSHOT'
-    osgiRuntime 'com.athaydes.osgiaas:osgiaas-cli-groovy:1.0-SNAPSHOT'
-    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
+    compile 'org.osgi:org.osgi.core:6.0.0'
+    systemLib 'org.frege-lang:frege-repl-core:1.2'
 }
 
 runOsgi {
     bundles = [ project ]
+    copyManifestTo file( 'generated-sources/MANIFEST.MF' )
 }
