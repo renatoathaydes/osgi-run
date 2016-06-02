@@ -153,7 +153,7 @@ class OsgiRuntimeTaskCreator {
         }
     }
 
-    private void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
+    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
         def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
 
         systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
@@ -188,14 +188,21 @@ class OsgiRuntimeTaskCreator {
         //noinspection GroovyAssignabilityCheck
         def allDeps = project.configurations.findAll { it.name.startsWith( OSGI_DEP_PREFIX ) }
 
+        def systemLibs = project.configurations.systemLib.resolvedConfiguration
+                .resolvedArtifacts.collect { it.file.name } as Set
+
         project.copy {
             from allDeps
             into bundlesDir
             exclude { FileTreeElement element ->
-                def excluded = osgiConfig.excludedBundles.any { element.name ==~ it }
-                if ( excluded ) {
-                    log.info( 'Excluding bundle from runtime: {}', element.name )
-                    return excluded
+                def inSystemLibs = element.file.name in systemLibs
+                def explicityExcluded = osgiConfig.excludedBundles.any { element.name ==~ it }
+                if ( inSystemLibs || explicityExcluded ) {
+                    def reason = ( inSystemLibs && explicityExcluded ) ?
+                            'both explicitly excluded and in system libs' : ( inSystemLibs ?
+                            'in system libs' : 'explicitly excluded' )
+                    log.info( 'Excluding bundle from bundles directory ({}): {}', reason, element.name )
+                    return true
                 }
                 def nonBundle = JarUtils.notBundle( element.file )
                 if ( nonBundle ) nonBundles << element.file
