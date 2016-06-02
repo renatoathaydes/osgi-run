@@ -185,7 +185,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         This property is ignored if `configSettings` is set to 'none'.
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
     * ``excludedBundles``: List of regular expressions to match against bundle file names
-        which must not be added to the OSGi runtime. Defaults to `['org\\.osgi\\..*']`.
+        which must not be added to the OSGi runtime. Defaults to `[ 'osgi\\..*', 'org\\.osgi\\..*' ]`.
     * ``copyManifestTo``: Copies the bundle's Manifest to the given location.
         This is useful to keep an up-to-date, auto-generated version of the Manifest in a location
         where the IDE can use it to provide OSGi support.
