@@ -25,13 +25,13 @@ Plenty of examples are available in the [osgi-run-test](osgi-run-test/) director
 except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
 
 <small>
-**1:** osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as 
+**[*1]:** osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as 
 bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
 flat jars becomes as easy as possible.
 </small>
 
 <small>
-**2:** If some of your dependencies assume a flat classpath like in regular Java and won't work any other way
+**[*2]:** If some of your dependencies assume a flat classpath like in regular Java and won't work any other way
 (eg. loads classes at runtime, scans the classpath, uses JVM internals),
 you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
 (see the system libs section below).
