@@ -3,14 +3,15 @@ osgi-run
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
 
-Osgi-run can create and run an OSGi environment using any OSGi container. It uses Bnd to wrap Gradle dependencies as 
-bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
-flat jars becomes as easy as possible.
+### Features
 
-If some of your dependencies assume a flat classpath like in regular Java and worn't work any other way
-(eg. loads classes at runtime, scans the classpath, uses JVM internals),
-you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
-(see the system libs section below).
+* Create and run an OSGi environment using any container.
+* Deploy the Gradle project's or sub-projects' bundles to the container easily. 
+* Fetch dependencies using the standard Gradle way, from any
+  [repository](https://docs.gradle.org/current/userguide/dependency_management.html#sec:repositories)
+  supported by Gradle.
+* Wrap into bundles any non-OSGi-ready dependencies automatically [*1].
+* Use dependencies as system libs, ie. let them live in the system classpath [*2].
 
 To turn your project's jar into an OSGi bundle, use one of the existing Gradle Plugins
 ([osgi](https://docs.gradle.org/current/userguide/osgi_plugin.html),
@@ -23,13 +24,27 @@ then run it with osgi-run.
 Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
 except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
 
+<small>
+**1:** osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as 
+bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
+flat jars becomes as easy as possible.
+</small>
+
+<small>
+**2:** If some of your dependencies assume a flat classpath like in regular Java and won't work any other way
+(eg. loads classes at runtime, scans the classpath, uses JVM internals),
+you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
+(see the system libs section below).
+</small>
+
+
 ## Apply the osgi-run plugin
 
 ### Gradle 2.1+
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.4.3"
+    id "com.athaydes.osgi-run" version "1.5.0"
 }
 ```
 
@@ -41,7 +56,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.4.3"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.0"
     }
 }
 
