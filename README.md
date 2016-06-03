@@ -320,9 +320,15 @@ to provide extra meta-data for wrapping the `c3p0` jar, which is required by the
 If the library you want to use cannot work within the OSGi environment even as a wrapped bundle (as discussed above),
 then you have only one option: add your jar to the system classpath by making it a system lib.
 
-For example, if you want to add [Frege](https://github.com/Frege/frege) scripting to your application, you'll find
-that [it's basically impossible](https://github.com/Frege/frege-interpreter/issues/31) to make the Frege interpreter
-work in OSGi because it uses its own complex classloader.
+In short, system libs allow you to run some parts of your application in a regular Java environment (single classpath),
+while others run inside the OSGi container, allowing you to benefit from both worlds.
+
+You get the modular design and awesome features of OSGi where you want it, but can still benefit from any JVM component
+whatsoever.
+
+For example, if you want to add [Frege](https://github.com/Frege/frege) (Haskell in the JVM) scripting to your OSGi 
+application, you'll find that [it's basically impossible](https://github.com/Frege/frege-interpreter/issues/31) 
+because it uses its own complex classloader to load modules.
 
 However, by turning the Frege REPL into a system lib, it will start just as if it were in a regular Java application:
 
@@ -331,6 +337,8 @@ dependencies {
     systemLib 'org.frege-lang:frege-repl-core:1.2'
 }
 ```
+
+All your bundles will be able to import and use the packages provided by Frege's regular jars. 
 
 See the [frege-as-system-lib](osgi-run-test/frege-as-system-lib) sample for a working example.
 
