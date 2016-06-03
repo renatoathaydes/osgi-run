@@ -1,7 +1,11 @@
-* 1.4.4 - ?????????????
+* 1.5.0 - 2016-June-03
 
-- #41 sh file should use bash shebang, not sh
-- #43 automatically remove new-lines from javaArgs
+- #41 sh file should use bash shebang, not sh.
+- #43 automatically remove new-lines from javaArgs.
+- Added system libs feature to allow running OSGi in mixed mode (system libs run in a regular Java classpath).
+- Reformulated the OSGi environment structure and the shell scripts to make them more robust
+  and enable the system libs feature.
+- Improved the runOsgi task so that it performs exactly the same procedure as the shell scripts.
 
 * 1.4.3 - 2016-April-07
 
