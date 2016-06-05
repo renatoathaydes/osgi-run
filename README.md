@@ -13,6 +13,10 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
 * Wrap into bundles any non-OSGi-ready dependencies automatically [*1].
 * Use dependencies as system libs, ie. let them live in the system classpath [*2].
 
+
+If you want to learn **osgi-run**, check [this tutorial](https://github.com/renatoathaydes/osgi-run-tutorial).
+
+
 To turn your project's jar into an OSGi bundle, use one of the existing Gradle Plugins
 ([osgi](https://docs.gradle.org/current/userguide/osgi_plugin.html),
  [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin),
