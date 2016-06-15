@@ -158,14 +158,17 @@ class OsgiRuntimeTaskCreator {
 
         systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
             Set packages = [ ]
+            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
+
             for ( entry in new ZipFile( jar ).entries() ) {
+
                 if ( entry.name.endsWith( '.class' ) ) {
                     def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
                     def entryName = lastSlashIndex > 0 ?
                             entry.toString().substring( 0, lastSlashIndex ) :
                             entry.toString()
 
-                    packages << entryName.replace( '/', '.' )
+                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
                 }
             }
 
