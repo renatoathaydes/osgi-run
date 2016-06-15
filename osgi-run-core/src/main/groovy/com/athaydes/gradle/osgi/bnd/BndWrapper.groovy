@@ -38,11 +38,11 @@ class BndWrapper {
         }
 
         String implVersion = consumeValue( 'Bundle-Version' ) ?:
-                currentManifest.mainAttributes.getValue( 'Implementation-Version' ) ?:
+                currentManifest.mainAttributes.getValue( 'Specification-Version' ) ?:
                         versionFromFileName( jarFile.name )
 
         String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?:
-                currentManifest.mainAttributes.getValue( 'Implementation-Title' ) ?:
+                currentManifest.mainAttributes.getValue( 'Specification-Title' ) ?:
                         titleFromFileName( jarFile.name )
 
         String imports = consumeValue( 'Import-Package' ) ?: '*'
