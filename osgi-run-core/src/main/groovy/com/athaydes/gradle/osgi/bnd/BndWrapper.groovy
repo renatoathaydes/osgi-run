@@ -4,6 +4,7 @@ import aQute.bnd.osgi.Analyzer
 import aQute.bnd.osgi.Jar
 import com.athaydes.gradle.osgi.WrapInstructionsConfig
 import com.athaydes.gradle.osgi.util.JarUtils
+import groovy.transform.CompileStatic
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -15,6 +16,7 @@ import java.util.zip.ZipOutputStream
 /**
  * Uses Bnd to wrap a jar.
  */
+@CompileStatic
 class BndWrapper {
 
     static final Logger log = Logging.getLogger( BndWrapper )
@@ -22,9 +24,6 @@ class BndWrapper {
     static void wrapNonBundle( File jarFile, String bundlesDir,
                                WrapInstructionsConfig wrapInstructions ) {
         log.info "Wrapping non-bundle: {}", jarFile.name
-
-        def newJar = new Jar( jarFile )
-        def currentManifest = newJar.manifest
 
         Map<Object, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
         def consumeValue = { String key ->
@@ -37,13 +36,11 @@ class BndWrapper {
             log.info "No instructions provided to wrap bundle {}, will use defaults", jarFile.name
         }
 
-        String implVersion = consumeValue( 'Bundle-Version' ) ?:
-                currentManifest.mainAttributes.getValue( 'Specification-Version' ) ?:
-                        versionFromFileName( jarFile.name )
+        def newJar = new Jar( jarFile )
 
-        String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?:
-                currentManifest.mainAttributes.getValue( 'Specification-Title' ) ?:
-                        titleFromFileName( jarFile.name )
+        String implVersion = consumeValue( 'Bundle-Version' ) ?: JarUtils.versionOf( newJar )
+
+        String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?: JarUtils.titleOf( newJar )
 
         String imports = consumeValue( 'Import-Package' ) ?: '*'
         String exports = consumeValue( 'Export-Package' ) ?: '*'
@@ -94,40 +91,6 @@ class BndWrapper {
         }?.value
 
         config ?: [ : ]
-    }
-
-    static String removeExtensionFrom( String name ) {
-        def dot = name.lastIndexOf( '.' )
-        if ( dot > 0 ) { // exclude extension
-            return name[ 0..<dot ]
-        }
-        return name
-    }
-
-    static String versionFromFileName( String name ) {
-        name = removeExtensionFrom( name )
-        def digitsAfterDash = name.find( /\-\d+.*/ )
-        if ( digitsAfterDash ) {
-            return digitsAfterDash[ 1..-1 ] // without the dash
-        }
-        int digit = name.findIndexOf { it.number }
-        if ( digit > 0 ) {
-            return name[ digit..-1 ]
-        }
-        '1.0.0'
-    }
-
-    static String titleFromFileName( String name ) {
-        name = removeExtensionFrom( name )
-        def digitsAfterDash = name.find( /\-\d+.*/ )
-        if ( digitsAfterDash ) {
-            return name - digitsAfterDash
-        }
-        int digit = name.findIndexOf { it.number }
-        if ( digit > 0 ) {
-            return name[ 0..<digit ]
-        }
-        name
     }
 
 

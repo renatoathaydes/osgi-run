@@ -1,5 +1,7 @@
 package com.athaydes.gradle.osgi.util
 
+import aQute.bnd.osgi.Jar
+
 import java.util.concurrent.Callable
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -96,6 +98,22 @@ class JarUtils {
             def lines = zip.getInputStream( entry ).readLines()
             lines.any { it.trim().startsWith( 'Fragment-Host' ) }
         }, { false } ) // no manifest, so we can't tell whether this is a fragment or not
+    }
+
+    static String versionOf( Jar jarFile ) {
+        def attributes = jarFile.manifest.mainAttributes
+        attributes.getValue( 'Bundle-Version' ) ?:
+                attributes.getValue( 'Specification-Version' ) ?:
+                        attributes.getValue( 'Implementation-Version' ) ?:
+                                FileNameUtils.versionFrom( jarFile.name )
+    }
+
+    static String titleOf( Jar jarFile ) {
+        def attributes = jarFile.manifest.mainAttributes
+        attributes.getValue( 'Bundle-SymbolicName' ) ?:
+                attributes.getValue( 'Specification-Title' ) ?:
+                        attributes.getValue( 'Implementation-Title' ) ?:
+                                FileNameUtils.titleFrom( jarFile.name )
     }
 
 }
