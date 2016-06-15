@@ -12,7 +12,7 @@ class FileNameUtils {
         if ( digitsAfterDash ) {
             return digitsAfterDash[ 1..-1 ] // without the dash
         }
-        int digit = name.findIndexOf { String it -> it.number }
+        int digit = name.findIndexOf { String s -> s.isNumber() }
         if ( digit > 0 ) {
             return name[ digit..-1 ]
         }
@@ -25,7 +25,7 @@ class FileNameUtils {
         if ( digitsAfterDash ) {
             return name - digitsAfterDash
         }
-        int digit = name.findIndexOf { String it -> it.number }
+        int digit = name.findIndexOf { String s -> s.isNumber() }
         if ( digit > 0 ) {
             return name[ 0..<digit ]
         }

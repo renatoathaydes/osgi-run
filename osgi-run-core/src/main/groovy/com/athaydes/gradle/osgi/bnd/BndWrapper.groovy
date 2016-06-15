@@ -25,7 +25,7 @@ class BndWrapper {
                                WrapInstructionsConfig wrapInstructions ) {
         log.info "Wrapping non-bundle: {}", jarFile.name
 
-        Map<Object, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
+        Map<String, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
         def consumeValue = { String key ->
             Object[] items = config.remove( key )
             if ( items ) items.join( ',' )
@@ -45,14 +45,14 @@ class BndWrapper {
         String imports = consumeValue( 'Import-Package' ) ?: '*'
         String exports = consumeValue( 'Export-Package' ) ?: '*'
 
-        def analyzer = new Analyzer().with {
+        def analyzer = new Analyzer().with { Analyzer a ->
             jar = newJar
             bundleVersion = implVersion
             bundleSymbolicName = implTitle
             importPackage = imports
             exportPackage = exports
-            config.each { k, v -> it.setProperty( k as String, v.join( ',' ) ) }
-            return it
+            config.each { String k, Object[] v -> a.setProperty( k, v.join( ',' ) ) }
+            return a
         }
 
         Manifest manifest = analyzer.calcManifest()
