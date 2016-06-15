@@ -4,7 +4,6 @@ import aQute.bnd.osgi.Analyzer
 import aQute.bnd.osgi.Jar
 import com.athaydes.gradle.osgi.WrapInstructionsConfig
 import com.athaydes.gradle.osgi.util.JarUtils
-import groovy.transform.CompileStatic
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
@@ -16,7 +15,6 @@ import java.util.zip.ZipOutputStream
 /**
  * Uses Bnd to wrap a jar.
  */
-@CompileStatic
 class BndWrapper {
 
     static final Logger log = Logging.getLogger( BndWrapper )
@@ -45,14 +43,14 @@ class BndWrapper {
         String imports = consumeValue( 'Import-Package' ) ?: '*'
         String exports = consumeValue( 'Export-Package' ) ?: '*'
 
-        def analyzer = new Analyzer().with { Analyzer a ->
+        def analyzer = new Analyzer().with {
             jar = newJar
             bundleVersion = implVersion
             bundleSymbolicName = implTitle
             importPackage = imports
             exportPackage = exports
-            config.each { String k, Object[] v -> a.setProperty( k, v.join( ',' ) ) }
-            return a
+            config.each { k, v -> setProperty( k, v.join( ',' ) ) }
+            return it
         }
 
         Manifest manifest = analyzer.calcManifest()
