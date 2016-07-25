@@ -24,10 +24,11 @@ class OsgiRunPlugin implements Plugin<Project> {
         createConfigurations( project )
         OsgiConfig osgiConfig = createExtensions( project )
         createTasks( project, osgiConfig )
-        ConfigurationsCreator.configBundles( project, osgiConfig )
     }
 
     def void createTasks( Project project, OsgiConfig osgiConfig ) {
+        project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
+
         Task createOsgiRuntimeTask = project.task(
                 group: 'Build',
                 description:
