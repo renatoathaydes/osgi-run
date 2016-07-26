@@ -41,15 +41,6 @@ Here's how it works:
 6. Find your OSGi environment ready to run in the `build/osgi` directory.
    Start the OSGi container with `run.sh` or `run.bat`.
 
-### osgi-run Tutorial and learning resources
-
-To get started quickly, see the [Quick Start](#quick-start) section further below.
-
-For a more advanced guide, check the [osgi-run tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
-
-Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
-except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
-
 <sub>
 <a name="footnote-1">1</a>: osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as
 bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
@@ -69,6 +60,15 @@ you can use still them as **system libs**, which are just jars added to the syst
 * [osgi plugin](https://docs.gradle.org/current/userguide/osgi_plugin.html)
 * [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)
 </sub>
+
+## osgi-run Tutorial and learning resources
+
+To get started quickly, see the [Quick Start](#quick-start) section further below.
+
+For a more advanced guide, check the [osgi-run tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
+
+Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
+except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
 
 ## Applying the osgi-run plugin
 
