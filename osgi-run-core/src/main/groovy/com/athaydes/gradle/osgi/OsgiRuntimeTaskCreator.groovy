@@ -5,8 +5,6 @@ import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -25,7 +23,6 @@ import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
 class OsgiRuntimeTaskCreator {
 
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
-    static final String OSGI_DEP_PREFIX = '__osgiRuntime'
     static final String SYSTEM_LIBS = 'system-libs'
 
     Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
@@ -35,7 +32,6 @@ class OsgiRuntimeTaskCreator {
 
         return {
             log.info( "Will copy osgi runtime resources into $target" )
-            configBundles( project, osgiConfig )
             copyBundles( project, osgiConfig, target )
             copySystemLibs( project, osgiConfig, target )
             updateConfigWithSystemLibs( project, osgiConfig, target )
@@ -50,7 +46,9 @@ class OsgiRuntimeTaskCreator {
 
     private static setTaskInsAndOuts( Project project, Task task, String target, OsgiConfig osgiConfig ) {
         project.afterEvaluate {
-            def allProjectDeps = allRuntimeDependencies( project, osgiConfig ).findAll { it instanceof Project }
+            def allProjectDeps = ConfigurationsCreator.allRuntimeDependencies( project, osgiConfig ).findAll {
+                it instanceof Project
+            }
             log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
                     allProjectDeps*.name
 
@@ -110,41 +108,6 @@ class OsgiRuntimeTaskCreator {
         return mainClass
     }
 
-    private static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
-        ( osgiConfig.bundles as List ).flatten() +
-                project.configurations.osgiRuntime.allDependencies.asList()
-    }
-
-    private void configBundles( Project project, OsgiConfig osgiConfig ) {
-        def allBundles = allRuntimeDependencies( project, osgiConfig )
-        project.configurations { c ->
-            // create individual configurations for each dependency so that version conflicts need not be resolved
-            allBundles.size().times { int i -> c[ OSGI_DEP_PREFIX + i ] }
-        }
-
-        //noinspection GroovyAssignabilityCheck
-        allBundles.eachWithIndex { Object bundle, int i ->
-
-            // by default, all project dependencies are transitive
-            boolean transitiveDep = bundle instanceof Project
-            def exclusions = [ ] as Set
-            if ( bundle instanceof ModuleDependency ) {
-                transitiveDep = bundle.transitive
-                exclusions = bundle.excludeRules
-            }
-            def depConfig = {
-                transitive = transitiveDep
-                exclusions.each { ExcludeRule rule ->
-                    def excludeMap = [ : ]
-                    if ( rule.group ) excludeMap.group = rule.group
-                    if ( rule.module ) excludeMap.module = rule.module
-                    exclude excludeMap
-                }
-            }
-            project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
-        }
-    }
-
     private void copySystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
         def systemLibsDir = "${target}/${SYSTEM_LIBS}"
         project.copy {
@@ -158,14 +121,17 @@ class OsgiRuntimeTaskCreator {
 
         systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
             Set packages = [ ]
+            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
+
             for ( entry in new ZipFile( jar ).entries() ) {
+
                 if ( entry.name.endsWith( '.class' ) ) {
                     def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
                     def entryName = lastSlashIndex > 0 ?
                             entry.toString().substring( 0, lastSlashIndex ) :
                             entry.toString()
 
-                    packages << entryName.replace( '/', '.' )
+                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
                 }
             }
 
@@ -186,7 +152,7 @@ class OsgiRuntimeTaskCreator {
 
         def nonBundles = [ ] as Set
         //noinspection GroovyAssignabilityCheck
-        def allDeps = project.configurations.findAll { it.name.startsWith( OSGI_DEP_PREFIX ) }
+        def allDeps = project.configurations.findAll { it.name.startsWith( ConfigurationsCreator.OSGI_DEP_PREFIX ) }
 
         def systemLibs = project.configurations.systemLib.resolvedConfiguration
                 .resolvedArtifacts.collect { it.file.name } as Set
