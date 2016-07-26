@@ -10,46 +10,73 @@ Osgi-Run - A Gradle plugin to make the development of modular applications using
 * Fetch dependencies using the standard Gradle way, from any
   [repository](https://docs.gradle.org/current/userguide/dependency_management.html#sec:repositories)
   supported by Gradle.
-* Wrap into bundles any non-OSGi-ready dependencies automatically [*1].
-* Use dependencies as system libs, ie. let them live in the system classpath [*2].
+* Wrap into bundles any non-OSGi-ready dependencies automatically<sup>[1](#footnote-1)</sup>.
+* Use dependencies as system libs, ie. let them live in the system classpath<sup>[2](#footnote-2)</sup>.
 
+### What can I use osgi-run for?
 
-> If you want to learn **osgi-run**, check the
-  [osgi-run tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
+Basically, to get your Gradle project (and sub-projects) bundles into an OSGi container
+as part of the Gradle build, or just run existing bundles sourced from Gradle-compatible repositories.
 
+Here's how it works:
 
-To turn your project's jar into an OSGi bundle, use one of the existing Gradle Plugins
-([osgi](https://docs.gradle.org/current/userguide/osgi_plugin.html),
- [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin),
- [biz.aQute.bnd](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)),
-then run it with osgi-run.
+#### If you already have your bundle(s) in a Gradle-compatible repository:
 
-> Versions prior to 1.4.3 applied the 'osgi' plugin automatically, but since 1.4.3 any of the above will work.
+1. create a `build.gradle` file and apply the `osgi-run` plugin.
+2. add your bundles to the project dependencies with the `osgiRuntime` type.
+3. run `gradle createOsgi`.
+4. Find your OSGi environment ready to run in the `build/osgi` directory.
+   Start the OSGi container with `run.sh` or `run.bat`.
+
+#### If you want to start a Gradle project from scratch:
+
+1. create a Java [Gradle build](https://gradle.org/getting-started-gradle-java/).
+2. specify `compile` dependencies (plain Java or OSGi libs) as usual,
+   plus some `osgiRuntime` deps if you need some OSGi bundles at runtime.
+3. add a Gradle plugin<sup>[3](#footnote-3)</sup> such as
+   [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin) to turn your
+   jar into a bundle.
+4. add the `osgi-run` plugin to your build.
+5. run `gradle createOsgi`.
+6. Find your OSGi environment ready to run in the `build/osgi` directory.
+   Start the OSGi container with `run.sh` or `run.bat`.
+
+### osgi-run Tutorial and learning resources
+
+To get started quickly, see the [Quick Start](#quick-start) section further below.
+
+For a more advanced guide, check the [osgi-run tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
 
 Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
 except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
 
-<small>
-**[*1]:** osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as 
+<sub>
+<a name="footnote-1">1</a>: osgi-run uses [Bnd](http://www.aqute.biz/Bnd/Bnd) to wrap Gradle dependencies as
 bundles if necessary before adding them to the OSGi runtime, including transitive dependencies, so using normal
 flat jars becomes as easy as possible.
-</small>
+</sub>
 
-<small>
-**[*2]:** If some of your dependencies assume a flat classpath like in regular Java and won't work any other way
+<sub>
+<a name="footnote-2">2</a>: If some of your dependencies assume a flat classpath like in regular Java and won't work any other way
 (eg. loads classes at runtime, scans the classpath, uses JVM internals),
 you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
 (see the system libs section below).
-</small>
+</sub>
 
+<sub>
+<a name="footnote-3">3</a>: Other Gradle plugins that can be used to turn jars into bundles:
 
-## Apply the osgi-run plugin
+* [osgi plugin](https://docs.gradle.org/current/userguide/osgi_plugin.html)
+* [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)
+</sub>
+
+## Applying the osgi-run plugin
 
 ### Gradle 2.1+
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.5.0"
+    id "com.athaydes.osgi-run" version "1.5.1"
 }
 ```
 
@@ -61,7 +88,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.0"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
     }
 }
 
