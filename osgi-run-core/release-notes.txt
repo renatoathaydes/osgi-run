@@ -1,3 +1,9 @@
+* 1.5.1 - 2016-July-26
+
+- better algorithm to figure out version number of wrapped jars and system libraries.
+- #45 system libraries must export versioned packages.
+- add OSGi dependencies to build dynamic configurations earlier so "gradle dependencies" shows OSGi runtime.
+
 * 1.5.0 - 2016-June-03
 
 - #41 sh file should use bash shebang, not sh.
