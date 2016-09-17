@@ -206,7 +206,7 @@ class OsgiRuntimeTaskCreator {
     private static File getConfigFile( String target, OsgiConfig osgiConfig ) {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return new File( "${target}/conf/config.properties" )
-            case 'equinox': return new File( "${target}/configuration/config.ini" )
+            case 'equinox': return new File( "${target}/$SYSTEM_LIBS/configuration/config.ini" )
             case 'knopflerfish': return new File( "${target}/init.xargs" )
             case 'none': return null
         }
@@ -250,7 +250,7 @@ class OsgiRuntimeTaskCreator {
     }
 
     private static String equinoxBundleDirective( String bundleJar, String target ) {
-        bundleJar.replace( target, '.' ) + ( JarUtils.isFragment( bundleJar ) ? '' : '@start' )
+        bundleJar.replace( target, '..' ) + ( JarUtils.isFragment( bundleJar ) ? '' : '@start' )
     }
 
     private static String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {

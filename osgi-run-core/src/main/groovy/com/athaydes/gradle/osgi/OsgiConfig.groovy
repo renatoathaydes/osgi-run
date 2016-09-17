@@ -88,7 +88,7 @@ class OsgiConfig {
 
     static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.4.0'
 
-    static final String EQUINOX = 'org.eclipse.osgi:org.eclipse.osgi:3.7.1'
+    static final String EQUINOX = 'org.osgi:org.eclipse.osgi:3.10.100.v20150529-1857'
 
     static final String KNOPFLERFISH = 'org.knopflerfish:framework:7.1.2'
 
