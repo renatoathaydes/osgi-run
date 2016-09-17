@@ -54,7 +54,7 @@ class OsgiConfig {
 
     void configEquinox() {
         bundlesPath = 'plugins'
-        bundles = [ ]
+        bundles = FELIX_GOGO_BUNDLES
         osgiMain = EQUINOX
         config = [ 'eclipse.ignoreApp': true,
                    'osgi.noShutdown'  : true ]

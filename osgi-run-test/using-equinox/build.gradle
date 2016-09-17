@@ -11,5 +11,4 @@ dependencies {
 
 runOsgi {
     configSettings = 'equinox'
-    programArgs = '-console'
 }

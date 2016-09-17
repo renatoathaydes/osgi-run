@@ -574,12 +574,11 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  programArgs = '-console'
 }
 ```
 
-Notice that this will only start the Equinox Framework with the console enabled but no bundles deployed.
-You can install bundles manually using the Equinox console.
+Notice that this will only start the Equinox Framework with no bundles deployed.
+You can install bundles manually using the Felix Gogo shell (which is currently used by both Felix and Equinox).
 
 But if you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
 try something like this:
@@ -587,7 +586,6 @@ try something like this:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  programArgs = '-console'
   bundles = subprojects
 }
 ```
@@ -621,6 +619,7 @@ runOsgi {
   configSettings = 'equinox'
   programArgs = '-console'
   osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
+  bundles = [] // do not use the Gogo bundles, older Equinox has its own console
 }
 ```
 
