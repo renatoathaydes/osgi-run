@@ -41,7 +41,7 @@ class BndWrapper {
         String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?: JarUtils.titleOf( newJar )
 
         String imports = consumeValue( 'Import-Package' ) ?: '*'
-        String exports = consumeValue( 'Export-Package' ) ?: '*'
+        String exports = consumeValue( 'Export-Package' ) ?: "*;version=$implVersion"
 
         def analyzer = new Analyzer().with {
             jar = newJar
