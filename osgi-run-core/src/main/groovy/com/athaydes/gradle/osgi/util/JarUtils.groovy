@@ -103,7 +103,6 @@ class JarUtils {
     static String versionOf( Jar jarFile ) {
         def attributes = jarFile.manifest.mainAttributes
         attributes.getValue( 'Bundle-Version' ) ?:
-                attributes.getValue( 'Specification-Version' ) ?:
                         attributes.getValue( 'Implementation-Version' ) ?:
                                 FileNameUtils.versionFrom( jarFile.name )
     }
@@ -111,7 +110,6 @@ class JarUtils {
     static String titleOf( Jar jarFile ) {
         def attributes = jarFile.manifest.mainAttributes
         attributes.getValue( 'Bundle-SymbolicName' ) ?:
-                attributes.getValue( 'Specification-Title' ) ?:
                         attributes.getValue( 'Implementation-Title' ) ?:
                                 FileNameUtils.titleFrom( jarFile.name )
     }
