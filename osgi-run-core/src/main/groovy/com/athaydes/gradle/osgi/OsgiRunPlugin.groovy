@@ -17,7 +17,6 @@ class OsgiRunPlugin implements Plugin<Project> {
     static final WRAP_EXTENSION = 'wrapInstructions'
 
     def osgiRunner = new OsgiRunner()
-    def runtimeCreator = new OsgiRuntimeTaskCreator()
 
     @Override
     void apply( Project project ) {
@@ -30,12 +29,11 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
 
         Task createOsgiRuntimeTask = project.task(
+                type: OsgiRuntimeTaskCreator,
                 group: 'Build',
                 description:
                         'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
                 'createOsgiRuntime' )
-        createOsgiRuntimeTask <<
-                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
 
         createOsgiRuntimeTask.doLast { ManifestFileCopier.run( project, osgiConfig ) }
 

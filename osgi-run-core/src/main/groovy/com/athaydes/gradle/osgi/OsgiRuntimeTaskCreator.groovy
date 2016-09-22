@@ -2,12 +2,16 @@ package com.athaydes.gradle.osgi
 
 import com.athaydes.gradle.osgi.bnd.BndWrapper
 import com.athaydes.gradle.osgi.util.JarUtils
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 
 import java.util.jar.Manifest
@@ -20,53 +24,63 @@ import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
 /**
  * Creates the osgiRun task
  */
-class OsgiRuntimeTaskCreator {
+class OsgiRuntimeTaskCreator extends DefaultTask {
 
     static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
     static final String SYSTEM_LIBS = 'system-libs'
 
-    Closure createOsgiRuntimeTask( Project project, OsgiConfig osgiConfig, Task task ) {
-        String target = getTarget( project, osgiConfig )
-        setTaskInsAndOuts( project, task, target, osgiConfig )
-        osgiConfig.outDirFile = target as File
+    @InputFile
+    final File buildFile = project.buildFile
 
-        return {
-            log.info( "Will copy osgi runtime resources into $target" )
-            copyBundles( project, osgiConfig, target )
-            copySystemLibs( project, osgiConfig, target )
-            updateConfigWithSystemLibs( project, osgiConfig, target )
-            configMainDeps( project, osgiConfig )
-            copyMainDeps( project, target )
-            copyConfigFiles( target, osgiConfig )
-            osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
-            def mainClass = selectMainClass( project )
-            createOSScriptFiles( target, osgiConfig, mainClass )
+    @InputFiles
+    Set<File> getAllFileInputsFromProjectDependencies() {
+        def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
+
+        def allProjectDeps = ConfigurationsCreator.allRuntimeDependencies( project, osgiConfig ).findAll {
+            it instanceof Project
+        } as List<Project>
+
+        log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
+                allProjectDeps*.name
+
+        Set<File> projectDependencies = [ ]
+
+        ( allProjectDeps + project ).collectMany { dep ->
+            dep.tasks.withType( Jar ) { Jar jar ->
+                // we need to run the jar task if the build file changes
+                if ( dep.buildFile ) projectDependencies += dep.buildFile
+                // run our task if the jar of any dependency changes
+                projectDependencies += jar.outputs.files
+            }
         }
+
+        return projectDependencies
     }
 
-    private static setTaskInsAndOuts( Project project, Task task, String target, OsgiConfig osgiConfig ) {
-        project.afterEvaluate {
-            def allProjectDeps = ConfigurationsCreator.allRuntimeDependencies( project, osgiConfig ).findAll {
-                it instanceof Project
-            }
-            log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
-                    allProjectDeps*.name
+    @OutputDirectory
+    File getOutputDir() {
+        def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
+        project.file( getTarget( project, osgiConfig ) )
+    }
 
-            // inputs
-            if ( project.buildFile ) task.inputs.file( project.buildFile )
+    @TaskAction
+    def createOsgiRuntime() {
+        def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
-            ( allProjectDeps + project ).each { dep ->
-                dep.tasks.withType( Jar ) { Jar jar ->
-                    // we need to run the jar task if the build file changes
-                    if ( dep.buildFile ) jar.inputs.file( dep.buildFile )
-                    // run our task if the jar of any dependency changes
-                    task.inputs.files( jar.outputs.files )
-                }
-            }
+        String target = getTarget( project, osgiConfig )
+        //setTaskInsAndOuts( project, task, target, osgiConfig )
+        osgiConfig.outDirFile = target as File
 
-            // outputs
-            task.outputs.dir( target )
-        }
+        log.info( "Will copy osgi runtime resources into $target" )
+        copyBundles( project, osgiConfig, target )
+        copySystemLibs( project, osgiConfig, target )
+        updateConfigWithSystemLibs( project, osgiConfig, target )
+        configMainDeps( project, osgiConfig )
+        copyMainDeps( project, target )
+        copyConfigFiles( target, osgiConfig )
+        osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
+        def mainClass = selectMainClass( project )
+        createOSScriptFiles( target, osgiConfig, mainClass )
     }
 
     private static void configMainDeps( Project project, OsgiConfig osgiConfig ) {
