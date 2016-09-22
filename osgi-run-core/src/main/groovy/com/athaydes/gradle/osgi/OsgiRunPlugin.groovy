@@ -16,8 +16,6 @@ class OsgiRunPlugin implements Plugin<Project> {
     static final Logger log = Logging.getLogger( OsgiRunPlugin )
     static final WRAP_EXTENSION = 'wrapInstructions'
 
-    def osgiRunner = new OsgiRunner()
-
     @Override
     void apply( Project project ) {
         createConfigurations( project )
@@ -38,12 +36,12 @@ class OsgiRunPlugin implements Plugin<Project> {
         createOsgiRuntimeTask.doLast { ManifestFileCopier.run( project, osgiConfig ) }
 
         project.task(
+                type: OsgiRunner,
                 dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
                         'Runs the OSGi environment, installing and starting the configured bundles',
-                'runOsgi' ) <<
-                runOsgiTask( project, osgiConfig )
+                'runOsgi' )
 
         Task cleanTask = project.task(
                 type: Delete,
@@ -86,13 +84,6 @@ class OsgiRunPlugin implements Plugin<Project> {
                     delTask.dependsOn cleanTask
                 }
             }
-        }
-    }
-
-    private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
-        return {
-            log.info( "Jar wrap instructions: {}", osgiConfig[ WRAP_EXTENSION ] )
-            osgiRunner.run( project, osgiConfig )
         }
     }
 
