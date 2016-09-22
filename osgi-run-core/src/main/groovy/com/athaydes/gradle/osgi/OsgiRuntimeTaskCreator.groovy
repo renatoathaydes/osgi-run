@@ -30,7 +30,10 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
     static final String SYSTEM_LIBS = 'system-libs'
 
     @InputFile
-    final File buildFile = project.buildFile
+    File getBuildFile() {
+        log.debug( "Adding project build file to createOsgiRuntime task inputs: {}", project.buildFile )
+        project.buildFile
+    }
 
     @InputFiles
     Set<File> getAllFileInputsFromProjectDependencies() {
@@ -40,7 +43,7 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
             it instanceof Project
         } as List<Project>
 
-        log.info "Adding build file of the following projects to the inputs of the Jar task: {}",
+        log.debug "Adding build file and jars of the following projects to the inputs of the createOsgiRuntime task: {}",
                 allProjectDeps*.name
 
         Set<File> projectDependencies = [ ]
