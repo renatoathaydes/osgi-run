@@ -48,7 +48,13 @@ class OsgiRunPlugin implements Plugin<Project> {
                 group: 'Build',
                 description: 'Cleans the OSGi environment created by the createOsgiRuntime task',
                 'cleanOsgiRuntime' ) {
-            delete OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+            // delay resolving the target to until after the project is resolved
+            def target = {
+                def output = OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+                log.debug( "cleanOsgiRuntime will delete $output" )
+                output
+            }
+            delete target
         }
 
         addTaskDependencies( project, createOsgiRuntimeTask, cleanTask )
