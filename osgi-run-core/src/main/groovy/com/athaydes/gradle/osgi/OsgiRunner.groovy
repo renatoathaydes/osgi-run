@@ -1,7 +1,8 @@
 package com.athaydes.gradle.osgi
 
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.gradle.api.Project
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -9,11 +10,14 @@ import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.createJavaRunArgs
 import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.getTarget
 import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.selectMainClass
 
-class OsgiRunner {
+class OsgiRunner extends DefaultTask {
 
     static log = OsgiRunPlugin.log
 
-    void run( Project project, OsgiConfig config ) {
+    @TaskAction
+    void run() {
+        def config = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
+
         log.info "Running project ${project.name}"
 
         def mainClass = selectMainClass( project )

@@ -23,7 +23,9 @@ class BndWrapper {
                                WrapInstructionsConfig wrapInstructions ) {
         log.info "Wrapping non-bundle: {}", jarFile.name
 
-        Map<String, Object[]> config = getWrapConfig( wrapInstructions, jarFile )
+        // make a copy of the Map so that if more than one Jar matches, all of them get the same instructions
+        Map<String, Object[]> config = new LinkedHashMap<>( getWrapConfig( wrapInstructions, jarFile ) )
+
         def consumeValue = { String key ->
             Object[] items = config.remove( key )
             if ( items ) items.join( ',' )
@@ -41,7 +43,7 @@ class BndWrapper {
         String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?: JarUtils.titleOf( newJar )
 
         String imports = consumeValue( 'Import-Package' ) ?: '*'
-        String exports = consumeValue( 'Export-Package' ) ?: '*'
+        String exports = consumeValue( 'Export-Package' ) ?: "*;version=$implVersion"
 
         def analyzer = new Analyzer().with {
             jar = newJar

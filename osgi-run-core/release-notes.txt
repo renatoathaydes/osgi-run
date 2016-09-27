@@ -1,3 +1,14 @@
+* 1.5.2 - 2016-September-27
+
+- stopped trying to use Specification-[Title, Version] when wrapping jars as that information is rarely useful.
+- add version to every package exported by wrapped jars.
+- #38 and #49 upgraded Equinox to latest version (3.10.100) and added Gogo bundles to default Equinox environment as the
+  Equinox console was deprecated.
+- #50 improved plugin structure to make it more standardized. As a consequence, Gradle 3.0 is now supported.
+- better logging of task inputs and outputs.
+- #48 project's buildDir is now correctly used to create the OSGi environment.
+- #53 allow more than one jar to be wrapped using the same configuration.
+
 * 1.5.1 - 2016-July-26
 
 - better algorithm to figure out version number of wrapped jars and system libraries.

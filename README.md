@@ -72,11 +72,11 @@ except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses
 
 ## Applying the osgi-run plugin
 
-### Gradle 2.1+
+### Gradle 2.1+ and 3.0+
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.5.1"
+    id "com.athaydes.osgi-run" version "1.5.2"
 }
 ```
 
@@ -88,7 +88,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.2"
     }
 }
 
@@ -574,12 +574,12 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  programArgs = '-console'
+  programArgs = '-console' // required to enable the Gogo CLI
 }
 ```
 
-Notice that this will only start the Equinox Framework with the console enabled but no bundles deployed.
-You can install bundles manually using the Equinox console.
+Notice that this will only start the Equinox Framework with no bundles deployed.
+You can install bundles manually using the Felix Gogo shell (which is currently used by both Felix and Equinox).
 
 But if you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
 try something like this:
@@ -621,6 +621,7 @@ runOsgi {
   configSettings = 'equinox'
   programArgs = '-console'
   osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
+  bundles = [] // do not use the Gogo bundles, older Equinox has its own console
 }
 ```
 

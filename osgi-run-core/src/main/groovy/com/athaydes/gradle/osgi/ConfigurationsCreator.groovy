@@ -18,7 +18,7 @@ public class ConfigurationsCreator {
         project.configurations { c ->
             // create individual configurations for each dependency so that version conflicts need not be resolved
             allBundles.size().times { int i -> //noinspection UnnecessaryQualifiedReference
-                c[ ConfigurationsCreator.OSGI_DEP_PREFIX + i ]
+                c.create( ConfigurationsCreator.OSGI_DEP_PREFIX + i )
             }
         }
 

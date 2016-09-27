@@ -16,9 +16,6 @@ class OsgiRunPlugin implements Plugin<Project> {
     static final Logger log = Logging.getLogger( OsgiRunPlugin )
     static final WRAP_EXTENSION = 'wrapInstructions'
 
-    def osgiRunner = new OsgiRunner()
-    def runtimeCreator = new OsgiRuntimeTaskCreator()
-
     @Override
     void apply( Project project ) {
         createConfigurations( project )
@@ -30,29 +27,34 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
 
         Task createOsgiRuntimeTask = project.task(
+                type: OsgiRuntimeTaskCreator,
                 group: 'Build',
                 description:
                         'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
                 'createOsgiRuntime' )
-        createOsgiRuntimeTask <<
-                runtimeCreator.createOsgiRuntimeTask( project, osgiConfig, createOsgiRuntimeTask )
 
         createOsgiRuntimeTask.doLast { ManifestFileCopier.run( project, osgiConfig ) }
 
         project.task(
+                type: OsgiRunner,
                 dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
                         'Runs the OSGi environment, installing and starting the configured bundles',
-                'runOsgi' ) <<
-                runOsgiTask( project, osgiConfig )
+                'runOsgi' )
 
         Task cleanTask = project.task(
                 type: Delete,
                 group: 'Build',
                 description: 'Cleans the OSGi environment created by the createOsgiRuntime task',
                 'cleanOsgiRuntime' ) {
-            delete OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+            // delay resolving the target to until after the project is resolved
+            def target = {
+                def output = OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+                log.debug( "cleanOsgiRuntime will delete $output" )
+                output
+            }
+            delete target
         }
 
         addTaskDependencies( project, createOsgiRuntimeTask, cleanTask )
@@ -88,13 +90,6 @@ class OsgiRunPlugin implements Plugin<Project> {
                     delTask.dependsOn cleanTask
                 }
             }
-        }
-    }
-
-    private Closure runOsgiTask( Project project, OsgiConfig osgiConfig ) {
-        return {
-            log.info( "Jar wrap instructions: {}", osgiConfig[ WRAP_EXTENSION ] )
-            osgiRunner.run( project, osgiConfig )
         }
     }
 
