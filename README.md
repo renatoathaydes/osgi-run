@@ -72,11 +72,11 @@ except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses
 
 ## Applying the osgi-run plugin
 
-### Gradle 2.1+
+### Gradle 2.1+ and 3.0+
 
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.5.1"
+    id "com.athaydes.osgi-run" version "1.5.2"
 }
 ```
 
@@ -88,7 +88,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.1"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.5.2"
     }
 }
 
