@@ -4,11 +4,7 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    // run the bundle 'Common Eclipse Runtime'
-    osgiRuntime 'org.eclipse.equinox:common:3.6.200-v20130402-1505'
-}
-
 runOsgi {
     configSettings = 'equinox'
+    programArgs = '-console'
 }

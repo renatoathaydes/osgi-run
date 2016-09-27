@@ -574,6 +574,7 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
+  programArgs = '-console' // required to enable the Gogo CLI
 }
 ```
 
@@ -586,6 +587,7 @@ try something like this:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
+  programArgs = '-console'
   bundles = subprojects
 }
 ```

@@ -40,6 +40,7 @@ runOsgi {
     // to use Equinox, run gradle -Pequinox
     if ( project.hasProperty( 'equinox' ) ) {
         configSettings = 'equinox'
+        programArgs = '-console'
     }
     bundles += subprojects
     config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
