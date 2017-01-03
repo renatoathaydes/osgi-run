@@ -34,11 +34,19 @@ class OsgiRunPlugin implements Plugin<Project> {
         createTasks( project, osgiConfig )
     }
 
-    def void createTasks( Project project, OsgiConfig osgiConfig ) {
+    void createTasks( Project project, OsgiConfig osgiConfig ) {
         project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
+
+        Task createBundlesDir = project.task(
+                type: CreateBundlesDir,
+                group: 'Build',
+                description:
+                        'Copies all configured OSGi bundles into the bundles directory',
+                'createBundlesDir' )
 
         Task createOsgiRuntimeTask = project.task(
                 type: CreateOsgiRuntimeTask,
+                dependsOn: createBundlesDir,
                 group: 'Build',
                 description:
                         'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
@@ -141,8 +149,6 @@ class OsgiRunPlugin implements Plugin<Project> {
             }
             osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
         }
-
     }
-
 
 }
