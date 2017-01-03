@@ -22,11 +22,11 @@ import java.util.zip.ZipFile
 import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
 
 /**
- * Creates the osgiRun task
+ * The createOsgiRuntime task.
  */
-class OsgiRuntimeTaskCreator extends DefaultTask {
+class CreateOsgiRuntimeTask extends DefaultTask {
 
-    static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
+    static final Logger log = Logging.getLogger( CreateOsgiRuntimeTask )
     static final String SYSTEM_LIBS = 'system-libs'
 
     @InputFile

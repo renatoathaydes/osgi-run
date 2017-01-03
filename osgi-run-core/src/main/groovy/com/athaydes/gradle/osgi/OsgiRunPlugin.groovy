@@ -25,7 +25,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
         OsgiConfig osgiConfig = createExtensions( project )
 
-        String target = OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+        String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
         osgiConfig.outDirFile = target as File
 
         updateConfigWithSystemLibs( project, osgiConfig, target )
@@ -38,7 +38,7 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
 
         Task createOsgiRuntimeTask = project.task(
-                type: OsgiRuntimeTaskCreator,
+                type: CreateOsgiRuntimeTask,
                 group: 'Build',
                 description:
                         'Creates an OSGi environment which can then be started with generated scripts or with task runOsgi',
@@ -47,7 +47,7 @@ class OsgiRunPlugin implements Plugin<Project> {
         createOsgiRuntimeTask.doLast { ManifestFileCopier.run( project, osgiConfig ) }
 
         project.task(
-                type: OsgiRunner,
+                type: RunOsgiTask,
                 dependsOn: createOsgiRuntimeTask,
                 group: 'Run',
                 description:
@@ -61,7 +61,7 @@ class OsgiRunPlugin implements Plugin<Project> {
                 'cleanOsgiRuntime' ) {
             // delay resolving the target to until after the project is resolved
             def target = {
-                def output = OsgiRuntimeTaskCreator.getTarget( project, osgiConfig )
+                def output = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
                 log.debug( "cleanOsgiRuntime will delete $output" )
                 output
             }
@@ -115,7 +115,7 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = project.file "${target}/${OsgiRuntimeTaskCreator.SYSTEM_LIBS}"
+        def systemLibsDir = project.file "${target}/${CreateOsgiRuntimeTask.SYSTEM_LIBS}"
 
         systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
             Set packages = [ ]
