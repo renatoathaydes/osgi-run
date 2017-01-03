@@ -3,8 +3,12 @@ package com.athaydes.gradle.osgi
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
-public class ConfigurationsCreator {
+class ConfigurationsCreator {
+
+    static final Logger log = Logging.getLogger( ConfigurationsCreator )
 
     static final String OSGI_DEP_PREFIX = '__osgiRuntime__'
 
@@ -15,6 +19,9 @@ public class ConfigurationsCreator {
 
     static void configBundles( Project project, OsgiConfig osgiConfig ) {
         def allBundles = allRuntimeDependencies( project, osgiConfig )
+
+        log.debug( "Creating individual configurations for each OSGi runtime dependency:\n{}", allBundles )
+
         project.configurations { c ->
             // create individual configurations for each dependency so that version conflicts need not be resolved
             allBundles.size().times { int i -> //noinspection UnnecessaryQualifiedReference

@@ -1,3 +1,10 @@
+* 1.5.3 - 2017-January-03
+
+- #52 fixed issue with task `runOsgi` not being runnable more than once without `clean`.
+- #57 added new `createBundlesDir` task. This task's code was simply extracted from the `createOsgiRuntime` task
+  (which depends on it now).
+- improved naming of internal task classes.
+
 * 1.5.2 - 2016-September-27
 
 - stopped trying to use Specification-[Title, Version] when wrapping jars as that information is rarely useful.

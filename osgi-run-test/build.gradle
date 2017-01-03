@@ -4,7 +4,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.2'
+        classpath group: 'com.athaydes.gradle.osgi', name: 'osgi-run-core', version: '1.5.3'
         classpath group: 'com.athaydes.gradle.osgi', name: 'ipojo-plugin', version: '1.2.0'
     }
 }

@@ -1,11 +1,9 @@
 package com.athaydes.gradle.osgi
 
-import com.athaydes.gradle.osgi.bnd.BndWrapper
 import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.file.FileTreeElement
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.InputFile
@@ -19,14 +17,12 @@ import java.util.regex.Pattern
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
-import static com.athaydes.gradle.osgi.OsgiRunPlugin.WRAP_EXTENSION
-
 /**
- * Creates the osgiRun task
+ * The createOsgiRuntime task.
  */
-class OsgiRuntimeTaskCreator extends DefaultTask {
+class CreateOsgiRuntimeTask extends DefaultTask {
 
-    static final Logger log = Logging.getLogger( OsgiRuntimeTaskCreator )
+    static final Logger log = Logging.getLogger( CreateOsgiRuntimeTask )
     static final String SYSTEM_LIBS = 'system-libs'
 
     @InputFile
@@ -43,7 +39,7 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
             it instanceof Project
         } as List<Project>
 
-        log.debug "Adding build file and jars of the following projects to the inputs of the createOsgiRuntime task: {}",
+        log.debug "Adding build file of the following projects to the inputs of the createOsgiRuntime task: {}",
                 allProjectDeps*.name
 
         Set<File> projectDependencies = [ ]
@@ -52,8 +48,6 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
             dep.tasks.withType( Jar ) { Jar jar ->
                 // we need to run the jar task if the build file changes
                 if ( dep.buildFile ) projectDependencies += dep.buildFile
-                // run our task if the jar of any dependency changes
-                projectDependencies += jar.outputs.files
             }
         }
 
@@ -71,29 +65,14 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
         def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
         String target = getTarget( project, osgiConfig )
-        //setTaskInsAndOuts( project, task, target, osgiConfig )
-        osgiConfig.outDirFile = target as File
 
         log.info( "Will copy osgi runtime resources into $target" )
-        copyBundles( project, osgiConfig, target )
         copySystemLibs( project, osgiConfig, target )
-        updateConfigWithSystemLibs( project, osgiConfig, target )
-        configMainDeps( project, osgiConfig )
         copyMainDeps( project, target )
         copyConfigFiles( target, osgiConfig )
         osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
         def mainClass = selectMainClass( project )
         createOSScriptFiles( target, osgiConfig, mainClass )
-    }
-
-    private static void configMainDeps( Project project, OsgiConfig osgiConfig ) {
-        def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
-        if ( !hasOsgiMainDeps ) {
-            assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
-            project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
-                transitive = false
-            }
-        }
     }
 
     private void copyMainDeps( Project project, String target ) {
@@ -133,87 +112,9 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
         }
     }
 
-    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
-
-        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
-            Set packages = [ ]
-            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
-
-            for ( entry in new ZipFile( jar ).entries() ) {
-
-                if ( entry.name.endsWith( '.class' ) ) {
-                    def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
-                    def entryName = lastSlashIndex > 0 ?
-                            entry.toString().substring( 0, lastSlashIndex ) :
-                            entry.toString()
-
-                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
-                }
-            }
-
-            def extrasKey = 'org.osgi.framework.system.packages.extra'
-
-            def extras = osgiConfig.config.get( extrasKey, '' )
-            if ( extras && packages ) {
-                extras = extras + ','
-            }
-            osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
-        }
-
-    }
-
-    private void copyBundles( Project project, OsgiConfig osgiConfig, String target ) {
-        def bundlesDir = "${target}/${osgiConfig.bundlesPath}"
-        def wrapInstructions = osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig
-
-        def nonBundles = [ ] as Set
-        //noinspection GroovyAssignabilityCheck
-        def allDeps = project.configurations.findAll { it.name.startsWith( ConfigurationsCreator.OSGI_DEP_PREFIX ) }
-
-        def systemLibs = project.configurations.systemLib.resolvedConfiguration
-                .resolvedArtifacts.collect { it.file.name } as Set
-
-        project.copy {
-            from allDeps
-            into bundlesDir
-            exclude { FileTreeElement element ->
-                def inSystemLibs = element.file.name in systemLibs
-                def explicityExcluded = osgiConfig.excludedBundles.any { element.name ==~ it }
-                if ( inSystemLibs || explicityExcluded ) {
-                    def reason = ( inSystemLibs && explicityExcluded ) ?
-                            'both explicitly excluded and in system libs' : ( inSystemLibs ?
-                            'in system libs' : 'explicitly excluded' )
-                    log.info( 'Excluding bundle from bundles directory ({}): {}', reason, element.name )
-                    return true
-                }
-                def nonBundle = JarUtils.notBundle( element.file )
-                if ( nonBundle ) nonBundles << element.file
-                return nonBundle
-            }
-        }
-
-        if ( wrapInstructions.enabled ) {
-            nonBundles.each { File file ->
-                if ( JarUtils.hasManifest( file ) ) {
-                    try {
-                        BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
-                    } catch ( e ) {
-                        log.warn( "Unable to wrap ${file.name}", e )
-                    }
-                } else {
-                    log.warn( 'Jar without manifest found, unable to wrap it into a bundle: {}', file.name )
-                }
-            }
-        } else if ( nonBundles ) {
-            log.info "The following jars were kept out of the classpath " +
-                    "as they are not bundles (enable wrapping if they are needed): {}", nonBundles
-        }
-    }
-
     private static void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
-        if ( !configFile ) return;
+        if ( !configFile ) return
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }

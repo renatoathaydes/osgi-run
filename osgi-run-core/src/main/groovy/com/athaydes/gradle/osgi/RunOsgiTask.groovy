@@ -6,11 +6,14 @@ import org.gradle.api.tasks.TaskAction
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.createJavaRunArgs
-import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.getTarget
-import static com.athaydes.gradle.osgi.OsgiRuntimeTaskCreator.selectMainClass
+import static CreateOsgiRuntimeTask.createJavaRunArgs
+import static CreateOsgiRuntimeTask.getTarget
+import static CreateOsgiRuntimeTask.selectMainClass
 
-class OsgiRunner extends DefaultTask {
+/**
+ * The runOsgi task.
+ */
+class RunOsgiTask extends DefaultTask {
 
     static log = OsgiRunPlugin.log
 

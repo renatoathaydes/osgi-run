@@ -13,6 +13,7 @@ class OsgiRunPluginTest {
         project.apply plugin: 'com.athaydes.osgi-run'
         println "Running the test"
         assert project.tasks.runOsgi
+        assert project.tasks.createBundlesDir
         assert project.tasks.createOsgiRuntime
     }
 
