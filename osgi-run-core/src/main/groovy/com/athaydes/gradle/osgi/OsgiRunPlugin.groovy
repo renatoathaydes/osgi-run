@@ -25,18 +25,24 @@ class OsgiRunPlugin implements Plugin<Project> {
 
         OsgiConfig osgiConfig = createExtensions( project )
 
-        String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
-        osgiConfig.outDirFile = target as File
-
-        updateConfigWithSystemLibs( project, osgiConfig, target )
-        configMainDeps( project, osgiConfig )
-
         createTasks( project, osgiConfig )
+
+        updateConfigurations( project, osgiConfig )
     }
 
-    void createTasks( Project project, OsgiConfig osgiConfig ) {
-        project.afterEvaluate { ConfigurationsCreator.configBundles( project, osgiConfig ) }
+    static void updateConfigurations( Project project, OsgiConfig osgiConfig ) {
+        project.afterEvaluate {
+            ConfigurationsCreator.configBundles( project, osgiConfig )
 
+            String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
+            osgiConfig.outDirFile = target as File
+
+            updateConfigWithSystemLibs( project, osgiConfig, target )
+            configMainDeps( project, osgiConfig )
+        }
+    }
+
+    static void createTasks( Project project, OsgiConfig osgiConfig ) {
         Task createBundlesDir = project.task(
                 type: CreateBundlesDir,
                 group: 'Build',
@@ -76,7 +82,7 @@ class OsgiRunPlugin implements Plugin<Project> {
             delete target
         }
 
-        addTaskDependencies( project, createOsgiRuntimeTask, cleanTask )
+        addTaskDependencies( project, createBundlesDir, cleanTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
@@ -98,11 +104,11 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     static void addTaskDependencies( Project project,
-                                     Task createOsgiRuntimeTask,
+                                     Task createBundlesdir,
                                      Task cleanTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
-                createOsgiRuntimeTask.dependsOn jarTask
+                createBundlesdir.dependsOn jarTask
             }
             it.tasks.withType( Delete ) { delTask ->
                 if ( delTask.name == 'clean' ) {
