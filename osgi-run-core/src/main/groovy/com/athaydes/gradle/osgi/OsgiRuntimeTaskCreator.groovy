@@ -71,29 +71,15 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
         def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
         String target = getTarget( project, osgiConfig )
-        //setTaskInsAndOuts( project, task, target, osgiConfig )
-        osgiConfig.outDirFile = target as File
 
         log.info( "Will copy osgi runtime resources into $target" )
         copyBundles( project, osgiConfig, target )
         copySystemLibs( project, osgiConfig, target )
-        updateConfigWithSystemLibs( project, osgiConfig, target )
-        configMainDeps( project, osgiConfig )
         copyMainDeps( project, target )
         copyConfigFiles( target, osgiConfig )
         osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
         def mainClass = selectMainClass( project )
         createOSScriptFiles( target, osgiConfig, mainClass )
-    }
-
-    private static void configMainDeps( Project project, OsgiConfig osgiConfig ) {
-        def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
-        if ( !hasOsgiMainDeps ) {
-            assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
-            project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
-                transitive = false
-            }
-        }
     }
 
     private void copyMainDeps( Project project, String target ) {
@@ -131,36 +117,6 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
             from project.configurations.systemLib
             into systemLibsDir
         }
-    }
-
-    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
-
-        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
-            Set packages = [ ]
-            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
-
-            for ( entry in new ZipFile( jar ).entries() ) {
-
-                if ( entry.name.endsWith( '.class' ) ) {
-                    def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
-                    def entryName = lastSlashIndex > 0 ?
-                            entry.toString().substring( 0, lastSlashIndex ) :
-                            entry.toString()
-
-                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
-                }
-            }
-
-            def extrasKey = 'org.osgi.framework.system.packages.extra'
-
-            def extras = osgiConfig.config.get( extrasKey, '' )
-            if ( extras && packages ) {
-                extras = extras + ','
-            }
-            osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
-        }
-
     }
 
     private void copyBundles( Project project, OsgiConfig osgiConfig, String target ) {
@@ -213,7 +169,7 @@ class OsgiRuntimeTaskCreator extends DefaultTask {
 
     private static void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
         def configFile = getConfigFile( target, osgiConfig )
-        if ( !configFile ) return;
+        if ( !configFile ) return
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }
