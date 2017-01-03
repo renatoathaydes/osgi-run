@@ -196,9 +196,11 @@ For examples of using IPojo and Gradle, see the test projects:
 
 ## Tasks
 
+  * ``createBundlesDir``: create the bundles directory with all the configured bundles.
+    This task depends on the ``jar`` task of the project and its sub-projects.
   * ``createOsgiRuntime``: create the OSGi runtime based on configuration provided (or the defaults).
-      This task depends on the ``jar`` task of the project and its sub-projects.
-  * ``runOsgi``: starts the OSGi runtime (depends on ``createOsgiRuntime``).
+    **This task depends on ``createBundlesDir`` and is the main task of this plugin.**  
+  * ``runOsgi``: starts the OSGi runtime (depends on ``createOsgiRuntime``). Useful for debugging purposes.
   * ``cleanOsgiRuntime``: deletes the `outputDir` directory.
   
 Notice that Gradle lets you write the shortest unambiguous task name possible, so instead of using the full name of
