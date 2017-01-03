@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.5.2'
+version = '1.5.3'
 description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
 
 repositories {
@@ -129,8 +129,8 @@ bintray {
             }
             mavenCentralSync {
                 sync = true
-                user = ossrhUsername
-                password = ossrhPassword
+                user = project.hasProperty("ossrhUsername") ? ossrhUsername : null
+                password = project.hasProperty("ossrhPassword") ? ossrhPassword : null
                 close = '1' // '0' to NOT close
             }
         }
