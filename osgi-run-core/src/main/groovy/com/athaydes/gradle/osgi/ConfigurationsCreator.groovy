@@ -1,6 +1,7 @@
 package com.athaydes.gradle.osgi
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.logging.Logger
@@ -39,17 +40,27 @@ class ConfigurationsCreator {
                 transitiveDep = bundle.transitive
                 exclusions = bundle.excludeRules
             }
-            def depConfig = {
-                transitive = transitiveDep
-                exclusions.each { ExcludeRule rule ->
-                    def excludeMap = [ : ]
-                    if ( rule.group ) excludeMap.group = rule.group
-                    if ( rule.module ) excludeMap.module = rule.module
-                    exclude excludeMap
+
+            Closure depConfig
+
+            if ( bundle instanceof Dependency ) {
+                depConfig = {
+                    transitive = transitiveDep
+                    exclusions.each { ExcludeRule rule ->
+                        def excludeMap = [ : ]
+                        if ( rule.group ) excludeMap.group = rule.group
+                        if ( rule.module ) excludeMap.module = rule.module
+                        exclude excludeMap
+                    }
                 }
+
+            } else {
+                depConfig = { -> }
             }
+
             project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
         }
+
     }
 
 }
