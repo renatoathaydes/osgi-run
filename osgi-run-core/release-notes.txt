@@ -1,3 +1,8 @@
+* 1.5.4 - 2017-January-06
+
+- Fixed regression from previous release - systemLibs stopped working due to missing extra packages in config.
+- #59 allow local jars to be used as OSGi bundles
+
 * 1.5.3 - 2017-January-03
 
 - #52 fixed issue with task `runOsgi` not being runnable more than once without `clean`.
