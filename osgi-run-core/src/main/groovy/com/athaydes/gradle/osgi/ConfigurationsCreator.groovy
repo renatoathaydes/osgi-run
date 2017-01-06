@@ -43,7 +43,7 @@ class ConfigurationsCreator {
 
             Closure depConfig
 
-            if ( bundle instanceof Dependency ) {
+            if ( bundle instanceof Dependency || bundle instanceof String ) {
                 depConfig = {
                     transitive = transitiveDep
                     exclusions.each { ExcludeRule rule ->
