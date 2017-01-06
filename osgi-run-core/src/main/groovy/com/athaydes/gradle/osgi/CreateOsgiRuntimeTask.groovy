@@ -68,6 +68,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
         log.info( "Will copy osgi runtime resources into $target" )
         copySystemLibs( project, osgiConfig, target )
+        updateConfigWithSystemLibs( project, osgiConfig, target )
         copyMainDeps( project, target )
         copyConfigFiles( target, osgiConfig )
         osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
@@ -110,6 +111,36 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             from project.configurations.systemLib
             into systemLibsDir
         }
+    }
+
+    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
+        def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
+
+        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
+            Set packages = [ ]
+            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
+
+            for ( entry in new ZipFile( jar ).entries() ) {
+
+                if ( entry.name.endsWith( '.class' ) ) {
+                    def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
+                    def entryName = lastSlashIndex > 0 ?
+                            entry.toString().substring( 0, lastSlashIndex ) :
+                            entry.toString()
+
+                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
+                }
+            }
+
+            def extrasKey = 'org.osgi.framework.system.packages.extra'
+
+            def extras = osgiConfig.config.get( extrasKey, '' )
+            if ( extras && packages ) {
+                extras = extras + ','
+            }
+            osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
+        }
+
     }
 
     private static void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
