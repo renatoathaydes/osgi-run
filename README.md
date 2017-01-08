@@ -3,6 +3,8 @@ osgi-run
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
 
+[ ![Download](https://api.bintray.com/packages/renatoathaydes/maven/osgi-run-core/images/download.svg) ](https://bintray.com/renatoathaydes/maven/osgi-run-core/_latestVersion)
+
 ### Features
 
 * Create and run an OSGi environment using any container.
