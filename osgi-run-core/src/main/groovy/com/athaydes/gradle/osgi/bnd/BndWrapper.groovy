@@ -27,7 +27,7 @@ class BndWrapper {
         Map<String, Object[]> config = new LinkedHashMap<>( getWrapConfig( wrapInstructions, jarFile ) )
 
         def consumeValue = { String key ->
-            Object[] items = config.remove( key )
+            Object[] items = config.get( key )
             if ( items ) items.join( ',' )
             else null
         }
