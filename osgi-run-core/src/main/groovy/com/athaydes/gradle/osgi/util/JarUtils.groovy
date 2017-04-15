@@ -1,6 +1,7 @@
 package com.athaydes.gradle.osgi.util
 
 import aQute.bnd.osgi.Jar
+import aQute.bnd.osgi.Resource
 
 import java.util.concurrent.Callable
 import java.util.zip.ZipEntry
@@ -103,15 +104,28 @@ class JarUtils {
     static String versionOf( Jar jarFile ) {
         def attributes = jarFile.manifest.mainAttributes
         attributes.getValue( 'Bundle-Version' ) ?:
-                        attributes.getValue( 'Implementation-Version' ) ?:
+                attributes.getValue( 'Implementation-Version' ) ?:
+                        mavenMetadataVersion( jarFile ) ?:
                                 FileNameUtils.versionFrom( jarFile.name )
     }
 
     static String titleOf( Jar jarFile ) {
         def attributes = jarFile.manifest.mainAttributes
         attributes.getValue( 'Bundle-SymbolicName' ) ?:
-                        attributes.getValue( 'Implementation-Title' ) ?:
-                                FileNameUtils.titleFrom( jarFile.name )
+                attributes.getValue( 'Implementation-Title' ) ?:
+                        FileNameUtils.titleFrom( jarFile.name )
+    }
+
+    private static String mavenMetadataVersion( Jar file ) {
+        Resource pomProperties = file.resources.find { name, _ -> name.endsWith( '/pom.properties' ) }?.value
+        if ( pomProperties ) {
+            return pomProperties.openInputStream().withCloseable { stream ->
+                def props = new Properties()
+                props.load( stream )
+                props.get( 'version' )
+            }
+        }
+        null
     }
 
 }
