@@ -1,5 +1,6 @@
 package com.athaydes.gradle.osgi
 
+import aQute.bnd.version.MavenVersion
 import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -118,7 +119,8 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
         systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
             Set packages = [ ]
-            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
+            final version = MavenVersion.parseString( JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) ) )
+                    .getOSGiVersion()
 
             for ( entry in new ZipFile( jar ).entries() ) {
 
