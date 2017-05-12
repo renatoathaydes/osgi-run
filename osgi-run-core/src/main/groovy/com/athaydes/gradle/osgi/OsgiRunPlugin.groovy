@@ -1,6 +1,5 @@
 package com.athaydes.gradle.osgi
 
-import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -8,8 +7,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
-
-import java.util.zip.ZipFile
 
 /**
  * A Gradle plugin that helps create and execute OSGi runtime environments.
@@ -37,7 +34,6 @@ class OsgiRunPlugin implements Plugin<Project> {
             String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
             osgiConfig.outDirFile = target as File
 
-            updateConfigWithSystemLibs( project, osgiConfig, target )
             configMainDeps( project, osgiConfig )
         }
     }
@@ -125,35 +121,6 @@ class OsgiRunPlugin implements Plugin<Project> {
             project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
                 transitive = false
             }
-        }
-    }
-
-    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = project.file "${target}/${CreateOsgiRuntimeTask.SYSTEM_LIBS}"
-
-        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
-            Set packages = [ ]
-            final version = JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) )
-
-            for ( entry in new ZipFile( jar ).entries() ) {
-
-                if ( entry.name.endsWith( '.class' ) ) {
-                    def lastSlashIndex = entry.toString().findLastIndexOf { it == '/' }
-                    def entryName = lastSlashIndex > 0 ?
-                            entry.toString().substring( 0, lastSlashIndex ) :
-                            entry.toString()
-
-                    packages << ( entryName.replace( '/', '.' ) + ';version=' + version )
-                }
-            }
-
-            def extrasKey = 'org.osgi.framework.system.packages.extra'
-
-            def extras = osgiConfig.config.get( extrasKey, '' )
-            if ( extras && packages ) {
-                extras = extras + ','
-            }
-            osgiConfig.config[ extrasKey ] = extras + packages.join( ',' )
         }
     }
 
