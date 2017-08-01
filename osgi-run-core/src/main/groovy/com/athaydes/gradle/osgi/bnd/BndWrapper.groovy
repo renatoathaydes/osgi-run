@@ -2,6 +2,8 @@ package com.athaydes.gradle.osgi.bnd
 
 import aQute.bnd.osgi.Analyzer
 import aQute.bnd.osgi.Jar
+import aQute.bnd.version.MavenVersion
+import aQute.bnd.version.Version
 import com.athaydes.gradle.osgi.WrapInstructionsConfig
 import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.logging.Logger
@@ -32,13 +34,16 @@ class BndWrapper {
             else null
         }
 
-        if ( !config ) {
-            log.info "No instructions provided to wrap bundle {}, will use defaults", jarFile.name
-        }
-
         def newJar = new Jar( jarFile )
 
-        String implVersion = consumeValue( 'Bundle-Version' ) ?: JarUtils.versionOf( newJar )
+        Version implVersion = MavenVersion.parseString(
+                consumeValue( 'Bundle-Version' ) ?: JarUtils.versionOf( newJar )
+        ).getOSGiVersion()
+
+        if ( !config ) {
+            log.info "No instructions provided to wrap bundle {}, will use defaults and version $implVersion",
+                    jarFile.name
+        }
 
         String implTitle = consumeValue( 'Bundle-SymbolicName' ) ?: JarUtils.titleOf( newJar )
 

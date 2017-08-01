@@ -23,6 +23,10 @@ class FileNameUtilsSpec extends Specification {
         'aop-6.12.jar'                | '6.12'
         'commons-logging-1.1.1.jar'   | '1.1.1'
         'crazy-lib-name-0.1-SNAP.jar' | '0.1-SNAP'
+        'raml-parser-2-1.0.7.jar'     | '2-1.0.7'
+        'yagi-1.0.7.jar'              | '1.0.7'
+        'rhino-1.7R4.jar'             | '1.7R4'
+
     }
 
     @Unroll
