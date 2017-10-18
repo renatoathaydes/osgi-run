@@ -1,5 +1,6 @@
 package com.athaydes.gradle.osgi
 
+import com.athaydes.gradle.osgi.dependency.DefaultOSGiDependency
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -19,6 +20,8 @@ class OsgiRunPlugin implements Plugin<Project> {
     @Override
     void apply( Project project ) {
         createConfigurations( project )
+
+        addOsgiDependency( project )
 
         OsgiConfig osgiConfig = createExtensions( project )
 
@@ -121,6 +124,12 @@ class OsgiRunPlugin implements Plugin<Project> {
             project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
                 transitive = false
             }
+        }
+    }
+
+    private static void addOsgiDependency(Project project) {
+        project.dependencies.ext.osgi =  {
+            Map conf -> new DefaultOSGiDependency(conf.group, conf.name, conf.version, conf.configuration, conf.startLevel)
         }
     }
 
