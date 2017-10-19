@@ -1,6 +1,7 @@
 package com.athaydes.gradle.osgi
 
 import aQute.bnd.version.MavenVersion
+import com.athaydes.gradle.osgi.dependency.DefaultOSGiDependency
 import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -71,7 +72,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         copySystemLibs( project, osgiConfig, target )
         updateConfigWithSystemLibs( project, osgiConfig, target )
         copyMainDeps( project, target )
-        copyConfigFiles( target, osgiConfig )
+        copyConfigFiles( target, osgiConfig, project )
         osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
         def mainClass = selectMainClass( project )
         createOSScriptFiles( target, osgiConfig, mainClass )
@@ -145,13 +146,13 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
     }
 
-    private static void copyConfigFiles( String target, OsgiConfig osgiConfig ) {
+    private static void copyConfigFiles( String target, OsgiConfig osgiConfig, Project project ) {
         def configFile = getConfigFile( target, osgiConfig )
         if ( !configFile ) return
         if ( !configFile.exists() ) {
             configFile.parentFile.mkdirs()
         }
-        configFile.write( scapeSlashes( textForConfigFile( target, osgiConfig ) ), 'UTF-8' )
+        configFile.write( scapeSlashes( textForConfigFile( target, osgiConfig, project ) ), 'UTF-8' )
     }
 
     private static File getConfigFile( String target, OsgiConfig osgiConfig ) {
@@ -174,10 +175,10 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         string.replace( '\\', '\\\\' )
     }
 
-    private static String textForConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static String textForConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
         switch ( osgiConfig.configSettings ) {
             case 'felix': return generateFelixConfigFile( osgiConfig )
-            case 'equinox': return generateEquinoxConfigFile( target, osgiConfig )
+            case 'equinox': return generateEquinoxConfigFile( target, osgiConfig, project )
             case 'knopflerfish': return generateKnopflerfishConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
                     'https://github.com/renatoathaydes/osgi-run/issues\nInclude the following in your message:\n' +
@@ -189,19 +190,44 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         map2properties osgiConfig.config
     }
 
-    private static String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig ) {
+    private static String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
         if ( !bundlesDir.exists() ) {
             bundlesDir.mkdirs()
         }
+
+        def startLevelMap = buildStartLevelMap(project)
+        log.debug("StartLevel map: {}", startLevelMap)
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
         map2properties( osgiConfig.config +
-                [ 'osgi.bundles': bundleJars.collect { equinoxBundleDirective( it, target ) }.join( ',' ) ] )
+                [ 'osgi.bundles': bundleJars.collect {
+                    def file = new File(it)
+                    def startLevel = startLevelMap.get(file.name)
+                    equinoxBundleDirective( it, target, startLevel ) }.join( ',' )
+                ] )
     }
 
-    private static String equinoxBundleDirective( String bundleJar, String target ) {
-        bundleJar.replace( target, '..' ) + ( JarUtils.isFragment( bundleJar ) ? '' : '@start' )
+    private static Map<String, Integer> buildStartLevelMap(Project project) {
+        def osgiRuntime = project.configurations.osgiRuntime
+        osgiRuntime.allDependencies.collectEntries {
+            def dep = it
+            def startLevel = null
+            if (dep instanceof DefaultOSGiDependency) {
+                startLevel = dep.startLevel
+            }
+            def files = osgiRuntime.files(dep)
+            if (!files.isEmpty()) {
+                [ (files[0].name) : startLevel ]
+            }
+        }
+    }
+
+    private static String equinoxBundleDirective( String bundleJar, String target, Integer startLevel ) {
+        bundleJar.replace( target, '..' ) + (
+                JarUtils.isFragment( bundleJar ) ? '' : (
+                startLevel == null ? '@start' : '@'+startLevel+':start'
+                ) )
     }
 
     private static String generateKnopflerfishConfigFile( String target, OsgiConfig osgiConfig ) {
