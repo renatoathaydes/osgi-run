@@ -177,7 +177,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
     private static String textForConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
         switch ( osgiConfig.configSettings ) {
-            case 'felix': return generateFelixConfigFile( osgiConfig )
+            case 'felix': return generateFelixConfigFile( osgiConfig, project )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig, project )
             case 'knopflerfish': return generateKnopflerfishConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
@@ -186,7 +186,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         }
     }
 
-    private static String generateFelixConfigFile( OsgiConfig osgiConfig ) {
+    private static String generateFelixConfigFile( OsgiConfig osgiConfig, Project project ) {
         map2properties osgiConfig.config
     }
 
@@ -210,16 +210,15 @@ class CreateOsgiRuntimeTask extends DefaultTask {
     }
 
     private static Map<String, Integer> buildStartLevelMap( Project project ) {
-        def osgiRuntime = project.configurations.osgiRuntime
-        osgiRuntime.allDependencies.collectEntries {
-            def dep = it
-            def startLevel = null
-            if ( dep instanceof DefaultOSGiDependency ) {
-                startLevel = dep.startLevel
-            }
-            def files = osgiRuntime.files( dep )
-            if ( !files.isEmpty() ) {
-                [ ( files[ 0 ].name ): startLevel ]
+        project.configurations.collectEntries { conf ->
+            conf.allDependencies.collectEntries { dep ->
+                def startLevel = null
+                if ( dep instanceof DefaultOSGiDependency ) {
+                    startLevel = dep.startLevel
+                }
+                def files = conf.files( dep )
+                if ( !files.isEmpty() ) [ ( files.first().name ): startLevel ]
+                else [ : ]
             }
         }
     }
