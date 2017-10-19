@@ -6,7 +6,7 @@ interface OSGiDependency extends ExternalModuleDependency {
 
     Integer getStartLevel()
 
-    OSGiDependency setStartLevel(Integer startLevel)
+    void setStartLevel( Integer startLevel )
 
     OSGiDependency copy()
 

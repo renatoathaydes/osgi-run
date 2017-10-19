@@ -127,9 +127,9 @@ class OsgiRunPlugin implements Plugin<Project> {
         }
     }
 
-    private static void addOsgiDependency(Project project) {
-        project.dependencies.ext.osgi =  {
-            Map conf -> new DefaultOSGiDependency(conf.group, conf.name, conf.version, conf.configuration, conf.startLevel)
+    private static void addOsgiDependency( Project project ) {
+        project.dependencies.ext.osgi = {
+            Map conf -> new DefaultOSGiDependency( conf.group, conf.name, conf.version, conf.configuration, conf.startLevel )
         }
     }
 

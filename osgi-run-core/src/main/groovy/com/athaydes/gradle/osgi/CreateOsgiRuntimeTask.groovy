@@ -196,29 +196,30 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             bundlesDir.mkdirs()
         }
 
-        def startLevelMap = buildStartLevelMap(project)
-        log.debug("StartLevel map: {}", startLevelMap)
+        def startLevelMap = buildStartLevelMap( project )
+        log.debug( "StartLevel map: {}", startLevelMap )
         def bundleJars = new FileNameByRegexFinder().getFileNames(
                 bundlesDir.absolutePath, /.+\.jar/ )
         map2properties( osgiConfig.config +
                 [ 'osgi.bundles': bundleJars.collect {
-                    def file = new File(it)
-                    def startLevel = startLevelMap.get(file.name)
-                    equinoxBundleDirective( it, target, startLevel ) }.join( ',' )
+                    def file = new File( it )
+                    def startLevel = startLevelMap.get( file.name )
+                    equinoxBundleDirective( it, target, startLevel )
+                }.join( ',' )
                 ] )
     }
 
-    private static Map<String, Integer> buildStartLevelMap(Project project) {
+    private static Map<String, Integer> buildStartLevelMap( Project project ) {
         def osgiRuntime = project.configurations.osgiRuntime
         osgiRuntime.allDependencies.collectEntries {
             def dep = it
             def startLevel = null
-            if (dep instanceof DefaultOSGiDependency) {
+            if ( dep instanceof DefaultOSGiDependency ) {
                 startLevel = dep.startLevel
             }
-            def files = osgiRuntime.files(dep)
-            if (!files.isEmpty()) {
-                [ (files[0].name) : startLevel ]
+            def files = osgiRuntime.files( dep )
+            if ( !files.isEmpty() ) {
+                [ ( files[ 0 ].name ): startLevel ]
             }
         }
     }
@@ -226,7 +227,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
     private static String equinoxBundleDirective( String bundleJar, String target, Integer startLevel ) {
         bundleJar.replace( target, '..' ) + (
                 JarUtils.isFragment( bundleJar ) ? '' : (
-                startLevel == null ? '@start' : '@'+startLevel+':start'
+                        startLevel == null ? '@start' : '@' + startLevel + ':start'
                 ) )
     }
 
