@@ -8,6 +8,7 @@ class DefaultOSGiDependency extends DefaultExternalModuleDependency implements O
 
     Integer startLevel
 
+    // TODO support providing single String coordinates
     DefaultOSGiDependency( String group, String name, String version,
                            String configuration = null, Integer startLevel = null ) {
         super( group, name, version, configuration )

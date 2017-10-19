@@ -33,7 +33,7 @@ subprojects {
 }
 
 dependencies {
-    osgiRuntime 'org.apache.commons:commons-lang3:3.3.2'
+    osgiRuntime osgi( group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2', startLevel: 2 )
 }
 
 runOsgi {
@@ -43,5 +43,7 @@ runOsgi {
         programArgs = '-console'
     }
     bundles += subprojects
-    config += [ 'org.osgi.framework.storage.clean': 'onFirstInit' ]
+    bundlesPath = 'jars'
+    config += [ 'org.osgi.framework.storage.clean'       : 'onFirstInit',
+                'org.osgi.framework.startlevel.beginning': 10 ]
 }
