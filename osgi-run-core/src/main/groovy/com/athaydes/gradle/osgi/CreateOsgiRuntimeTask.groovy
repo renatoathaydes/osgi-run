@@ -216,7 +216,6 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             if (dep instanceof DefaultOSGiDependency) {
                 startLevel = dep.startLevel
             }
-            log.debug("Dependency '{}' properties: {}", dep.name, dep.properties)
             def files = osgiRuntime.files(dep)
             if (!files.isEmpty()) {
                 [ (files[0].name) : startLevel ]
