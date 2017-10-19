@@ -22,8 +22,6 @@ group = 'com.athaydes.gradle.osgi'
 version = '1.5.5-startLevel'
 description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
 
-sourceSets.main.groovy.srcDirs += ["src/main/java"]
-
 repositories {
     jcenter()
 }
