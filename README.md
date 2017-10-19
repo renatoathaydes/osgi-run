@@ -196,6 +196,18 @@ For examples of using IPojo and Gradle, see the test projects:
 * [ipojo-xml-example](osgi-run-test/ipojo-xml-example) - XML-configured IPojo project
 * [ipojo-dosgi](osgi-run-test/ipojo-dosgi) - Distributed OSGi with IPojo
 
+### Equinox start levels
+
+If your OSGi bundles for any reason need to start in a defined order you can benefit from Start Levels
+defined by OSGi Core specification. Currently the implementation works for Equinox only. To define specific
+start level for your bundles you have to use special dependency creation method ``osgi``:
+
+```groovy
+dependencies {
+    osgiRuntime osgi(group: "some.group.id", name: "some-artifact-id", version: "version", startLevel: 3)
+}
+```
+
 ## Tasks
 
   * ``createBundlesDir``: create the bundles directory with all the configured bundles.
