@@ -220,7 +220,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             map.merge( startLevel, [ jar ], { a, b -> a + b } )
         }
 
-        def fragmentInstallEntries = bundlesByStartLevel.collectEntries(
+        def fragmentInstallEntries = fragmentBundlesByStartLevel.collectEntries(
                 felixBundleDirective( 'felix.auto.install', target ) )
 
         def bundleStartEntries = bundlesByStartLevel.collectEntries(
@@ -256,32 +256,27 @@ class CreateOsgiRuntimeTask extends DefaultTask {
     }
 
     private static Map<String, Integer> buildStartLevelMap( Project project ) {
-        project.configurations.collectEntries { conf ->
+        def osgiConfigs = project.configurations.findAll { it.name.startsWith( ConfigurationsCreator.OSGI_DEP_PREFIX ) }
+
+        osgiConfigs.collectEntries { conf ->
+            def files = conf.resolvedConfiguration.files
             conf.allDependencies.collectEntries { dep ->
                 def startLevel = null
                 if ( dep instanceof DefaultOSGiDependency ) {
                     startLevel = dep.startLevel
                 }
 
-                // FIXME get bundle in a more reliable way
-                try {
-                    def files = conf.files( dep )
-                    if ( !files.isEmpty() ) [ ( files.first().name ): startLevel ]
-                    else [ : ]
-                } catch ( e ) {
-                    log.debug( "Error trying to get files of configuration: ${conf.name}: {}", e )
-                    return [ : ]
-                }
+                files.collectEntries { f -> [ ( f.name ): startLevel ] }
             }
         }
     }
 
     private static felixBundleDirective( String propPrefix, String target ) {
+        target = "$target/"
         return { startLevel, jars ->
             String propKey = "$propPrefix.$startLevel"
-            // TODO try to make URL relative to target
-            def url = { File jar ->
-                jar.toURI().toURL()
+            def url = { File bundleJar ->
+                'file:' + bundleJar.absolutePath.replace( target, '' )
             }
             [ ( propKey ): jars.collect( url ).join( ' ' ) ]
         }
