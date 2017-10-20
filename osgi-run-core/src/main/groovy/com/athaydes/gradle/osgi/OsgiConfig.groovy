@@ -90,7 +90,7 @@ class OsgiConfig {
 
     static final String EQUINOX = 'org.osgi:org.eclipse.osgi:3.10.100.v20150529-1857'
 
-    static final String KNOPFLERFISH = 'org.knopflerfish:framework:7.1.2'
+    static final String KNOPFLERFISH = 'org.knopflerfish.kf6:framework:8.0.5'
 
     static final FELIX_GOGO_BUNDLES = [
             'org.apache.felix:org.apache.felix.gogo.runtime:1.0.8',
