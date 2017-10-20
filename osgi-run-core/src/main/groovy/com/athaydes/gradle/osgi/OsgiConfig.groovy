@@ -86,16 +86,16 @@ class OsgiConfig {
 
     // CONSTANTS
 
-    static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.4.0'
+    static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.6.8'
 
     static final String EQUINOX = 'org.osgi:org.eclipse.osgi:3.10.100.v20150529-1857'
 
     static final String KNOPFLERFISH = 'org.knopflerfish:framework:7.1.2'
 
     static final FELIX_GOGO_BUNDLES = [
-            'org.apache.felix:org.apache.felix.gogo.runtime:0.16.2',
-            'org.apache.felix:org.apache.felix.gogo.shell:0.12.0',
-            'org.apache.felix:org.apache.felix.gogo.command:0.16.0',
+            'org.apache.felix:org.apache.felix.gogo.runtime:1.0.8',
+            'org.apache.felix:org.apache.felix.gogo.shell:1.0.0',
+            'org.apache.felix:org.apache.felix.gogo.command:1.0.2',
     ].asImmutable()
 
     static final IPOJO_BUNDLE = [
