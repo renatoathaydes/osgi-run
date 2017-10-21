@@ -33,8 +33,8 @@ class ConfigurationsCreator {
         //noinspection GroovyAssignabilityCheck
         allBundles.eachWithIndex { Object bundle, int i ->
 
-            // by default, all project dependencies are transitive
-            boolean transitiveDep = bundle instanceof Project
+            // by default, all dependencies are transitive
+            boolean transitiveDep = true
             def exclusions = [ ] as Set
             if ( bundle instanceof ModuleDependency ) {
                 transitiveDep = bundle.transitive
