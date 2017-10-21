@@ -242,11 +242,6 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         def startLevelMap = buildStartLevelMap( project )
         log.debug( "StartLevel map: {}", startLevelMap )
 
-        if ( startLevelMap.values().every { it == null } ) {
-            log.debug( "No StartLevels specified" )
-            return map2properties( osgiConfig.config )
-        }
-
         def bundleStartEntries = [ 'osgi.bundles': bundleJars.collect { file ->
             def startLevel = startLevelMap[ file.name ]
             equinoxBundleDirective( file, target, startLevel )
