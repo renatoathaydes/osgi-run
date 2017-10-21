@@ -44,7 +44,7 @@ class OsgiConfig {
 
     void configFelix() {
         bundlesPath = 'bundle'
-        bundles = FELIX_GOGO_BUNDLES
+        bundles = OSGIAAS_CLI_BUNDLES
         osgiMain = FELIX
         config = [ 'felix.auto.deploy.action'  : 'install,start',
                    'felix.log.level'           : 1,
@@ -54,7 +54,7 @@ class OsgiConfig {
 
     void configEquinox() {
         bundlesPath = 'plugins'
-        bundles = FELIX_GOGO_BUNDLES
+        bundles = OSGIAAS_CLI_BUNDLES
         osgiMain = EQUINOX
         config = [ 'eclipse.ignoreApp': true,
                    'osgi.noShutdown'  : true ]
@@ -107,6 +107,14 @@ class OsgiConfig {
             'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
             'org.apache.felix:org.apache.felix.bundlerepository:2.0.6',
             'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
+    ].asImmutable()
+
+    static final OSGIAAS_CLI_BUNDLE = 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
+
+    static final OSGIAAS_CLI_BUNDLES = [
+            [ dependency: 'org.apache.felix:org.apache.felix.scr:2.0.12',
+              exclusions: [ [ group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations' ] ] ],
+            OSGIAAS_CLI_BUNDLE
     ].asImmutable()
 
 }
