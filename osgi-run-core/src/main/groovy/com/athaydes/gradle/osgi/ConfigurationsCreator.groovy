@@ -1,5 +1,6 @@
 package com.athaydes.gradle.osgi
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExcludeRule
@@ -43,19 +44,41 @@ class ConfigurationsCreator {
 
             Closure depConfig
 
-            if ( bundle instanceof Dependency || bundle instanceof String ) {
-                depConfig = {
-                    transitive = transitiveDep
-                    exclusions.each { ExcludeRule rule ->
-                        def excludeMap = [ : ]
-                        if ( rule.group ) excludeMap.group = rule.group
-                        if ( rule.module ) excludeMap.module = rule.module
-                        exclude excludeMap
+            switch ( bundle ) {
+                case Dependency:
+                case String:
+                    depConfig = {
+                        transitive = transitiveDep
+                        exclusions.each { ExcludeRule rule ->
+                            def excludeMap = [ : ]
+                            if ( rule.group ) excludeMap.group = rule.group
+                            if ( rule.module ) excludeMap.module = rule.module
+                            exclude excludeMap
+                        }
                     }
-                }
+                    break
+                case Map:
+                    assert bundle instanceof Map
+                    if ( !bundle.containsKey( 'dependency' ) ) {
+                        throw new GradleException( "Bundle declaration does not contain 'dependency': $bundle" )
+                    }
+                    if ( bundle.containsKey( 'transitive' ) ) {
+                        transitiveDep = bundle[ 'transitive' ]
+                    }
 
-            } else {
-                depConfig = { -> }
+                    if ( bundle.containsKey( 'exclusions' ) ) {
+                        exclusions = bundle.exclusions
+                    }
+                    depConfig = {
+                        transitive = transitiveDep
+                        exclusions.each { ex ->
+                            exclude ex
+                        }
+                    }
+                    bundle = bundle.dependency
+                    break
+                default:
+                    depConfig = { -> }
             }
 
             project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
