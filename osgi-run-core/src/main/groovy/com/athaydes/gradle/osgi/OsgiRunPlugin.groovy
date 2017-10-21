@@ -164,7 +164,15 @@ class OsgiRunPlugin implements Plugin<Project> {
             new DefaultOSGiDependency( group, name, version, config, startLevel )
         }
 
-        project.dependencies.ext.osgi = { Map conf -> verify conf }
+        project.dependencies.ext.osgi = { conf ->
+            if ( conf instanceof Map ) {
+                return verify( conf )
+            } else if ( conf instanceof String ) {
+                return new DefaultOSGiDependency( conf )
+            } else {
+                throw new IllegalArgumentException( "Invalid argument type to 'osgi': must be a String or Map, was ${conf?.class?.name}" )
+            }
+        }
     }
 
 }
