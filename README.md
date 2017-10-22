@@ -100,7 +100,7 @@ apply plugin: 'com.athaydes.osgi-run'
 ## Quick Start
 
 Given a Gradle project whose sub-projects are OSGi bundles, create an OSGi environment
-containing the sub-projects' bundles, running it with Apache Felix and the Gogo bundles:
+containing the sub-projects' bundles, running it with Apache Felix and the default bundles:
 
 *build.gradle*
 ```groovy
@@ -196,15 +196,38 @@ For examples of using IPojo and Gradle, see the test projects:
 * [ipojo-xml-example](osgi-run-test/ipojo-xml-example) - XML-configured IPojo project
 * [ipojo-dosgi](osgi-run-test/ipojo-dosgi) - Distributed OSGi with IPojo
 
-### Equinox start levels
+### Handling start levels
 
 If your OSGi bundles for any reason need to start in a defined order you can benefit from Start Levels
-defined by OSGi Core specification. Currently the implementation works for Equinox only. To define specific
-start level for your bundles you have to use special dependency creation method ``osgi``:
+defined by OSGi Core specification. Currently, the implementation works for Equinox and Felix only.
+
+There are 2 ways to define specific start levels for your bundles:
+
+#### Start level for a dependency
+
+Inside the `dependencies` block, you can use the `osgi` method as follows
 
 ```groovy
 dependencies {
     osgiRuntime osgi(group: "some.group.id", name: "some-artifact-id", version: "version", startLevel: 3)
+    
+    // or using the shorter notation
+    osgiRuntime osgi('some.group.id:some-artifact-id:version:3')
+}
+```
+
+#### Start level for a bundle
+
+If you specify your bundles using the `runOsgi.budles` property, you can use the following syntax:
+
+```groovy
+runOsgi {
+    bundles = [
+        [dependency: 'group:artifact:version', startLevel: 3],
+        
+        // or using the shorter notation
+        [dependency: 'group:artifact:version:3'],
+    ]
 }
 ```
 
@@ -239,8 +262,8 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         See the [build-with-subprojects](osgi-run-test/build-with-subprojects) example.
     * ``outDir``: output directory (default: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
-    * ``bundles``: Extra resources to include in the OSGi ``bundle`` folder 
-        (defaults: in Felix: ``runOsgi.FELIX_GOGO_BUNDLES``, in Equinox: ``[]``).
+    * ``bundles``: Bundles to include in the OSGi environment 
+        (defaults: in Felix and Equinox: ``runOsgi.OSGIAAS_CLI_BUNDLES``, in Knopflerfish: ``[]``).
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time 
         (default: ``FELIX``, set to ``EQUINOX``, or ``KNOPFLERFISH`` depending on `configSettings`).
@@ -248,7 +271,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
     * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
     * ``programArgs``: String with arguments to be passed to the main Java class (main args).
     * ``bundlesPath``: String with path where the bundles should be copied to 
-      (default for Felix: ``"bundle"``, for Equinox: ``"plugins"``).
+      (default for Felix: ``"bundle"``, Equinox: ``"plugins"``, Knopflerfish: ``"jars""``).
     * ``config``: Map of properties that should be added to the container's config file.
         This property is ignored if `configSettings` is set to 'none'.
     * ``wrapInstructions``: instructions for wrapping non-bundles. See the relevant section below.
@@ -259,7 +282,10 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         where the IDE can use it to provide OSGi support.
 
 The default `config` for Felix is:
-        
+
+> If a `startLevel` is defined for any bundle, then the config file will
+  list all bundles in the environment specifying the start-level as applicable, similarly to the Equinox config file.
+     
 ```groovy
 'felix.auto.deploy.action'  : 'install,start',
 'felix.log.level'           : 1,
@@ -302,6 +328,8 @@ The following constants can be used to provide values for the above properties:
 * ``KNOPFLERFISH``: The Knopflerfish Framework jar. Can be used to set ``osgiMain``.
 * ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
 * ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
+* ``OSGIAAS_CLI_BUNDLE``: The OSGiaaS-CLI bundle. Can be used with ``bundles``.
+* ``OSGIAAS_CLI_BUNDLES``: The OSGiaaS-CLI bundle as well as the Felix SCR bundle, required for the CLI to start. Can be used with ``bundles``.
 
 Here's an example setting most properties (notice that normally you won't need to set nearly as many):
 
@@ -317,6 +345,18 @@ runOsgi {
     copyManifestTo file( 'auto-generated/MANIFEST.MF' ) // make the manifest visible to the IDE for OSGi support
 }
 ```
+
+### The syntax of the `bundles` property
+
+The `bundles` property takes a List with items having the following formats:
+
+* a `String` with the format of any Gradle dependency declaration.
+* a `Project` as in `bundles = [project]` or `bundles = subProjects`.
+* a `Map` with the following entries:
+    * `dependency` (mandatory): String or Map dependency declaration.
+    * `transitive` (optional, defaults to `true`): whether or not to include transitive dependencies.
+    * `exclusions` (optional): transitive dependencies to exclude, specified as Map: `[group: 'xxx', module: 'xxx']`. 
+    * `startLevel` (optional): start level for the bundle.
 
 ## Gradle configurations additions
 
@@ -419,15 +459,15 @@ runOsgi {
 }
 ```
 
-As ``FELIX_GOGO_BUNDLES`` is the default value of ``bundles``, the above is equivalent to:
+As ``OSGIAAS_CLI_BUNDLES`` is the default value of ``bundles``, the above is equivalent to:
 
 ```groovy
 runOsgi {
-  bundles = FELIX_GOGO_BUNDLES + project
+  bundles = OSGIAAS_CLI_BUNDLES + project
 }
 ```
 
-If you don't want the Gogo bundles installed, just use:
+If you don't want the default bundles installed, just use:
 
 ```groovy
 runOsgi {
@@ -453,8 +493,6 @@ dependencies {
   osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
 }
 ```
-
-Notice that the above configuration is equivalent to setting ``osgiConfig.bundles`` to ``FELIX_GOGO_BUNDLES`` (which is the default).
 
 ##### Solving *unresolved constraint* errors
 
@@ -590,12 +628,12 @@ Simplest possible Equinox setup:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  programArgs = '-console' // required to enable the Gogo CLI
 }
 ```
 
-Notice that this will only start the Equinox Framework with no bundles deployed.
-You can install bundles manually using the Felix Gogo shell (which is currently used by both Felix and Equinox).
+Notice that this will only start the Equinox Framework with the default bundles deployed.
+You can install bundles manually using the [OSGiaaS-CLI](https://github.com/renatoathaydes/osgiaas/blob/master/docs/cli/README.md)
+(which is currently used by both Felix and Equinox).
 
 But if you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
 try something like this:
@@ -603,7 +641,6 @@ try something like this:
 ```groovy
 runOsgi {
   configSettings = 'equinox'
-  programArgs = '-console'
   bundles = subprojects
 }
 ```
@@ -637,7 +674,7 @@ runOsgi {
   configSettings = 'equinox'
   programArgs = '-console'
   osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
-  bundles = [] // do not use the Gogo bundles, older Equinox has its own console
+  bundles = [] // do not use the default bundles, older Equinox has its own console
 }
 ```
 
@@ -662,6 +699,7 @@ runOsgi {
 ### External Links
 
 * [Apache Felix](http://felix.apache.org/)
+* [OSGiaaS-CLI](https://github.com/renatoathaydes/osgiaas/blob/master/docs/cli/README.md)
 * [Felix Gogo](http://felix.apache.org/documentation/subprojects/apache-felix-gogo.html)
 * [Equinox Framework](http://www.eclipse.org/equinox)
 * [Equinox Quickstart](http://www.eclipse.org/equinox/documents/quickstart-framework.php)
