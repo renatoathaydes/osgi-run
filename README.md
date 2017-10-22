@@ -218,7 +218,7 @@ dependencies {
 
 #### Start level for a bundle
 
-If you specify your bundles using the `runOsgi.budles` property, you can use the following syntax:
+If you specify your bundles using the `runOsgi.bundles` property, you can use the following syntax:
 
 ```groovy
 runOsgi {
