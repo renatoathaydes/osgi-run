@@ -15,4 +15,8 @@ dependencies {
 runOsgi {
     configSettings = 'equinox'
     config += [ 'osgi.clean': true, 'osgi.startLevel': 12 ]
+
+    // specify start-level for bundles (either way should work)
+    bundles += [[dependency: 'com.athaydes.osgiaas:osgiaas-common:0.7:3']]
+    //bundles += [ [ dependency: 'com.athaydes.osgiaas:osgiaas-common:0.7', startLevel: 3 ] ]
 }

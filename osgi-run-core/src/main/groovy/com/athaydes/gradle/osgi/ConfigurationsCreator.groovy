@@ -1,5 +1,6 @@
 package com.athaydes.gradle.osgi
 
+import com.athaydes.gradle.osgi.dependency.DefaultOSGiDependency
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -75,7 +76,21 @@ class ConfigurationsCreator {
                             exclude ex
                         }
                     }
-                    bundle = bundle.dependency
+                    if ( bundle.dependency instanceof String || bundle.dependency instanceof Map ) {
+                        def startLevel = bundle[ 'startLevel' ]
+                        //noinspection GroovyAssignabilityCheck
+                        bundle = new DefaultOSGiDependency( bundle.dependency )
+                        if ( startLevel ) {
+                            if ( startLevel instanceof Integer || startLevel.toString().isInteger() ) {
+                                bundle.startLevel = startLevel as int
+                            } else {
+                                throw new GradleException( "startLevel has invalid type or format (should be integer): $startLevel" )
+                            }
+                        }
+                    } else {
+                        bundle = bundle.dependency
+                    }
+
                     break
                 default:
                     depConfig = { -> }

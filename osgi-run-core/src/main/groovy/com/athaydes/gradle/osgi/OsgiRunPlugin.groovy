@@ -1,7 +1,6 @@
 package com.athaydes.gradle.osgi
 
 import com.athaydes.gradle.osgi.dependency.DefaultOSGiDependency
-import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -129,45 +128,9 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     private static void addOsgiDependency( Project project ) {
-        def verify = { Map declaredConfig ->
-            def errors = [ ]
-            def conf = declaredConfig.clone() as Map
-
-            def verifyProperty = { String name, boolean mandatory, Class type = String ->
-                def value = conf.remove( name )
-                if ( value == null ) {
-                    if ( mandatory ) {
-                        errors << "'$name' is missing"
-                    }
-                } else if ( !type.isInstance( value ) ) {
-                    errors << "'$name' has invalid type (must be ${type.name}, was ${value.class.name}"
-                }
-                value
-            }
-
-            def group = verifyProperty 'group', true
-            def name = verifyProperty 'name', true
-            def version = verifyProperty 'version', true
-            def config = verifyProperty 'configuration', false
-            def startLevel = verifyProperty 'startLevel', false, Integer
-
-            if ( !conf.isEmpty() ) {
-                def unknownProperties = conf.keySet().collect { "'$it'" }.join( ', ' )
-                errors << "Could not set unknown properties $unknownProperties"
-            }
-
-            if ( errors ) {
-                throw new GradleException( "Invalid OSGi dependency $declaredConfig:\n  ${errors.join( '\n  ' )}" )
-            }
-
-            //noinspection GroovyAssignabilityCheck
-            new DefaultOSGiDependency( group, name, version, config, startLevel )
-        }
-
         project.dependencies.ext.osgi = { conf ->
-            if ( conf instanceof Map ) {
-                return verify( conf )
-            } else if ( conf instanceof String ) {
+            if ( conf instanceof Map || conf instanceof String ) {
+                //noinspection GroovyAssignabilityCheck
                 return new DefaultOSGiDependency( conf )
             } else {
                 throw new IllegalArgumentException( "Invalid argument type to 'osgi': must be a String or Map, was ${conf?.class?.name}" )
