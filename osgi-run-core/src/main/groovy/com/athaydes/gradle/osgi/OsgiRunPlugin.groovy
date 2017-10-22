@@ -127,9 +127,14 @@ class OsgiRunPlugin implements Plugin<Project> {
         }
     }
 
-    private static void addOsgiDependency(Project project) {
-        project.dependencies.ext.osgi =  {
-            Map conf -> new DefaultOSGiDependency(conf.group, conf.name, conf.version, conf.configuration, conf.startLevel)
+    private static void addOsgiDependency( Project project ) {
+        project.dependencies.ext.osgi = { conf ->
+            if ( conf instanceof Map || conf instanceof String ) {
+                //noinspection GroovyAssignabilityCheck
+                return new DefaultOSGiDependency( conf )
+            } else {
+                throw new IllegalArgumentException( "Invalid argument type to 'osgi': must be a String or Map, was ${conf?.class?.name}" )
+            }
         }
     }
 

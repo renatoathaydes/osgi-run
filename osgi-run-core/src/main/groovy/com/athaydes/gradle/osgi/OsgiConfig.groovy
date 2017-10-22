@@ -44,7 +44,7 @@ class OsgiConfig {
 
     void configFelix() {
         bundlesPath = 'bundle'
-        bundles = FELIX_GOGO_BUNDLES
+        bundles = OSGIAAS_CLI_BUNDLES
         osgiMain = FELIX
         config = [ 'felix.auto.deploy.action'  : 'install,start',
                    'felix.log.level'           : 1,
@@ -54,7 +54,7 @@ class OsgiConfig {
 
     void configEquinox() {
         bundlesPath = 'plugins'
-        bundles = FELIX_GOGO_BUNDLES
+        bundles = OSGIAAS_CLI_BUNDLES
         osgiMain = EQUINOX
         config = [ 'eclipse.ignoreApp': true,
                    'osgi.noShutdown'  : true ]
@@ -86,27 +86,35 @@ class OsgiConfig {
 
     // CONSTANTS
 
-    static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.4.0'
+    static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.6.8'
 
     static final String EQUINOX = 'org.osgi:org.eclipse.osgi:3.10.100.v20150529-1857'
 
-    static final String KNOPFLERFISH = 'org.knopflerfish:framework:7.1.2'
+    static final String KNOPFLERFISH = 'org.knopflerfish.kf6:framework:8.0.5'
 
     static final FELIX_GOGO_BUNDLES = [
-            'org.apache.felix:org.apache.felix.gogo.runtime:0.16.2',
-            'org.apache.felix:org.apache.felix.gogo.shell:0.12.0',
-            'org.apache.felix:org.apache.felix.gogo.command:0.16.0',
-    ].asImmutable()
+            'org.apache.felix:org.apache.felix.gogo.runtime:1.0.8',
+            'org.apache.felix:org.apache.felix.gogo.shell:1.0.0',
+            'org.apache.felix:org.apache.felix.gogo.command:1.0.2',
+    ].collect { [ dependency: it, transitive: false ] }.asImmutable()
 
     static final IPOJO_BUNDLE = [
             'org.apache.felix:org.apache.felix.ipojo:1.12.1'
-    ].asImmutable()
+    ].collect { [ dependency: it, transitive: false ] }.asImmutable()
 
     static final IPOJO_ALL_BUNDLES = IPOJO_BUNDLE + [
             'org.apache.felix:org.apache.felix.shell:1.4.3',
             'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
             'org.apache.felix:org.apache.felix.bundlerepository:2.0.6',
             'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
+    ].collect { [ dependency: it, transitive: false ] }.asImmutable()
+
+    static final OSGIAAS_CLI_BUNDLE = 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
+
+    static final OSGIAAS_CLI_BUNDLES = [
+            [ dependency: 'org.apache.felix:org.apache.felix.scr:2.0.12',
+              exclusions: [ [ group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations' ] ] ],
+            OSGIAAS_CLI_BUNDLE
     ].asImmutable()
 
 }

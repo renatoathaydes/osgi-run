@@ -26,6 +26,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
     static final Logger log = Logging.getLogger( CreateOsgiRuntimeTask )
     static final String SYSTEM_LIBS = 'system-libs'
+    static final Integer DEFAULT_START_LEVEL = 4
 
     @InputFile
     File getBuildFile() {
@@ -73,7 +74,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         updateConfigWithSystemLibs( project, osgiConfig, target )
         copyMainDeps( project, target )
         copyConfigFiles( target, osgiConfig, project )
-        osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /\r|\n/, ' ' )
+        osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /[\r\n]/, ' ' )
         def mainClass = selectMainClass( project )
         createOSScriptFiles( target, osgiConfig, mainClass )
     }
@@ -177,7 +178,7 @@ class CreateOsgiRuntimeTask extends DefaultTask {
 
     private static String textForConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
         switch ( osgiConfig.configSettings ) {
-            case 'felix': return generateFelixConfigFile( osgiConfig )
+            case 'felix': return generateFelixConfigFile( target, osgiConfig, project )
             case 'equinox': return generateEquinoxConfigFile( target, osgiConfig, project )
             case 'knopflerfish': return generateKnopflerfishConfigFile( target, osgiConfig )
             default: throw new GradleException( 'Internal Plugin Error! Unknown configSettings. Please report bug at ' +
@@ -186,47 +187,100 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         }
     }
 
-    private static String generateFelixConfigFile( OsgiConfig osgiConfig ) {
-        map2properties osgiConfig.config
+    private static String generateFelixConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
+        def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
+
+        def bundleJars = bundlesDir.listFiles( { dir, name -> name ==~ /.+\.jar/ } as FilenameFilter )
+
+        if ( !bundleJars ) {
+            log.info( "Could not find any bundles in $target" )
+            return map2properties( osgiConfig.config )
+        }
+
+        def startLevelMap = buildStartLevelMap( project )
+        log.debug( "StartLevel map: {}", startLevelMap )
+
+        if ( startLevelMap.values().every { it == null } ) {
+            log.debug( "No StartLevels specified" )
+            return map2properties( osgiConfig.config )
+        }
+
+        Map<Integer, List<File>> bundlesByStartLevel = [ : ]
+        Map<Integer, List<File>> fragmentBundlesByStartLevel = [ : ]
+
+        bundleJars.each { jar ->
+            Map<Integer, List<File>> map
+            if ( JarUtils.isFragment( jar ) ) {
+                map = fragmentBundlesByStartLevel
+            } else {
+                map = bundlesByStartLevel
+            }
+
+            def startLevel = startLevelMap[ jar.name ] ?: DEFAULT_START_LEVEL
+            map.merge( startLevel, [ jar ], { a, b -> a + b } )
+        }
+
+        def fragmentInstallEntries = fragmentBundlesByStartLevel.collectEntries(
+                felixBundleDirective( 'felix.auto.install', target ) )
+
+        def bundleStartEntries = bundlesByStartLevel.collectEntries(
+                felixBundleDirective( 'felix.auto.start', target ) )
+
+        map2properties( osgiConfig.config + fragmentInstallEntries + bundleStartEntries )
     }
 
     private static String generateEquinoxConfigFile( String target, OsgiConfig osgiConfig, Project project ) {
         def bundlesDir = "${target}/${osgiConfig.bundlesPath}" as File
-        if ( !bundlesDir.exists() ) {
-            bundlesDir.mkdirs()
+
+        def bundleJars = bundlesDir.listFiles( { dir, name -> name ==~ /.+\.jar/ } as FilenameFilter )
+
+        if ( !bundleJars ) {
+            log.info( "Could not find any bundles in $target" )
+            return map2properties( osgiConfig.config )
         }
 
-        def startLevelMap = buildStartLevelMap(project)
-        log.debug("StartLevel map: {}", startLevelMap)
-        def bundleJars = new FileNameByRegexFinder().getFileNames(
-                bundlesDir.absolutePath, /.+\.jar/ )
-        map2properties( osgiConfig.config +
-                [ 'osgi.bundles': bundleJars.collect {
-                    def file = new File(it)
-                    def startLevel = startLevelMap.get(file.name)
-                    equinoxBundleDirective( it, target, startLevel ) }.join( ',' )
-                ] )
+        def startLevelMap = buildStartLevelMap( project )
+        log.debug( "StartLevel map: {}", startLevelMap )
+
+        def bundleStartEntries = [ 'osgi.bundles': bundleJars.collect { file ->
+            def startLevel = startLevelMap[ file.name ]
+            equinoxBundleDirective( file, target, startLevel )
+        }.join( ',' ) ]
+
+        map2properties( osgiConfig.config + bundleStartEntries )
     }
 
-    private static Map<String, Integer> buildStartLevelMap(Project project) {
-        def osgiRuntime = project.configurations.osgiRuntime
-        osgiRuntime.allDependencies.collectEntries {
-            def dep = it
-            def startLevel = null
-            if (dep instanceof DefaultOSGiDependency) {
-                startLevel = dep.startLevel
-            }
-            def files = osgiRuntime.files(dep)
-            if (!files.isEmpty()) {
-                [ (files[0].name) : startLevel ]
+    private static Map<String, Integer> buildStartLevelMap( Project project ) {
+        def osgiConfigs = project.configurations.findAll { it.name.startsWith( ConfigurationsCreator.OSGI_DEP_PREFIX ) }
+
+        osgiConfigs.collectEntries { conf ->
+            def files = conf.resolvedConfiguration.files
+            conf.allDependencies.collectEntries { dep ->
+                def startLevel = null
+                if ( dep instanceof DefaultOSGiDependency ) {
+                    startLevel = dep.startLevel
+                }
+
+                files.collectEntries { f -> [ ( f.name ): startLevel ] }
             }
         }
     }
 
-    private static String equinoxBundleDirective( String bundleJar, String target, Integer startLevel ) {
-        bundleJar.replace( target, '..' ) + (
+    private static felixBundleDirective( String propPrefix, String target ) {
+        target = "$target/"
+        return { startLevel, jars ->
+            String propKey = "$propPrefix.$startLevel"
+            def url = { File bundleJar ->
+                'file:' + bundleJar.absolutePath.replace( target, '' )
+            }
+            [ ( propKey ): jars.collect( url ).join( ' ' ) ]
+        }
+    }
+
+    private static String equinoxBundleDirective( File bundleJar, String target, Integer startLevel ) {
+        bundleJar.absolutePath.replace( target, '..' ) + (
                 JarUtils.isFragment( bundleJar ) ? '' : (
-                startLevel == null ? '@start' : '@'+startLevel+':start'
+                        startLevel == null ? '@start' : "@$startLevel:start"
                 ) )
     }
 

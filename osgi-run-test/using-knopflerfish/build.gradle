@@ -3,14 +3,14 @@ apply plugin: 'com.athaydes.osgi-run'
 repositories {
     mavenLocal()
     maven {
-        url 'http://www.knopflerfish.org/maven2'
+        url 'http://resources.knopflerfish.org/repo/maven2/release/'
     }
     mavenCentral()
 }
 
 runOsgi {
     configSettings = 'knopflerfish'
-    bundles = [ 'org.knopflerfish.bundle:desktop:5.0.1',
-                'org.knopflerfish.bundle:console:4.0.1',
-                'org.knopflerfish.bundle:commons-logging:2.0.0.kf4-001' ]
+    bundles = [ 'org.knopflerfish.kf6.bundle:desktop:6.0.0',
+                'org.knopflerfish.kf6.bundle:console:4.0.1',
+                'org.knopflerfish.kf6.bundle:commons-logging:2.0.0.kf4-001' ]
 }

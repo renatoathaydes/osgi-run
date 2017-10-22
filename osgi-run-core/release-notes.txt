@@ -1,3 +1,11 @@
+* 1.6.0 - 2017-October-22
+
+- #66 allow specifying bundle start level in Equinox (thanks to @pnidl) and Felix.
+- Upgraded versions of Felix, Gogo and Knopflerfish.
+- `runOsgi.bundles` property now includes transitive dependencies by default.
+- `runOsgi.bundles` property now accepts Map with config to specify `transitive`, `exclusions` and `startLevel`.
+- changed default bundles to include OSGiaaS-CLI instead of Gogo shell.
+
 * 1.5.5 - 2017-July-31
 
 - #62 fixed several issues related to OSGi versions being too strict, causing errors with non-OSGi systemLibs

@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6"
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.1"
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.8"
     }
 }
 
@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.5.5-startLevel'
+version = '1.6.0'
 description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
 
 repositories {
