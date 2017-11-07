@@ -1,0 +1,4 @@
+include 'osgi-run-core'
+include 'ipojo-plugin'
+include 'osgi-run-test'
+
