@@ -12,6 +12,7 @@ class OsgiConfig {
 
     // non platform-dependent defaults
     def outDir = "osgi"
+    def outTestDir = "osgi-test"
     String javaArgs = ""
     String programArgs = ""
     def copyManifestTo = null

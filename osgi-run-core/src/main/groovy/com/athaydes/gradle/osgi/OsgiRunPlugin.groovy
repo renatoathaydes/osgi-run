@@ -8,6 +8,7 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.testing.Test
 
 /**
  * A Gradle plugin that helps create and execute OSGi runtime environments.
@@ -81,7 +82,13 @@ class OsgiRunPlugin implements Plugin<Project> {
             delete target
         }
 
-        addTaskDependencies( project, createBundlesDir, cleanTask )
+        Task createTestRuntimeTask = project.task(
+                type: CreateOsgiTestRuntimeTask,
+                group: 'Build',
+                description: 'Creates an OSGi environment within which to run OSGi tests',
+                'createOsgiTestRuntime' )
+
+        addTaskDependencies( project, createBundlesDir, cleanTask, createTestRuntimeTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
@@ -100,11 +107,13 @@ class OsgiRunPlugin implements Plugin<Project> {
                 compile.extendsFrom it
             }
         }
+        project.configurations.create( 'osgiRunTest' )
     }
 
     static void addTaskDependencies( Project project,
                                      Task createBundlesdir,
-                                     Task cleanTask ) {
+                                     Task cleanTask,
+                                     Task createTestRuntimeTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createBundlesdir.dependsOn jarTask
@@ -114,6 +123,9 @@ class OsgiRunPlugin implements Plugin<Project> {
                     delTask.dependsOn cleanTask
                 }
             }
+        }
+        project.tasks.withType( Test ) {
+            it.dependsOn( createTestRuntimeTask )
         }
     }
 
