@@ -1,4 +1,6 @@
 include 'osgi-run-core'
 include 'ipojo-plugin'
 include 'osgi-run-test'
+include 'osgi-run-test-runner'
+include 'osgi-run-test-runner-bundle'
 

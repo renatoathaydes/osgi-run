@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.athaydes.gradle.osgi'
+version = '1.6.0'
+description = 'A OSGi-RUN Gradle Plugin-based JUnit Test Runner that can run tests within a OSGi container'
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+dependencies {
+    compile 'junit:junit:4.12'
+    compile 'com.athaydes.osgi:protobuf-tcp-rsa-provider:0.1.0'
+}
