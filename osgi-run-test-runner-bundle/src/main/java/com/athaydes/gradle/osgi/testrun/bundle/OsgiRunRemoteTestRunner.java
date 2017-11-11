@@ -5,6 +5,7 @@ import com.athaydes.osgi.gradle.testrun.comm.RemoteOsgiTestRunner;
 import com.athaydes.osgi.rsa.provider.protobuf.api.RemoteServices;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +70,13 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
     public void stopTest(String testClass) {
         log.debug("Stopping test service: {}", testClass);
         closeService(testServices.remove(testClass));
+
+        // stop the framework
+        try {
+            bundleContext.get().getBundle(0L).stop();
+        } catch (BundleException e) {
+            log.warn("Error stopping framework", e);
+        }
     }
 
     private static void closeService(Closeable service) {

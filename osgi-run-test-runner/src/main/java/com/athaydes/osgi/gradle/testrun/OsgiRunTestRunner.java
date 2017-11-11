@@ -2,12 +2,14 @@ package com.athaydes.osgi.gradle.testrun;
 
 import com.athaydes.osgi.gradle.testrun.comm.OsgiRunTestRunnerSettings;
 import com.athaydes.osgi.gradle.testrun.comm.RemoteOsgiTestRunner;
+import com.athaydes.osgi.rsa.provider.protobuf.api.CommunicationException;
 import com.athaydes.osgi.rsa.provider.protobuf.api.RemoteServices;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The OSGi-RUN JUnit4 test runner.
@@ -25,14 +27,26 @@ public class OsgiRunTestRunner extends BlockJUnit4ClassRunner {
 
     public OsgiRunTestRunner(Class<?> testType) throws InitializationError {
         super(testType);
-        osgiTestRunner = RemoteServices.createClient(RemoteOsgiTestRunner.class,
-                OsgiRunTestRunnerSettings.getRemoteTestRunnerHost(),
-                OsgiRunTestRunnerSettings.getRemoteTestRunnerPort());
+    }
+
+    private void initializeRunner() {
+        if (osgiTestRunner == null) {
+            osgiTestRunner = RemoteServices.createClient(RemoteOsgiTestRunner.class,
+                    OsgiRunTestRunnerSettings.getRemoteTestRunnerHost(),
+                    OsgiRunTestRunnerSettings.getRemoteTestRunnerPort());
+        }
     }
 
     @Override
     protected void validateConstructor(List<Throwable> errors) {
-        String error = osgiTestRunner.startTest(getTestClass().getName());
+        initializeRunner();
+        String error;
+        try {
+            error = osgiTestRunner.startTest(getTestClass().getName());
+        } catch (CommunicationException e) {
+            error = "Problem accessing the osgi-run remote test runner - make sure to start the server before " +
+                    "running tests outside of a Gradle build. Cause: " + e.getCause();
+        }
         if (!error.isEmpty()) {
             errors.add(new Exception(error));
         }
@@ -53,6 +67,6 @@ public class OsgiRunTestRunner extends BlockJUnit4ClassRunner {
     @Override
     public void run(RunNotifier notifier) {
         super.run(notifier);
-        osgiTestRunner.stopTest(getTestClass().getName());
+        Optional.of(osgiTestRunner).ifPresent((o) -> o.stopTest(getTestClass().getName()));
     }
 }

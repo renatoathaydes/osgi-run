@@ -13,12 +13,15 @@ class CreateOsgiTestRuntimeTask extends DefaultTask {
         def target = getTarget( project, config )
 
         def createTask = project.tasks.getByName( 'createOsgiRuntime' ) as CreateOsgiRuntimeTask
-        def bundlesDir = createTask.outputDir
+        def osgiDir = createTask.outputDir
 
         project.copy {
-            from project.configurations.osgiRunTest
-            from bundlesDir
+            from osgiDir
             into project.file( target )
+        }
+        project.copy {
+            from project.configurations.osgiRunTest
+            into project.file("${target}/${config.bundlesPath}")
         }
     }
 
