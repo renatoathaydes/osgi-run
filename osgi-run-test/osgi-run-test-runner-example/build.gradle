@@ -7,12 +7,14 @@ apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     jcenter()
+    mavenLocal()
 }
 
 dependencies {
-    compile 'org.osgi:org.osgi.core:6.0.0'
-    compile "org.osgi:org.osgi.service.component.annotations:1.3.0"
-    osgiRuntime project(':osgi-run-test-runner-bundle')
+    compileOnly 'org.osgi:org.osgi.core:6.0.0'
+    compileOnly "org.osgi:org.osgi.service.component.annotations:1.3.0"
+    osgiRunTest project(':osgi-run-test-runner-bundle')
+    osgiRunTest project
 
     testCompile 'junit:junit:4.12'
     testCompile project(':osgi-run-test-runner')
@@ -26,6 +28,7 @@ bundle {
 }
 
 runOsgi {
-    bundles = [project]
+    bundles += project
+    config += [ 'org.osgi.framework.system.packages.extra': 'sun.misc' ]
 
 }
