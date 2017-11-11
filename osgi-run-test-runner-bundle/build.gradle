@@ -20,6 +20,7 @@ dependencies {
 
 bundle {
     instructions << [
-            'Bundle-Activator': 'com.athaydes.gradle.osgi.testrun.bundle.OsgiRunRemoteTestRunner'
+            'Bundle-Activator': 'com.athaydes.gradle.osgi.testrun.bundle.OsgiRunRemoteTestRunner',
+            'DynamicImport-Package': '*'
     ]
 }

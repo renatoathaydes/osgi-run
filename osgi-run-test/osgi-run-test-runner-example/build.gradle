@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'org.dm.bundle' version '0.10.0'
+}
+
+apply plugin: 'com.athaydes.osgi-run'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.osgi:org.osgi.core:6.0.0'
+    compile "org.osgi:org.osgi.service.component.annotations:1.3.0"
+    osgiRuntime project(':osgi-run-test-runner-bundle')
+
+    testCompile 'junit:junit:4.12'
+    testCompile project(':osgi-run-test-runner')
+}
+
+bundle {
+    instructions << [
+            'Export-Package': '*',
+            '-dsannotations': '*'
+    ]
+}
+
+runOsgi {
+    bundles = [project]
+
+}

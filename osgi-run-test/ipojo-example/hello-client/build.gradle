@@ -5,5 +5,5 @@ jar {
 }
 
 dependencies {
-    compile project( ':ipojo-example:hello-service' )
+    compile project( ':osgi-run-test:ipojo-example:hello-service' )
 }

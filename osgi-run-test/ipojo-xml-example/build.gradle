@@ -1,6 +1,6 @@
 apply plugin: 'com.athaydes.osgi-run'
 
-allprojects {
+subprojects {
     repositories {
         mavenLocal()
         jcenter()
@@ -37,7 +37,7 @@ configure( subprojects.findAll { !( it.name in apiModules ) } ) {
         }
     }
     dependencies {
-        compile project( ':ipojo-xml-example:hello-service' )
+        compile project( ':osgi-run-test:ipojo-xml-example:hello-service' )
     }
 }
 

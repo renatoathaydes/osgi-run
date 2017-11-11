@@ -5,6 +5,6 @@ jar {
 }
 
 dependencies {
-    compile project( ':ipojo-dosgi:code-runner-api' )
+    compile project( ':osgi-run-test:ipojo-dosgi:code-runner-api' )
     compile "org.codehaus.groovy:groovy-all:2.3.3"
 }

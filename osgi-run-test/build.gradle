@@ -9,7 +9,7 @@ buildscript {
     }
 }
 
-allprojects {
+subprojects {
     group = 'com.athaydes.gradle.osgi'
     version = '1.0'
 }

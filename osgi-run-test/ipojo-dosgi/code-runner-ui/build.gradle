@@ -8,6 +8,6 @@ jar {
 
 dependencies {
     compile "org.codehaus.groovy:groovy-all:2.3.3"
-    compile project( ':ipojo-dosgi:code-runner-api' )
+    compile project( ':osgi-run-test:ipojo-dosgi:code-runner-api' )
     testCompile 'junit:junit:4.11'
 }

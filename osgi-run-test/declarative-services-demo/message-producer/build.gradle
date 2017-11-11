@@ -3,7 +3,7 @@ apply plugin: 'osgi'
 apply plugin: 'com.athaydes.osgi-ds'
 
 dependencies {
-    compile project( ':declarative-services-demo:messaging-api' )
+    compile project( ':osgi-run-test:declarative-services-demo:messaging-api' )
 }
 
 jar {
