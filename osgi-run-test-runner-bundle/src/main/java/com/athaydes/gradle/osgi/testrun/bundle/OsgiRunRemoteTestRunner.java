@@ -2,7 +2,7 @@ package com.athaydes.gradle.osgi.testrun.bundle;
 
 import com.athaydes.osgi.gradle.testrun.comm.OsgiRunTestRunnerSettings;
 import com.athaydes.osgi.gradle.testrun.comm.RemoteOsgiTestRunner;
-import com.athaydes.osgi.rsa.provider.protobuf.api.RemoteServices;
+import com.athaydes.protobuf.tcp.api.RemoteServices;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;

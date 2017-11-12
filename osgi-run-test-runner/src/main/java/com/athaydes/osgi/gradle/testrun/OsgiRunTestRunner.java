@@ -2,14 +2,13 @@ package com.athaydes.osgi.gradle.testrun;
 
 import com.athaydes.osgi.gradle.testrun.comm.OsgiRunTestRunnerSettings;
 import com.athaydes.osgi.gradle.testrun.comm.RemoteOsgiTestRunner;
-import com.athaydes.osgi.rsa.provider.protobuf.api.CommunicationException;
-import com.athaydes.osgi.rsa.provider.protobuf.api.RemoteServices;
+import com.athaydes.protobuf.tcp.api.CommunicationException;
+import com.athaydes.protobuf.tcp.api.RemoteServices;
+import java.util.List;
+import java.util.Optional;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * The OSGi-RUN JUnit4 test runner.
@@ -20,6 +19,8 @@ import java.util.Optional;
  * <p>
  * The test class may take any OSGi services it requires as parameters in its constructor.
  * Only one constructor is allowed.
+ * <p>
+ * This class is meant to be used by JUnit to run the tests outside OSGi. Do not use this class within OSGi.
  */
 public class OsgiRunTestRunner extends BlockJUnit4ClassRunner {
 

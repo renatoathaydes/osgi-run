@@ -14,5 +14,15 @@ repositories {
 
 dependencies {
     compile 'junit:junit:4.12'
-    compile 'com.athaydes.osgi:protobuf-tcp-rsa-provider:0.1.1'
+    compile 'com.athaydes.protobuf:protobuf-tcp-rpc:0.2.0'
+}
+
+jar {
+    manifest {
+        instruction 'Import-Package', '!org.junit.*,*'
+        instruction 'Export-Package', 'com.athaydes.osgi.gradle.testrun.comm'
+        instruction 'Bundle-Vendor', 'Renato Athaydes'
+        instruction 'Bundle-Description', 'osgi-run test runner API and JUnit test-runner'
+        instruction 'Bundle-DocURL', 'https://github.com/renatoathaydes/osgi-run'
+    }
 }

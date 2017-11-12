@@ -13,8 +13,8 @@ repositories {
 dependencies {
     compileOnly 'org.osgi:org.osgi.core:6.0.0'
     compileOnly "org.osgi:org.osgi.service.component.annotations:1.3.0"
-    osgiRunTest project(':osgi-run-test-runner-bundle')
-    osgiRunTest project
+//    osgiRunTest project(':osgi-run-test-runner-bundle')
+
 
     testCompile 'junit:junit:4.12'
     testCompile project(':osgi-run-test-runner')
@@ -28,7 +28,7 @@ bundle {
 }
 
 runOsgi {
-    bundles += project
+    bundles += [project, project(':osgi-run-test-runner-bundle')]
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.misc' ]
 
 }
