@@ -82,13 +82,20 @@ class OsgiRunPlugin implements Plugin<Project> {
             delete target
         }
 
+        Task createTestJarTask = project.task(
+                type: TestJarTask,
+                group: 'Build',
+                description: 'Creates a test Jar for this project',
+                'createTestJarTask' )
+
         Task createTestRuntimeTask = project.task(
                 type: CreateOsgiTestRuntimeTask,
+                dependsOn: [ createTestJarTask, createOsgiRuntimeTask ],
                 group: 'Build',
                 description: 'Creates an OSGi environment within which to run OSGi tests',
                 'createOsgiTestRuntime' )
 
-        addTaskDependencies( project, createBundlesDir, cleanTask, createTestRuntimeTask )
+        addTaskDependencies( project, createBundlesDir, cleanTask, createTestRuntimeTask, createTestJarTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
@@ -113,10 +120,15 @@ class OsgiRunPlugin implements Plugin<Project> {
     static void addTaskDependencies( Project project,
                                      Task createBundlesdir,
                                      Task cleanTask,
-                                     Task createTestRuntimeTask ) {
+                                     Task createTestRuntimeTask,
+                                     Task createTestJarTask ) {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createBundlesdir.dependsOn jarTask
+
+                if ( jarTask.class != TestJarTask ) {
+                    createTestJarTask.dependsOn jarTask
+                }
             }
             it.tasks.withType( Delete ) { delTask ->
                 if ( delTask.name == 'clean' ) {
