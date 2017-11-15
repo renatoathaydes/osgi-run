@@ -9,6 +9,8 @@ import com.athaydes.gradle.osgi.util.JarUtils
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.jar.Manifest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -68,9 +70,15 @@ class BndWrapper {
             println '-' * 100
         }
 
-        def bundle = new File( "$bundlesDir/${jarFile.name}" )
+        final File bundle = new File( "$bundlesDir/${jarFile.name}" )
+        File tempBundle = bundle
 
-        JarUtils.copyJar( jarFile, bundle ) {
+        if ( bundle.exists() ) {
+            log.info( 'Overwriting file with new wrapped bundle at {}', bundle.canonicalFile )
+            tempBundle = new File( bundle.parentFile, bundle.name + UUID.randomUUID() )
+        }
+
+        JarUtils.copyJar( jarFile, tempBundle ) {
             ZipFile input, ZipOutputStream out, ZipEntry entry ->
                 if ( entry.name == 'META-INF/MANIFEST.MF' ) {
                     out.putNextEntry( new ZipEntry( entry.name ) )
@@ -79,6 +87,14 @@ class BndWrapper {
                     out.putNextEntry( entry )
                     out.write( input.getInputStream( entry ).bytes )
                 }
+        }
+
+        if ( tempBundle != bundle ) {
+            Files.copy( tempBundle.toPath(), bundle.toPath(), StandardCopyOption.REPLACE_EXISTING )
+            def deletedTemp = tempBundle.delete()
+            if ( !deletedTemp ) {
+                log.warn( "Unable to remove temporary bundle file: {}", tempBundle )
+            }
         }
     }
 
