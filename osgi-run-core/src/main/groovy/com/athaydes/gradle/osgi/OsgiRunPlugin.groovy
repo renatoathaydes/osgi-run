@@ -130,11 +130,14 @@ class OsgiRunPlugin implements Plugin<Project> {
         project.allprojects {
             it.tasks.withType( Jar ) { jarTask ->
                 createBundlesdir.dependsOn jarTask
+            }
 
-                if ( jarTask.class != TestJarTask ) {
-                    createTestJarTask.dependsOn jarTask
+            it.tasks.all { task ->
+                if ( task.name.startsWith( 'compileTest' ) ) {
+                    createTestJarTask.dependsOn task
                 }
             }
+
             it.tasks.withType( Delete ) { delTask ->
                 if ( delTask.name == 'clean' ) {
                     delTask.dependsOn cleanTask
