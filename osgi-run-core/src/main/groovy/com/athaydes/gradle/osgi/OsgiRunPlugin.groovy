@@ -89,11 +89,11 @@ class OsgiRunPlugin implements Plugin<Project> {
                 'createTestJarTask' )
 
         Task createTestRuntimeTask = project.task(
-                type: CreateOsgiTestRuntimeTask,
+                type: CreateTestOsgiRuntimeTask,
                 dependsOn: [ createTestJarTask, createOsgiRuntimeTask ],
                 group: 'Build',
                 description: 'Creates an OSGi environment within which to run OSGi tests',
-                'createOsgiTestRuntime' )
+                'createTestOsgiRuntime' )
 
         addTaskDependencies( project, createBundlesDir, cleanTask, createTestRuntimeTask, createTestJarTask )
     }
@@ -114,7 +114,12 @@ class OsgiRunPlugin implements Plugin<Project> {
                 compile.extendsFrom it
             }
         }
-        project.configurations.create( 'osgiRunTest' )
+        project.configurations.create( 'osgiRunTest' ) {
+            def testRuntime = project.configurations.findByName( 'testRuntime' )
+            if ( testRuntime ) {
+                it.extendsFrom( testRuntime )
+            }
+        }
     }
 
     static void addTaskDependencies( Project project,
