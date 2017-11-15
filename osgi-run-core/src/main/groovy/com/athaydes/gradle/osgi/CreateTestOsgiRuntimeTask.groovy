@@ -15,13 +15,20 @@ class CreateTestOsgiRuntimeTask extends DefaultTask {
         def createTask = project.tasks.getByName( 'createOsgiRuntime' ) as CreateOsgiRuntimeTask
         def osgiDir = createTask.outputDir
 
+        // copy the standard OSGi environment to the test environment without changes
         project.copy {
             from osgiDir
             into project.file( target )
         }
-        project.copy {
-            from project.configurations.osgiRunTest
-            into project.file("${target}/${config.bundlesPath}")
+
+        // now, copy the test resources to the test-bundles directory, wrapping non-bundles
+        def testBundlesDir = "${target}/${config.bundlesPath}"
+
+        CreateBundlesDir.copyJarsWrappingIfNeeded( project, config,
+                project.configurations.osgiRunTest, testBundlesDir )
+
+        project.tasks.withType( TestJarTask ) { testJarTask ->
+            CreateBundlesDir.copyJarsWrappingIfNeeded( project, config, testJarTask, testBundlesDir )
         }
     }
 

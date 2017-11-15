@@ -73,18 +73,21 @@ class CreateBundlesDir extends DefaultTask {
 
         log.info( "Copying OSGi bundles to {}", bundlesDir )
 
-        def wrapInstructions = osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig
-
-        def nonBundles = [ ] as Set
         //noinspection GroovyAssignabilityCheck
         def allDeps = project.configurations.findAll { it.name.startsWith( ConfigurationsCreator.OSGI_DEP_PREFIX ) }
 
+        copyJarsWrappingIfNeeded( project, osgiConfig, allDeps, bundlesDir )
+    }
+
+    static void copyJarsWrappingIfNeeded( Project project, OsgiConfig osgiConfig, source, String destination ) {
+        def wrapInstructions = osgiConfig[ WRAP_EXTENSION ] as WrapInstructionsConfig
+        def nonBundles = [ ] as Set
         def systemLibs = project.configurations.systemLib.resolvedConfiguration
                 .resolvedArtifacts.collect { it.file.name } as Set
 
         project.copy {
-            from allDeps
-            into bundlesDir
+            from source
+            into destination
             exclude { FileTreeElement element ->
                 def inSystemLibs = element.file.name in systemLibs
                 def explicityExcluded = osgiConfig.excludedBundles.any { element.name ==~ it }
@@ -105,7 +108,7 @@ class CreateBundlesDir extends DefaultTask {
             nonBundles.each { File file ->
                 if ( JarUtils.hasManifest( file ) ) {
                     try {
-                        BndWrapper.wrapNonBundle( file, bundlesDir, wrapInstructions )
+                        BndWrapper.wrapNonBundle( file, destination, wrapInstructions )
                     } catch ( e ) {
                         log.warn( "Unable to wrap ${file.name}", e )
                     }
