@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+    id 'org.dm.bundle' version '0.10.0'
+}
+
+group = 'com.athaydes.gradle.osgi'
+version = '1.6.0'
+description = 'A OSGi-RUN Gradle Plugin-based JUnit Test Runner that can run tests remotely ' +
+        'within a OSGi container. This bundle is not meant to be deployed to an OSGi container, but must be added ' +
+        'to the JUnit test classpath.'
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+dependencies {
+    compile project( ':osgi-run-test-runner/osgi-run-test-runner-api' )
+    compile 'com.athaydes.protobuf:protobuf-tcp-rpc:0.2.0'
+    compile 'net.bytebuddy:byte-buddy:1.7.9'
+}
+
+bundle {
+    instructions << [
+            'Export-Package': '',
+            'Require-Capability': 'compile-only',
+            'Bundle-Vendor': 'Renato Athaydes',
+            'Bundle-Description': project.description,
+            'Bundle-DocURL': 'https://github.com/renatoathaydes/osgi-run'
+    ]
+}

@@ -1,8 +1,9 @@
 include 'osgi-run-core'
 include 'ipojo-plugin'
 include 'osgi-run-test'
-include 'osgi-run-test-runner'
-include 'osgi-run-test-runner-bundle'
+include 'osgi-run-test-runner/osgi-run-test-runner-api'
+include 'osgi-run-test-runner/osgi-run-protobuf-test-runner'
+include 'osgi-run-test-runner/osgi-run-test-runner-bundle'
 
 // osgi-run-test modules (used for testing osgi-run)
 include 'osgi-run-test:build-with-subprojects',
