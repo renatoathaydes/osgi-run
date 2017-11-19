@@ -3,14 +3,7 @@ plugins {
     id 'org.dm.bundle' version '0.10.0'
 }
 
-group = 'com.athaydes.gradle.osgi'
-version = '1.6.0'
 description = 'osgi-run test runner API'
-
-repositories {
-    jcenter()
-    mavenLocal()
-}
 
 dependencies {
     compile 'junit:junit:4.12'
