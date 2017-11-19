@@ -10,6 +10,9 @@ class CreateTestOsgiRuntimeTask extends DefaultTask {
     void run() {
         def config = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
+        // never include the osgi-run-protobuf-test-runner jar in the test runtime
+        config.excludedBundles.add( 'osgi-run-protobuf-test-runner.*' )
+
         def target = getTarget( project, config )
 
         def createTask = project.tasks.getByName( 'createOsgiRuntime' ) as CreateOsgiRuntimeTask
