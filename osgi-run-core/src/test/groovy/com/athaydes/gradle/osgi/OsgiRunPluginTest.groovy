@@ -35,7 +35,7 @@ class OsgiRunPluginTest {
         def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
         // run the config
-        ConfigurationsCreator.configBundles( project, osgiConfig )
+        ConfigurationsCreator.configOsgiRuntimeBundles( project, osgiConfig )
 
         def defaultBundleCount = osgiConfig.bundles.size() as int
 

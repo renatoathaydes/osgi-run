@@ -20,7 +20,7 @@ class ConfigurationsCreator {
                 project.configurations.osgiRuntime.allDependencies.asList()
     }
 
-    static void configBundles( Project project, OsgiConfig osgiConfig ) {
+    static void configOsgiRuntimeBundles( Project project, OsgiConfig osgiConfig ) {
         def allBundles = allRuntimeDependencies( project, osgiConfig )
 
         log.debug( "Creating individual configurations for each OSGi runtime dependency:\n{}", allBundles )
@@ -44,61 +44,74 @@ class ConfigurationsCreator {
             }
 
             Closure depConfig
-
-            switch ( bundle ) {
-                case Dependency:
-                case String:
-                    depConfig = {
-                        transitive = transitiveDep
-                        exclusions.each { ExcludeRule rule ->
-                            def excludeMap = [ : ]
-                            if ( rule.group ) excludeMap.group = rule.group
-                            if ( rule.module ) excludeMap.module = rule.module
-                            exclude excludeMap
-                        }
-                    }
-                    break
-                case Map:
-                    assert bundle instanceof Map
-                    if ( !bundle.containsKey( 'dependency' ) ) {
-                        throw new GradleException( "Bundle declaration does not contain 'dependency': $bundle" )
-                    }
-                    if ( bundle.containsKey( 'transitive' ) ) {
-                        transitiveDep = bundle[ 'transitive' ]
-                    }
-
-                    if ( bundle.containsKey( 'exclusions' ) ) {
-                        exclusions = bundle.exclusions
-                    }
-                    depConfig = {
-                        transitive = transitiveDep
-                        exclusions.each { ex ->
-                            exclude ex
-                        }
-                    }
-                    if ( bundle.dependency instanceof String || bundle.dependency instanceof Map ) {
-                        def startLevel = bundle[ 'startLevel' ]
-                        //noinspection GroovyAssignabilityCheck
-                        bundle = new DefaultOSGiDependency( bundle.dependency )
-                        if ( startLevel ) {
-                            if ( startLevel instanceof Integer || startLevel.toString().isInteger() ) {
-                                bundle.startLevel = startLevel as int
-                            } else {
-                                throw new GradleException( "startLevel has invalid type or format (should be integer): $startLevel" )
-                            }
-                        }
-                    } else {
-                        bundle = bundle.dependency
-                    }
-
-                    break
-                default:
-                    depConfig = { -> }
-            }
+            ( bundle, depConfig ) = configureDependency( bundle, transitiveDep, exclusions )
 
             project.dependencies.add( OSGI_DEP_PREFIX + i, bundle, depConfig )
         }
 
+    }
+
+    private static List configureDependency( bundle, boolean transitiveDep, exclusions ) {
+        Closure depConfig
+
+        switch ( bundle ) {
+            case Dependency:
+            case String:
+                depConfig = {
+                    transitive = transitiveDep
+                    exclusions.each { ExcludeRule rule ->
+                        def excludeMap = [ : ]
+                        if ( rule.group ) excludeMap.group = rule.group
+                        if ( rule.module ) excludeMap.module = rule.module
+                        exclude excludeMap
+                    }
+                }
+                break
+            case Map:
+                assert bundle instanceof Map
+                if ( !bundle.containsKey( 'dependency' ) ) {
+                    throw new GradleException( "Bundle declaration does not contain 'dependency': $bundle" )
+                }
+                if ( bundle.containsKey( 'transitive' ) ) {
+                    transitiveDep = bundle[ 'transitive' ]
+                }
+
+                if ( bundle.containsKey( 'exclusions' ) ) {
+                    exclusions = bundle.exclusions
+                }
+                depConfig = {
+                    transitive = transitiveDep
+                    exclusions.each { ex ->
+                        exclude ex
+                    }
+                }
+                if ( bundle.dependency instanceof String || bundle.dependency instanceof Map ) {
+                    def startLevel = bundle[ 'startLevel' ]
+                    //noinspection GroovyAssignabilityCheck
+                    bundle = new DefaultOSGiDependency( bundle.dependency )
+                    if ( startLevel ) {
+                        if ( startLevel instanceof Integer || startLevel.toString().isInteger() ) {
+                            bundle.startLevel = startLevel as int
+                        } else {
+                            throw new GradleException( "startLevel has invalid type or format (should be integer): $startLevel" )
+                        }
+                    }
+                } else {
+                    bundle = bundle.dependency
+                }
+
+                break
+            default:
+                depConfig = { -> }
+        }
+
+        [ bundle, depConfig ]
+    }
+
+    static boolean needsOsgiTestRuntime( Project project ) {
+        project.configurations.testCompile.resolvedConfiguration.files*.name.any {
+            it ==~ /osgi-run-test-runner-api-.*\.jar/
+        }
     }
 
 }

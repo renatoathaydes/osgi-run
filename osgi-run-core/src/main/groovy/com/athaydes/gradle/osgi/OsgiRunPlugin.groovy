@@ -33,7 +33,7 @@ class OsgiRunPlugin implements Plugin<Project> {
 
     static void updateConfigurations( Project project, OsgiConfig osgiConfig ) {
         project.afterEvaluate {
-            ConfigurationsCreator.configBundles( project, osgiConfig )
+            ConfigurationsCreator.configOsgiRuntimeBundles( project, osgiConfig )
 
             String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
             osgiConfig.outDirFile = target as File

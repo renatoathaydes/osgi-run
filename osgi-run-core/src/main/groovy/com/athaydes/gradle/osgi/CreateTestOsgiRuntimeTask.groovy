@@ -6,6 +6,10 @@ import org.gradle.api.tasks.TaskAction
 
 class CreateTestOsgiRuntimeTask extends DefaultTask {
 
+    CreateTestOsgiRuntimeTask() {
+        setOnlyIf { ConfigurationsCreator.needsOsgiTestRuntime( project ) }
+    }
+
     @TaskAction
     void run() {
         def config = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
