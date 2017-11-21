@@ -1,3 +1,11 @@
 plugins {
     id 'idea'
 }
+
+allprojects {
+    group = 'com.athaydes.gradle.osgi'
+}
+
+ext.testRunnerVersion = '0.1.0'
+ext.osgiRunCoreVersion = '1.6.1-SNAPSHOT'
+ext.ipojoPluginVersion = '1.2.0'

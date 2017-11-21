@@ -1,3 +1,5 @@
+import groovy.text.GStringTemplateEngine
+
 buildscript {
     repositories {
         jcenter()
@@ -17,9 +19,9 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 
 sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
-group = 'com.athaydes.gradle.osgi'
-version = '1.6.0'
+version = osgiRunCoreVersion
 description = 'A Gradle plugin to make the development of modular applications using OSGi completely painless'
 
 repositories {
@@ -35,7 +37,26 @@ dependencies {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+final generatedJavaSources = new File( buildDir, 'generated-java' )
+
+task generateJavaSources( type: Copy, description: 'Generate Java sources from Java templates' ) {
+    from file( 'src/main/java-templates' )
+    into generatedJavaSources
+    def transformer = new GStringTemplateEngine()
+    def properties = [ group            : project.group,
+                       testRunnerVersion: rootProject.testRunnerVersion,
+                       version          : project.version ]
+    filter { line ->
+        transformer.createTemplate( line ).make( properties ).toString()
+    }
+    tasks.compileJava.dependsOn( it )
+}
+
+sourceSets {
+    main.java.srcDirs += generatedJavaSources
+}
+
+task sourcesJar( type: Jar, dependsOn: classes ) {
     from sourceSets.main.allSource
     classifier "sources"
     extension "jar"
@@ -105,19 +126,19 @@ pluginBundle {
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
-    user = project.hasProperty("bintrayUserName") ? bintrayUserName : null
-    key = project.hasProperty("bintrayApiKey") ? bintrayApiKey : null
+    user = project.hasProperty( "bintrayUserName" ) ? bintrayUserName : null
+    key = project.hasProperty( "bintrayApiKey" ) ? bintrayApiKey : null
     configurations = [ 'archives' ]
     publish = true
     pkg {
         repo = 'maven'
         name = 'osgi-run-core'
-        licenses = ['Apache-2.0']
+        licenses = [ 'Apache-2.0' ]
         desc = project.description
         vcsUrl = 'https://github.com/renatoathaydes/osgi-run.git'
         websiteUrl = 'https://github.com/renatoathaydes/osgi-run'
         issueTrackerUrl = 'https://github.com/renatoathaydes/osgi-run/issues'
-        labels = ['osgi', 'ipojo', 'modular']
+        labels = [ 'osgi', 'ipojo', 'modular' ]
         publicDownloadNumbers = true
 
         //noinspection GroovyAssignabilityCheck
@@ -129,8 +150,8 @@ bintray {
             }
             mavenCentralSync {
                 sync = true
-                user = project.hasProperty("ossrhUsername") ? ossrhUsername : null
-                password = project.hasProperty("ossrhPassword") ? ossrhPassword : null
+                user = project.hasProperty( "ossrhUsername" ) ? ossrhUsername : null
+                password = project.hasProperty( "ossrhPassword" ) ? ossrhPassword : null
                 close = '1' // '0' to NOT close
             }
         }

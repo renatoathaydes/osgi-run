@@ -4,6 +4,5 @@ subprojects {
         mavenLocal()
     }
 
-    group = 'com.athaydes.gradle.osgi'
-    version = '1.6.0'
+    version = testRunnerVersion
 }

@@ -19,7 +19,7 @@ apply plugin: 'idea'
 sourceCompatibility = 1.7
 
 group = 'com.athaydes.gradle.osgi'
-version = '1.2.0'
+version = ipojoPluginVersion
 description = 'The Gradle IPojo Plugin IPojoizes your jars, making it really easy to benefit from IPojo in any Gradle project'
 
 repositories {
