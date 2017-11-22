@@ -16,8 +16,6 @@ dependencies {
 
     testCompile 'junit:junit:4.12'
     testCompile project( ':osgi-run-test-runner:osgi-run-test-runner-api' )
-    testRuntime project( ':osgi-run-test-runner:osgi-run-protobuf-test-runner' )
-    osgiRunTest project( ':osgi-run-test-runner:osgi-run-test-runner-bundle' )
     testRuntime 'org.slf4j:slf4j-simple:1.6.6'
 }
 

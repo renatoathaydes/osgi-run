@@ -32,7 +32,7 @@ class CreateTestOsgiRuntimeTask extends DefaultTask {
         def testBundlesDir = "${target}/${config.bundlesPath}"
 
         CreateBundlesDir.copyJarsWrappingIfNeeded( project, config,
-                project.configurations.osgiRunTest, testBundlesDir )
+                project.configurations.osgiTestRuntime, testBundlesDir )
 
         project.tasks.withType( TestJarTask ) { testJarTask ->
             CreateBundlesDir.copyJarsWrappingIfNeeded( project, config, testJarTask, testBundlesDir )

@@ -34,6 +34,7 @@ class OsgiRunPlugin implements Plugin<Project> {
     static void updateConfigurations( Project project, OsgiConfig osgiConfig ) {
         project.afterEvaluate {
             ConfigurationsCreator.configOsgiRuntimeBundles( project, osgiConfig )
+            ConfigurationsCreator.configTestRunnerDependencies( project )
 
             String target = CreateOsgiRuntimeTask.getTarget( project, osgiConfig )
             osgiConfig.outDirFile = target as File
@@ -114,7 +115,7 @@ class OsgiRunPlugin implements Plugin<Project> {
                 compile.extendsFrom it
             }
         }
-        project.configurations.create( 'osgiRunTest' ) {
+        project.configurations.create( 'osgiTestRuntime' ) {
             def testRuntime = project.configurations.findByName( 'testRuntime' )
             if ( testRuntime ) {
                 it.extendsFrom( testRuntime )

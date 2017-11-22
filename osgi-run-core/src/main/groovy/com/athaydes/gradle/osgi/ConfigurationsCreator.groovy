@@ -9,6 +9,9 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 
+import static com.athaydes.gradle.osgi.OsgiRunConstants.GROUP
+import static com.athaydes.gradle.osgi.OsgiRunConstants.TEST_RUNNER_VERSION
+
 class ConfigurationsCreator {
 
     static final Logger log = Logging.getLogger( ConfigurationsCreator )
@@ -18,6 +21,20 @@ class ConfigurationsCreator {
     static List allRuntimeDependencies( Project project, OsgiConfig osgiConfig ) {
         ( osgiConfig.bundles as List ).flatten() +
                 project.configurations.osgiRuntime.allDependencies.asList()
+    }
+
+    static void configTestRunnerDependencies( Project project ) {
+        if ( needsOsgiTestRuntime( project ) ) {
+            log.debug( "osgi-run TestRunner detected, setting up osgi-test-runner runtime dependencies" )
+
+            def osgiRunProtobufTestRunner = "${GROUP}:osgi-run-protobuf-test-runner:${TEST_RUNNER_VERSION}"
+            project.dependencies.add( 'testRuntime', osgiRunProtobufTestRunner )
+
+            def osgiRunTestRunnerBundle = "${GROUP}:osgi-run-test-runner-bundle:${TEST_RUNNER_VERSION}"
+            project.dependencies.add( 'osgiTestRuntime', osgiRunTestRunnerBundle )
+        } else {
+            log.debug( "No osgi-run TestRunner was detected" )
+        }
     }
 
     static void configOsgiRuntimeBundles( Project project, OsgiConfig osgiConfig ) {
@@ -109,7 +126,9 @@ class ConfigurationsCreator {
     }
 
     static boolean needsOsgiTestRuntime( Project project ) {
-        project.configurations.testCompile.resolvedConfiguration.files*.name.any {
+        def testCompileConfig = project.configurations.findByName( 'testCompile' )
+
+        testCompileConfig && testCompileConfig.files*.name.any {
             it ==~ /osgi-run-test-runner-api-.*\.jar/
         }
     }
