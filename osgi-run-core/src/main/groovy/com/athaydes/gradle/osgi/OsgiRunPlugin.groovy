@@ -10,6 +10,8 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 
+import static com.athaydes.gradle.osgi.CreateOsgiRuntimeTask.runScriptName
+
 /**
  * A Gradle plugin that helps create and execute OSGi runtime environments.
  */
@@ -96,7 +98,7 @@ class OsgiRunPlugin implements Plugin<Project> {
                 description: 'Creates an OSGi environment within which to run OSGi tests',
                 'createTestOsgiRuntime' )
 
-        addTaskDependencies( project, createBundlesDir, cleanTask, createTestRuntimeTask, createTestJarTask )
+        addTaskDependencies( project, osgiConfig, createBundlesDir, cleanTask, createTestRuntimeTask, createTestJarTask )
     }
 
     static OsgiConfig createExtensions( Project project ) {
@@ -124,6 +126,7 @@ class OsgiRunPlugin implements Plugin<Project> {
     }
 
     static void addTaskDependencies( Project project,
+                                     OsgiConfig osgiConfig,
                                      Task createBundlesdir,
                                      Task cleanTask,
                                      Task createTestRuntimeTask,
@@ -145,8 +148,13 @@ class OsgiRunPlugin implements Plugin<Project> {
                 }
             }
         }
-        project.tasks.withType( Test ) {
-            it.dependsOn( createTestRuntimeTask )
+
+        def osgiTestRuntimeDir = CreateTestOsgiRuntimeTask.getTarget( project, osgiConfig )
+        def runScriptLocation = new File( osgiTestRuntimeDir, runScriptName() )
+
+        project.tasks.withType( Test ) { testTask ->
+            testTask.dependsOn( createTestRuntimeTask )
+            testTask.systemProperty( 'osgirun.runscript', runScriptLocation.absolutePath )
         }
     }
 

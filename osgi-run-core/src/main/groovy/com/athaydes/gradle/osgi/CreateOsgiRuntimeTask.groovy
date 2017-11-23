@@ -3,6 +3,7 @@ package com.athaydes.gradle.osgi
 import aQute.bnd.version.MavenVersion
 import com.athaydes.gradle.osgi.dependency.DefaultOSGiDependency
 import com.athaydes.gradle.osgi.util.JarUtils
+import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -27,6 +28,8 @@ class CreateOsgiRuntimeTask extends DefaultTask {
     static final Logger log = Logging.getLogger( CreateOsgiRuntimeTask )
     static final String SYSTEM_LIBS = 'system-libs'
     static final Integer DEFAULT_START_LEVEL = 4
+    static final String WINDOWS_RUN_SCRIPT_NAME = 'run.bat'
+    static final String LINUX_RUN_SCRIPT_NAME = 'run.sh'
 
     @InputFile
     File getBuildFile() {
@@ -381,8 +384,15 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             file.write( scriptText, 'utf-8' )
         }
 
-        writeToExecutable( "run.sh", linuxScript )
-        writeToExecutable( "run.bat", windowsScript )
+        writeToExecutable( LINUX_RUN_SCRIPT_NAME, linuxScript )
+        writeToExecutable( WINDOWS_RUN_SCRIPT_NAME, windowsScript )
+    }
+
+    /**
+     * @return the script name on the current OS.
+     */
+    static String runScriptName() {
+        Os.isFamily( Os.FAMILY_WINDOWS ) ? WINDOWS_RUN_SCRIPT_NAME : LINUX_RUN_SCRIPT_NAME
     }
 
 }
