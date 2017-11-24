@@ -10,4 +10,5 @@ public interface RemoteOsgiRunTestRunnerClient {
 
     void stopTest( String testClass );
 
+    void initialize();
 }

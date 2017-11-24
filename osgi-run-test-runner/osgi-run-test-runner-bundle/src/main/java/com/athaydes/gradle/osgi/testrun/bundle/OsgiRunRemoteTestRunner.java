@@ -3,18 +3,25 @@ package com.athaydes.gradle.osgi.testrun.bundle;
 import com.athaydes.gradle.osgi.testrun.comm.OsgiRunTestRunnerSettings;
 import com.athaydes.gradle.osgi.testrun.comm.RemoteOsgiTestRunner;
 import com.athaydes.protobuf.tcp.api.RemoteServices;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+
+/**
+ * OSGi test environment TestRunner implementation.
+ * <p>
+ * A client running on the JUnit test side is expected to send tests to be run within the OSGi
+ * environment to this test runner.
+ */
 public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActivator {
 
     private static final Logger log = LoggerFactory.getLogger( OsgiRunRemoteTestRunner.class );

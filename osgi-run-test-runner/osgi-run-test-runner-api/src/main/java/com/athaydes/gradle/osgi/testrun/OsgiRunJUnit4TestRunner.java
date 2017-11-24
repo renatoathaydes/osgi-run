@@ -2,18 +2,15 @@ package com.athaydes.gradle.osgi.testrun;
 
 import com.athaydes.gradle.osgi.testrun.comm.RemoteOsgiTestRunner;
 import com.athaydes.gradle.osgi.testrun.internal.RemoteOsgiRunTestRunnerClient;
-import java.io.Closeable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.ServiceLoader;
 import org.junit.internal.runners.statements.InvokeMethod;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
+
+import java.io.Closeable;
+import java.util.*;
 
 /**
  * The osgi-run JUnit4 test runner.
@@ -29,31 +26,26 @@ import org.junit.runners.model.Statement;
  */
 public class OsgiRunJUnit4TestRunner extends BlockJUnit4ClassRunner {
 
-    private RemoteOsgiRunTestRunnerClient osgiTestRunnerClient;
+    private final RemoteOsgiRunTestRunnerClient osgiTestRunnerClient;
 
     public OsgiRunJUnit4TestRunner( Class<?> testType ) throws InitializationError {
         super( testType );
-    }
 
-    private void initializeRunner() {
-        if ( osgiTestRunnerClient == null ) {
-            Iterator<RemoteOsgiRunTestRunnerClient> remoteTestRunners = ServiceLoader
-                    .load( RemoteOsgiRunTestRunnerClient.class ).iterator();
+        Iterator<RemoteOsgiRunTestRunnerClient> remoteTestRunners = ServiceLoader
+                .load( RemoteOsgiRunTestRunnerClient.class ).iterator();
 
-            if ( remoteTestRunners.hasNext() ) {
-                osgiTestRunnerClient = remoteTestRunners.next();
-            } else {
-                throw new RuntimeException( "Cannot find osgi-run Test Runner Service. Please add a jar that exports " +
-                        "the " + RemoteOsgiTestRunner.class + " service to your test classpath" );
-            }
+        if ( remoteTestRunners.hasNext() ) {
+            osgiTestRunnerClient = remoteTestRunners.next();
+            osgiTestRunnerClient.initialize();
+        } else {
+            throw new RuntimeException( "Cannot find osgi-run Test Runner Service. Please add a jar that exports " +
+                    "the " + RemoteOsgiTestRunner.class + " service to your test classpath" );
         }
     }
 
     @Override
     protected void validateConstructor( List<Throwable> errors ) {
-        initializeRunner();
-        Optional<String> error = osgiTestRunnerClient.startTest( getTestClass().getName() );
-        error.ifPresent( message -> errors.add( new Exception( message ) ) );
+        // no validation locally
     }
 
     @Override
@@ -67,9 +59,28 @@ public class OsgiRunJUnit4TestRunner extends BlockJUnit4ClassRunner {
     }
 
     @Override
-    public void run( RunNotifier notifier ) {
-        super.run( notifier );
-        Optional.of( osgiTestRunnerClient ).ifPresent( ( o ) -> o.stopTest( getTestClass().getName() ) );
+    protected Statement classBlock( RunNotifier notifier ) {
+        Statement superClassBlock = super.classBlock( notifier );
+
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                Optional<String> error = osgiTestRunnerClient.startTest( getTestClass().getName() );
+
+                try {
+                    error.ifPresent( message -> {
+                        throw new RuntimeException( message );
+                    } );
+                    superClassBlock.evaluate();
+                } finally {
+                    try {
+                        osgiTestRunnerClient.stopTest( getTestClass().getName() );
+                    } catch ( Exception e ) {
+                        System.err.println( "Error trying to stop remote OSGi test runner: " + e );
+                    }
+                }
+            }
+        };
     }
 
     @Override

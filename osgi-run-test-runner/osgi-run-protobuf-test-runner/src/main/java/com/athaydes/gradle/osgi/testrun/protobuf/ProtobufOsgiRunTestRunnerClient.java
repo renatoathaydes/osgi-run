@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,81 +34,87 @@ public class ProtobufOsgiRunTestRunnerClient implements RemoteOsgiRunTestRunnerC
     private static final AtomicInteger testInterfaceId = new AtomicInteger( 0 );
     private RemoteOsgiTestRunner osgiTestRunner;
     private Process osgiTestEnvironmentProcess;
+    private final Map<Class<?>, Object> testInstanceByName = new ConcurrentHashMap<>();
 
-    private void initializeRunner() {
-        if ( osgiTestRunner == null ) {
-            String runScriptLocation = System.getProperty( "osgirun.runscript" );
-            if ( runScriptLocation == null ) {
-                throw new RuntimeException( "Please set the 'osgirun.runscript' system property to point to the " +
-                        "OSGi run script in order to be able to run OSGi tests" );
-            }
+    @Override
+    public void initialize() {
+        log.info( "Initializing OSGi test runner" );
 
-            File runScript = new File( runScriptLocation );
-            log.debug( "Attempting to run OSGi test script at {}", runScript );
-
-            if ( !runScript.isFile() ) {
-                throw new RuntimeException( "The 'osgirun.runscript' system property is not pointing to an " +
-                        "existing file, cannot start the test OSGi runtime" );
-            }
-
-            if ( !runScript.canExecute() ) {
-                boolean canExecute = runScript.setExecutable( true );
-                if ( !canExecute ) {
-                    throw new RuntimeException( "Cannot make script to start the test OSGi environment executable, " +
-                            "please do it manually: " + runScript );
-                }
-            }
-
-            String host = OsgiRunTestRunnerSettings.getRemoteTestRunnerHost();
-            int port = OsgiRunTestRunnerSettings.getRemoteTestRunnerPort();
-
-            try {
-                osgiTestEnvironmentProcess = new ProcessBuilder( runScript.getAbsolutePath() )
-                        .inheritIO()
-                        .start();
-
-                waitForServerToStart( host, port );
-            } catch ( IOException | InterruptedException e ) {
-                throw new RuntimeException( "Could not start test OSGi environment", e );
-            }
-
-            log.info( "Starting OSGi test runner, connecting to remote OSGi test server at {}:{}",
-                    host, port );
-            osgiTestRunner = RemoteServices.createClient( RemoteOsgiTestRunner.class,
-                    host, port );
+        String runScriptLocation = System.getProperty( "osgirun.runscript" );
+        if ( runScriptLocation == null ) {
+            throw new RuntimeException( "Please set the 'osgirun.runscript' system property to point to the " +
+                    "OSGi run script in order to be able to run OSGi tests" );
         }
+
+        File runScript = new File( runScriptLocation );
+        log.debug( "Attempting to run OSGi test script at {}", runScript );
+
+        if ( !runScript.isFile() ) {
+            throw new RuntimeException( "The 'osgirun.runscript' system property is not pointing to an " +
+                    "existing file, cannot start the test OSGi runtime" );
+        }
+
+        if ( !runScript.canExecute() ) {
+            boolean canExecute = runScript.setExecutable( true );
+            if ( !canExecute ) {
+                throw new RuntimeException( "Cannot make script to start the test OSGi environment executable, " +
+                        "please do it manually: " + runScript );
+            }
+        }
+
+        String host = OsgiRunTestRunnerSettings.getRemoteTestRunnerHost();
+        int port = OsgiRunTestRunnerSettings.getRemoteTestRunnerPort();
+
+        try {
+            osgiTestEnvironmentProcess = new ProcessBuilder( runScript.getAbsolutePath() )
+                    .inheritIO()
+                    .start();
+
+            waitForServerToStart( host, port );
+        } catch ( IOException | InterruptedException e ) {
+            throw new RuntimeException( "Could not start test OSGi environment", e );
+        }
+
+        log.info( "Starting OSGi test runner, connecting to remote OSGi test server at {}:{}",
+                host, port );
+        osgiTestRunner = RemoteServices.createClient( RemoteOsgiTestRunner.class,
+                host, port );
     }
 
     @Override
     public Object createTest( String testClassName ) throws Exception {
-        DynamicType.Builder<?> interfaceDefinition = new ByteBuddy().makeInterface()
-                .name( testClassName + "TestInterface" + testInterfaceId.incrementAndGet() );
+        final Class<?> testType = Class.forName( testClassName );
 
-        TestClass testClass = new TestClass( Class.forName( testClassName ) );
+        return testInstanceByName.computeIfAbsent( testType, name -> {
+            DynamicType.Builder<?> interfaceDefinition = new ByteBuddy().makeInterface()
+                    .name( testClassName + "TestInterface" + testInterfaceId.incrementAndGet() );
 
-        for ( FrameworkMethod m : testClass.getAnnotatedMethods( Test.class ) ) {
-            log.debug( "Adding test method to generated interface: {}", m );
-            interfaceDefinition = interfaceDefinition
-                    .defineMethod( m.getName(), m.getReturnType(), Modifier.PUBLIC )
-                    .throwing( Throwable.class )
-                    .withoutCode();
-        }
+            TestClass testClass = new TestClass( testType );
 
-        Class<?> testInterface = interfaceDefinition.make()
-                .load( ClassLoader.getSystemClassLoader() )
-                .getLoaded();
+            for ( FrameworkMethod m : testClass.getAnnotatedMethods( Test.class ) ) {
+                log.debug( "Adding test method to generated interface: {}", m );
+                interfaceDefinition = interfaceDefinition
+                        .defineMethod( m.getName(), m.getReturnType(), Modifier.PUBLIC )
+                        .throwing( Throwable.class )
+                        .withoutCode();
+            }
 
-        log.debug( "Created test interface '{}' with {} methods",
-                testInterface.getName(), testInterface.getDeclaredMethods().length );
+            Class<?> testInterface = interfaceDefinition.make()
+                    .load( ClassLoader.getSystemClassLoader() )
+                    .getLoaded();
 
-        return RemoteServices.createClient( testInterface,
-                OsgiRunTestRunnerSettings.getRemoteTestRunnerHost(),
-                OsgiRunTestRunnerSettings.getNextRemoteTestServicePort() );
+            log.debug( "Created test interface '{}' with {} methods",
+                    testInterface.getName(), testInterface.getDeclaredMethods().length );
+
+            return RemoteServices.createClient( testInterface,
+                    OsgiRunTestRunnerSettings.getRemoteTestRunnerHost(),
+                    OsgiRunTestRunnerSettings.getNextRemoteTestServicePort() );
+        } );
     }
 
     @Override
     public Optional<String> startTest( String testClass ) {
-        initializeRunner();
+        log.info( "Starting test remotely: {}", testClass );
 
         String error;
         try {
@@ -124,6 +132,8 @@ public class ProtobufOsgiRunTestRunnerClient implements RemoteOsgiRunTestRunnerC
 
     @Override
     public void stopTest( String testClass ) {
+        log.info( "Stopping test remotely: {}", testClass );
+
         // stopping the test should cause the test OSGi environment to die
         osgiTestRunner.stopTest( testClass );
 
