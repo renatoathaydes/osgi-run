@@ -137,18 +137,23 @@ public class ProtobufOsgiRunTestRunnerClient implements RemoteOsgiRunTestRunnerC
     public void stopTest( String testClass ) {
         log.info( "Stopping test remotely: {}", testClass );
 
-        // stopping the test should cause the test OSGi environment to die
-        osgiTestRunner.stopTest( testClass );
-
-        boolean processDead = false;
         try {
-            processDead = osgiTestEnvironmentProcess.waitFor( 2, TimeUnit.SECONDS );
-        } catch ( InterruptedException e ) {
-            log.warn( "Interrupted while waiting for Test OSGi environment to stop" );
-        }
+            // stopping the test should cause the test OSGi environment to die
+            osgiTestRunner.stopTest( testClass );
+        } finally {
+            boolean processDead = false;
+            try {
+                processDead = osgiTestEnvironmentProcess.waitFor( 2, TimeUnit.SECONDS );
+            } catch ( InterruptedException e ) {
+                log.warn( "Interrupted while waiting for Test OSGi environment to stop" );
+            }
 
-        if ( !processDead ) {
-            throw new RuntimeException( "The test OSGi process did not die within the timeout." );
+            if ( processDead ) {
+                log.debug( "OSGi test process terminated normally" );
+            } else {
+                log.warn( "The test OSGi process did not die within the timeout, killing it forcibly" );
+                osgiTestEnvironmentProcess.destroyForcibly();
+            }
         }
     }
 

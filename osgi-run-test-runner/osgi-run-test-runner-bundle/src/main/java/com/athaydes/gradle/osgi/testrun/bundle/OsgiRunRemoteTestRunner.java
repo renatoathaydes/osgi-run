@@ -108,13 +108,17 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
     @Override
     public void stopTest( String testClass ) {
         log.debug( "Stopping test service: {}", testClass );
-        testServices.remove( testClass ).discard( bundleContext.get() );
 
-        // stop the framework
         try {
-            bundleContext.get().getBundle( 0L ).stop();
-        } catch ( BundleException e ) {
-            log.warn( "Error stopping framework", e );
+            Optional.ofNullable( testServices.remove( testClass ) )
+                    .ifPresent( it -> it.discard( bundleContext.get() ) );
+        } finally {
+            // stop the framework
+            try {
+                bundleContext.get().getBundle( 0L ).stop();
+            } catch ( BundleException e ) {
+                log.warn( "Error stopping framework", e );
+            }
         }
     }
 
