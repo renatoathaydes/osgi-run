@@ -17,10 +17,15 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile project( ':osgi-run-test-runner:osgi-run-test-runner-api' )
 
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.12', {
+        exclude group: '*'
+    }
     osgiRuntime 'org.apache.felix:org.apache.felix.log:1.0.1', {
         exclude group: '*'
     }
-    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0'
+    osgiRuntime 'com.athaydes.osgiaas:slf4j-to-osgi-log:1.7.0', {
+        exclude group: '*'
+    }
 }
 
 bundle {
@@ -31,7 +36,7 @@ bundle {
 }
 
 runOsgi {
-    bundles += [ project ]
+    bundles = [ project ]
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.misc' ]
 
 }
