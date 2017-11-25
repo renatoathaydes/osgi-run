@@ -4,6 +4,7 @@ import com.athaydes.gradle.osgi.testrun.comm.OsgiRunTestRunnerSettings;
 import com.athaydes.gradle.osgi.testrun.comm.RemoteOsgiTestRunner;
 import com.athaydes.gradle.osgi.testrun.internal.RemoteOsgiRunTestRunnerClient;
 import com.athaydes.protobuf.tcp.api.CommunicationException;
+import com.athaydes.protobuf.tcp.api.RemoteException;
 import com.athaydes.protobuf.tcp.api.RemoteServices;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.DynamicType;
@@ -122,6 +123,8 @@ public class ProtobufOsgiRunTestRunnerClient implements RemoteOsgiRunTestRunnerC
         } catch ( CommunicationException e ) {
             error = "Problem accessing the osgi-run remote test runner - make sure to start the server before " +
                     "running tests outside of a Gradle build. Cause: " + e.getCause();
+        } catch ( RemoteException e ) {
+            error = e.getExceptionType() + ": " + e.getMessage();
         }
         if ( !error.isEmpty() ) {
             return Optional.of( error );

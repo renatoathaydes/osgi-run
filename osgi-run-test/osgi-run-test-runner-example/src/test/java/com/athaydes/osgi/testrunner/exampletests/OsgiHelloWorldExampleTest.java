@@ -1,4 +1,4 @@
-package com.athaydes.osgi.testrunner;
+package com.athaydes.osgi.testrunner.exampletests;
 
 import com.athaydes.gradle.osgi.testrun.OsgiRunJUnit4TestRunner;
 import org.junit.Test;
@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 
 @RunWith( OsgiRunJUnit4TestRunner.class )
-public class OsgiTestExample {
+public class OsgiHelloWorldExampleTest {
 
     @Test
     public void canRunWithinOsgiContainer() {

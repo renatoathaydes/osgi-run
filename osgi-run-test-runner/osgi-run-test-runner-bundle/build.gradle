@@ -10,7 +10,6 @@ dependencies {
     compile project( ':osgi-run-test-runner:osgi-run-test-runner-api' )
     compile 'com.athaydes.protobuf:protobuf-tcp-rpc:0.2.0'
     compileOnly 'org.osgi:org.osgi.core:6.0.0'
-    runtime 'org.slf4j:slf4j-simple:1.6.6'
 }
 
 bundle {

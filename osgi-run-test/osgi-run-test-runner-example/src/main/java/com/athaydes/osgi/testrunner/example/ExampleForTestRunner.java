@@ -1,4 +1,4 @@
-package com.athaydes.osgi.testrunner;
+package com.athaydes.osgi.testrunner.example;
 
 import org.osgi.framework.BundleContext;
 

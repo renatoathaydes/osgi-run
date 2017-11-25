@@ -57,7 +57,7 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
             Class<?> testType = getClass().getClassLoader().loadClass( testClass );
             // TODO allow service to get services by injection
             startServiceFor( testType.newInstance() );
-        } catch ( ClassNotFoundException e ) {
+        } catch ( ClassNotFoundException | NoClassDefFoundError e ) {
             log.warn( "Attempted to run non-existing test class", e );
             return e.toString();
         } catch ( IllegalAccessException | InstantiationException e ) {
