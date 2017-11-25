@@ -109,7 +109,7 @@ public class ProtobufOsgiRunTestRunnerClient implements RemoteOsgiRunTestRunnerC
 
             return RemoteServices.createClient( testInterface,
                     OsgiRunTestRunnerSettings.getRemoteTestRunnerHost(),
-                    OsgiRunTestRunnerSettings.getNextRemoteTestServicePort() );
+                    OsgiRunTestRunnerSettings.getRemoteTestServicePort() );
         } );
     }
 

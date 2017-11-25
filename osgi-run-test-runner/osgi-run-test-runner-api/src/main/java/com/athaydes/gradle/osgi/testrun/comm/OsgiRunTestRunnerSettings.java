@@ -1,7 +1,5 @@
 package com.athaydes.gradle.osgi.testrun.comm;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  * OSGi-RUN test runner settings.
  */
@@ -19,46 +17,37 @@ public final class OsgiRunTestRunnerSettings {
         public static final int REMOTE_TEST_SERVICE_FIRST_PORT = 5881;
     }
 
-    private static final AtomicInteger remoteServicePortOffset = new AtomicInteger(0);
-
     /**
      * @return the host where the remote test runner is running.
      */
     public static String getRemoteTestRunnerHost() {
-        return System.getProperty(SystemProperties.REMOTE_TEST_RUNNER_HOST, Defaults.REMOTE_TEST_RUNNER_HOST);
+        return System.getProperty( SystemProperties.REMOTE_TEST_RUNNER_HOST, Defaults.REMOTE_TEST_RUNNER_HOST );
     }
 
     /**
      * @return the port where the remote test runner is running.
      */
     public static int getRemoteTestRunnerPort() {
-        return getIntProperty(SystemProperties.REMOTE_TEST_RUNNER_PORT, Defaults.REMOTE_TEST_RUNNER_PORT);
+        return getIntProperty( SystemProperties.REMOTE_TEST_RUNNER_PORT, Defaults.REMOTE_TEST_RUNNER_PORT );
     }
 
     /**
-     * @return the port where the next test class service should be running.
-     * <b>
-     * This method returns a different port every time it is called!
-     * </b>
-     * This allows both server and client to keep track of which port should be used by each
-     * service being tested. The first port returned is given by {@link Defaults#REMOTE_TEST_SERVICE_FIRST_PORT}
-     * or {@link SystemProperties#REMOTE_TEST_SERVICE_FIRST_PORT}, and each time this method is called,
-     * the port is incremented by 1.
+     * @return the port where the test class service is running.
      */
-    public static int getNextRemoteTestServicePort() {
-        return remoteServicePortOffset.getAndIncrement() +
-                getIntProperty(SystemProperties.REMOTE_TEST_SERVICE_FIRST_PORT, Defaults.REMOTE_TEST_SERVICE_FIRST_PORT);
+    public static int getRemoteTestServicePort() {
+        return getIntProperty( SystemProperties.REMOTE_TEST_SERVICE_FIRST_PORT, Defaults.REMOTE_TEST_SERVICE_FIRST_PORT );
     }
 
-    private static int getIntProperty(String key, int defaultValue) {
-        String value = System.getProperty(key);
-        if (value != null) {
+    private static int getIntProperty( String key, int defaultValue ) {
+        String value = System.getProperty( key );
+        if ( value != null ) {
             try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
+                return Integer.parseInt( value );
+            } catch ( NumberFormatException e ) {
                 // ignore
             }
         }
         return defaultValue;
     }
+
 }

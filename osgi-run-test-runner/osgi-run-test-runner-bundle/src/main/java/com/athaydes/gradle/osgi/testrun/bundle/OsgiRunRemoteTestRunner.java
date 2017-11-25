@@ -6,11 +6,14 @@ import com.athaydes.protobuf.tcp.api.RemoteServices;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +31,7 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
 
     private final AtomicReference<Closeable> testRunner = new AtomicReference<>();
     private final AtomicReference<BundleContext> bundleContext = new AtomicReference<>();
-    private final Map<String, Closeable> testServices = new ConcurrentHashMap<>( 2 );
+    private final Map<String, TestRunData> testServices = new ConcurrentHashMap<>( 2 );
 
     @Override
     public void start( BundleContext context ) throws Exception {
@@ -46,7 +49,9 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
         log.debug( "Stopping {}", getClass().getName() );
         bundleContext.set( null );
         closeService( testRunner.get() );
-        testServices.values().forEach( OsgiRunRemoteTestRunner::closeService );
+        for ( TestRunData testRunData : testServices.values() ) {
+            testRunData.discard( context );
+        }
         testServices.clear();
     }
 
@@ -55,30 +60,55 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
         log.info( "Starting test service: {}", testClass );
         try {
             Class<?> testType = getClass().getClassLoader().loadClass( testClass );
-            // TODO allow service to get services by injection
-            startServiceFor( testType.newInstance() );
+            startServiceFor( testType );
         } catch ( ClassNotFoundException | NoClassDefFoundError e ) {
             log.warn( "Attempted to run non-existing test class", e );
             return e.toString();
         } catch ( IllegalAccessException | InstantiationException e ) {
             log.warn( "Unable to instantiate test class", e );
             return e.toString();
+        } catch ( InvocationTargetException e ) {
+            log.warn( "Unable to call constructor", e );
+            return e.toString();
         }
 
         return "";
     }
 
-    private void startServiceFor( Object testInstance ) {
-        int servicePort = OsgiRunTestRunnerSettings.getNextRemoteTestServicePort();
+    private void startServiceFor( Class<?> testType )
+            throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        Constructor<?>[] constructors = testType.getConstructors();
+        if ( constructors.length != 1 ) {
+            throw new InstantiationException( "Test class does not contain exactly one public constructor" );
+        }
+        Class<?>[] parameterTypes = constructors[ 0 ].getParameterTypes();
+
+        Object[] parameters = new Object[ parameterTypes.length ];
+        ServiceReference<?>[] requiredServices = new ServiceReference[ parameterTypes.length ];
+
+        for ( int i = 0; i < parameterTypes.length; i++ ) {
+            ServiceReference<?> serviceRef = bundleContext.get().getServiceReference( parameterTypes[ i ] );
+            if ( serviceRef == null ) {
+                throw new InstantiationException( "Cannot create test instance, service not found: " + parameterTypes[ i ] );
+            } else {
+                parameters[ i ] = bundleContext.get().getService( serviceRef );
+                requiredServices[ i ] = serviceRef;
+            }
+        }
+
+        int servicePort = OsgiRunTestRunnerSettings.getRemoteTestServicePort();
+        Object testInstance = constructors[ 0 ].newInstance( parameters );
+
         log.info( "Starting test service {} on port {}", testInstance.getClass().getName(), servicePort );
         Closeable testService = RemoteServices.provideService( testInstance, servicePort );
-        testServices.put( testInstance.getClass().getName(), testService );
+
+        testServices.put( testInstance.getClass().getName(), new TestRunData( testService, requiredServices ) );
     }
 
     @Override
     public void stopTest( String testClass ) {
         log.debug( "Stopping test service: {}", testClass );
-        closeService( testServices.remove( testClass ) );
+        testServices.remove( testClass ).discard( bundleContext.get() );
 
         // stop the framework
         try {
@@ -98,6 +128,25 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
                         server.getClass().getName(), e );
             }
         } );
+    }
+
+
+    private static class TestRunData {
+        final Closeable testService;
+        final ServiceReference<?>[] requiredServices;
+
+        TestRunData( Closeable testService, ServiceReference<?>[] requiredServices ) {
+            this.testService = testService;
+            this.requiredServices = requiredServices;
+        }
+
+        void discard( BundleContext bundleContext ) {
+            for ( ServiceReference<?> requiredService : requiredServices ) {
+                bundleContext.ungetService( requiredService );
+            }
+            closeService( testService );
+        }
+
     }
 
 }

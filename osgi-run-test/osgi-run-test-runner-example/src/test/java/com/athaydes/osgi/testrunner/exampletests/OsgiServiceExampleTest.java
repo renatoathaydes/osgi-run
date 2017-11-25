@@ -13,6 +13,11 @@ public class OsgiServiceExampleTest {
 
     private final ExampleForTestRunner exampleForTestRunnerService;
 
+    /**
+     * Constructor can require any number of OSGi services.
+     *
+     * @param exampleForTestRunnerService OSGi service exported by the bundle being tested
+     */
     public OsgiServiceExampleTest( ExampleForTestRunner exampleForTestRunnerService ) {
         this.exampleForTestRunnerService = exampleForTestRunnerService;
     }
@@ -20,7 +25,7 @@ public class OsgiServiceExampleTest {
     @Test
     public void testOsgiService() {
         String helloMessage = exampleForTestRunnerService.sayHiFromBundle( "Joe" );
-        assertThat( helloMessage, equalTo( "Hello Joe from osgi-runtest-runner-example bundle" ) );
+        assertThat( helloMessage, equalTo( "Hi Joe from bundle com.athaydes.gradle.osgi.run-test-runner-example" ) );
     }
 
 }
