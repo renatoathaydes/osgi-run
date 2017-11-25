@@ -44,13 +44,28 @@ public class OsgiRunJUnit4TestRunner extends BlockJUnit4ClassRunner {
     }
 
     @Override
-    protected void validateConstructor( List<Throwable> errors ) {
-        // no validation locally
+    protected void validateZeroArgConstructor( List<Throwable> errors ) {
+        // no validation necessary locally, only remotely
     }
 
     @Override
-    protected void validateZeroArgConstructor( List<Throwable> errors ) {
-        throw new UnsupportedOperationException( "OsgiRunJUnit4TestRunner supports tests with a non-zero args constructor" );
+    protected Statement withBefores( FrameworkMethod method, Object target, Statement statement ) {
+        return statement;
+    }
+
+    @Override
+    protected Statement withAfters( FrameworkMethod method, Object target, Statement statement ) {
+        return statement;
+    }
+
+    @Override
+    protected Statement withBeforeClasses( Statement statement ) {
+        return statement;
+    }
+
+    @Override
+    protected Statement withAfterClasses( Statement statement ) {
+        return statement;
     }
 
     @Override
