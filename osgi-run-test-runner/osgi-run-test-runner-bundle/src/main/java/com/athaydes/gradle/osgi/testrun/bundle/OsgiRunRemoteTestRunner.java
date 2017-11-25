@@ -87,12 +87,16 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
         ServiceReference<?>[] requiredServices = new ServiceReference[ parameterTypes.length ];
 
         for ( int i = 0; i < parameterTypes.length; i++ ) {
-            ServiceReference<?> serviceRef = bundleContext.get().getServiceReference( parameterTypes[ i ] );
-            if ( serviceRef == null ) {
-                throw new InstantiationException( "Cannot create test instance, service not found: " + parameterTypes[ i ] );
+            if ( parameterTypes[ i ] == BundleContext.class ) {
+                parameters[ i ] = bundleContext;
             } else {
-                parameters[ i ] = bundleContext.get().getService( serviceRef );
-                requiredServices[ i ] = serviceRef;
+                ServiceReference<?> serviceRef = bundleContext.get().getServiceReference( parameterTypes[ i ] );
+                if ( serviceRef == null ) {
+                    throw new InstantiationException( "Cannot create test instance, service not found: " + parameterTypes[ i ] );
+                } else {
+                    parameters[ i ] = bundleContext.get().getService( serviceRef );
+                    requiredServices[ i ] = serviceRef;
+                }
             }
         }
 
@@ -146,7 +150,9 @@ public class OsgiRunRemoteTestRunner implements RemoteOsgiTestRunner, BundleActi
 
         void discard( BundleContext bundleContext ) {
             for ( ServiceReference<?> requiredService : requiredServices ) {
-                bundleContext.ungetService( requiredService );
+                if ( requiredService != null ) {
+                    bundleContext.ungetService( requiredService );
+                }
             }
             closeService( testService );
         }
