@@ -66,11 +66,11 @@ public class OsgiRunJUnit4TestRunner extends BlockJUnit4ClassRunner {
             @Override
             public void evaluate() throws Throwable {
                 Optional<String> error = osgiTestRunnerClient.startTest( getTestClass().getName() );
+                error.ifPresent( message -> {
+                    throw new RuntimeException( message );
+                } );
 
                 try {
-                    error.ifPresent( message -> {
-                        throw new RuntimeException( message );
-                    } );
                     superClassBlock.evaluate();
                 } finally {
                     try {
