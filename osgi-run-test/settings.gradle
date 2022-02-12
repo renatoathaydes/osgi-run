@@ -6,14 +6,6 @@ rootProject.name = 'osgi-run-test'
 include        'simplest-build'
 //        'installing-non-bundles',
 //        'using-equinox',
-//        'ipojo-example',
-//        'ipojo-example:hello-service',
-//        'ipojo-example:hello-client',
-//        'ipojo-example:hello-impl',
-//        'ipojo-xml-example',
-//        'ipojo-xml-example:hello-service',
-//        'ipojo-xml-example:hello-client',
-//        'ipojo-xml-example:hello-impl',
 //        'ipojo-dosgi',
 //        'ipojo-dosgi:code-runner-api',
 //        'ipojo-dosgi:code-runner-server',
@@ -33,4 +25,3 @@ include        'simplest-build'
 //        'declarative-services-demo:message-producer',
 //        'declarative-services-demo:message-consumer',
 //        'frege-as-system-lib'
-

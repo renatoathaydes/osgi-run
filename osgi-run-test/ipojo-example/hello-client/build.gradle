@@ -1,9 +1,0 @@
-jar {
-    manifest {
-        instruction 'Export-Package', ''
-    }
-}
-
-dependencies {
-    compile project( ':ipojo-example:hello-service' )
-}

@@ -184,18 +184,6 @@ declarativeServices {
 
 For more information, have a look at the [DS Plugin Demo](osgi-run-test/declarative-services-demo).
 
-### IPojo Plugin
-
-If you use [IPojo](http://felix.apache.org/documentation/subprojects/apache-felix-ipojo.html),
-you should definitely check out the [IPojo Plugin](ipojo-plugin), which complements the ``osgi-run`` plugin
-to make it really easy to develop and run your OSGi/IPojo projects.
-
-For examples of using IPojo and Gradle, see the test projects:
-
-* [ipojo-example](osgi-run-test/ipojo-example) - annotation-based IPojo project
-* [ipojo-xml-example](osgi-run-test/ipojo-xml-example) - XML-configured IPojo project
-* [ipojo-dosgi](osgi-run-test/ipojo-dosgi) - Distributed OSGi with IPojo
-
 ### Handling start levels
 
 If your OSGi bundles for any reason need to start in a defined order you can benefit from Start Levels
@@ -326,8 +314,6 @@ The following constants can be used to provide values for the above properties:
 * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
 * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
 * ``KNOPFLERFISH``: The Knopflerfish Framework jar. Can be used to set ``osgiMain``.
-* ``IPOJO_BUNDLE``: The IPojo bundle. Can be used with ``bundles``.
-* ``IPOJO_ALL_BUNDLES``: The IPojo bundle plus IPojo Arch and command-line support bundles. Can be used with ``bundles``.
 * ``OSGIAAS_CLI_BUNDLE``: The OSGiaaS-CLI bundle. Can be used with ``bundles``.
 * ``OSGIAAS_CLI_BUNDLES``: The OSGiaaS-CLI bundle as well as the Felix SCR bundle, required for the CLI to start. Can be used with ``bundles``.
 
@@ -339,7 +325,7 @@ runOsgi {
     osgiMain = 'org.eclipse.osgi:org.eclipse.osgi:3.7.1' // use a specific version of Equinox
     javaArgs = '-DmyProp=someValue'       // pass some args to the Java process
     programArgs = '-console'              // pass some arguments to the Equinox starter
-    bundles += allprojects.toList() + IPOJO_BUNDLE // bundles are: this project + subprojects + IPojo
+    bundles += allprojects.toList() + 'my:custom-bundle:1.0' // bundles are: this project + subprojects + custom bundle
     config += [ 'osgi.clean': true ]      // add properties to the Equinox config
     outDir = 'runtime'                    // the environment will be built at "${project.buildDir}/runtime"
     copyManifestTo file( 'auto-generated/MANIFEST.MF' ) // make the manifest visible to the IDE for OSGi support
@@ -616,6 +602,8 @@ runOsgi {
     config += [ 'org.osgi.framework.system.packages.extra': 'sun.reflect' ]
 }
 ```
+
+TODO rewrite `IPojo-DOSGi Demo` without IPojo as IPojo has not been maintained for many years.
 
 Done! Now you can use the `SwingBuilder` without any concern.
 And you can see an actual working demo in the [IPojo-DOSGi Demo](osgi-run-test/ipojo-dosgi), which includes a
