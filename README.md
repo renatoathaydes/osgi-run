@@ -3,8 +3,6 @@ osgi-run
 
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
 
-[ ![Download](https://api.bintray.com/packages/renatoathaydes/maven/osgi-run-core/images/download.svg) ](https://bintray.com/renatoathaydes/maven/osgi-run-core/_latestVersion)
-
 ### Features
 
 * Create and run an OSGi environment using any container.
@@ -35,8 +33,8 @@ Here's how it works:
 1. create a Java [Gradle build](https://gradle.org/getting-started-gradle-java/).
 2. specify `compile` dependencies (plain Java or OSGi libs) as usual,
    plus some `osgiRuntime` deps if you need some OSGi bundles at runtime.
-3. add a Gradle plugin<sup>[3](#footnote-3)</sup> such as
-   [org.dm.bundle](https://github.com/TomDmitriev/gradle-bundle-plugin) to turn your
+3. add a Gradle plugin such as
+   [biz.aQute.bnd.builder](https://github.com/bndtools/bnd/tree/master/gradle-plugins) to turn your
    jar into a bundle.
 4. add the `osgi-run` plugin to your build.
 5. run `gradle createOsgi`.
@@ -54,13 +52,6 @@ flat jars becomes as easy as possible.
 (eg. loads classes at runtime, scans the classpath, uses JVM internals),
 you can use still them as **system libs**, which are just jars added to the system classpath and visible from all bundles
 (see the system libs section below).
-</sub>
-
-<sub>
-<a name="footnote-3">3</a>: Other Gradle plugins that can be used to turn jars into bundles:
-
-* [osgi plugin](https://docs.gradle.org/current/userguide/osgi_plugin.html)
-* [biz.aQute.bnd plugin](https://github.com/bndtools/bnd/blob/master/biz.aQute.bnd.gradle)
 </sub>
 
 ## osgi-run Tutorial and learning resources
@@ -251,7 +242,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
     * ``outDir``: output directory (default: ``"osgi"``).
         Can be a String (relative to the project ``buildDir``) or a File (used as-is).
     * ``bundles``: Bundles to include in the OSGi environment 
-        (defaults: in Felix and Equinox: ``runOsgi.OSGIAAS_CLI_BUNDLES``, in Knopflerfish: ``[]``).
+        (defaults: in Felix and Equinox: ``runOsgi.FELIX_GOGO_BUNDLES``, in Knopflerfish: ``[]``).
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time 
         (default: ``FELIX``, set to ``EQUINOX``, or ``KNOPFLERFISH`` depending on `configSettings`).
@@ -314,8 +305,6 @@ The following constants can be used to provide values for the above properties:
 * ``FELIX_GOGO_BUNDLES``: the Felix Gogo bundles. Can be used with ``bundles``.
 * ``EQUINOX``: The Eclipse Equinox main jar. Can be used to set ``osgiMain``.
 * ``KNOPFLERFISH``: The Knopflerfish Framework jar. Can be used to set ``osgiMain``.
-* ``OSGIAAS_CLI_BUNDLE``: The OSGiaaS-CLI bundle. Can be used with ``bundles``.
-* ``OSGIAAS_CLI_BUNDLES``: The OSGiaaS-CLI bundle as well as the Felix SCR bundle, required for the CLI to start. Can be used with ``bundles``.
 
 Here's an example setting most properties (notice that normally you won't need to set nearly as many):
 
@@ -445,11 +434,11 @@ runOsgi {
 }
 ```
 
-As ``OSGIAAS_CLI_BUNDLES`` is the default value of ``bundles``, the above is equivalent to:
+As ``FELIX_GOGO_BUNDLES`` is the default value of ``bundles``, the above is equivalent to:
 
 ```groovy
 runOsgi {
-  bundles = OSGIAAS_CLI_BUNDLES + project
+  bundles = FELIX_GOGO_BUNDLES + project
 }
 ```
 
@@ -620,7 +609,7 @@ runOsgi {
 ```
 
 Notice that this will only start the Equinox Framework with the default bundles deployed.
-You can install bundles manually using the [OSGiaaS-CLI](https://github.com/renatoathaydes/osgiaas/blob/master/docs/cli/README.md)
+You can install bundles manually using the [Gogo Shell](https://felix.apache.org/documentation/subprojects/apache-felix-gogo.html)
 (which is currently used by both Felix and Equinox).
 
 But if you want to **deploy some bundles automatically** (your subprojects, for example) to your OSGi environment,
@@ -686,11 +675,10 @@ runOsgi {
 
 ### External Links
 
-* [Apache Felix](http://felix.apache.org/)
-* [OSGiaaS-CLI](https://github.com/renatoathaydes/osgiaas/blob/master/docs/cli/README.md)
-* [Felix Gogo](http://felix.apache.org/documentation/subprojects/apache-felix-gogo.html)
-* [Equinox Framework](http://www.eclipse.org/equinox)
-* [Equinox Quickstart](http://www.eclipse.org/equinox/documents/quickstart-framework.php)
-* [Equinox runtime options](http://help.eclipse.org/indigo/index.jsp?topic=/org.eclipse.platform.doc.isv/reference/misc/runtime-options.html)
-* [Knopflerfish](http://www.knopflerfish.org/index.html)
-* [D-OSGi Demo Walkthrough](http://cxf.apache.org/distributed-osgi-greeter-demo-walkthrough.html)
+* [Apache Felix](https://felix.apache.org/)
+* [Felix Gogo](https://felix.apache.org/documentation/subprojects/apache-felix-gogo.html)
+* [Equinox Framework](https://www.eclipse.org/equinox/)
+* [Equinox Quickstart](https://www.eclipse.org/equinox/documents/quickstart-framework.php)
+* [Equinox runtime options](https://help.eclipse.org/latest/index.jsp?topic=/org.eclipse.platform.doc.isv/reference/misc/runtime-options.html)
+* [Knopflerfish](https://www.knopflerfish.org/)
+* [D-OSGi Demo Walkthrough](https://cxf.apache.org/distributed-osgi-greeter-demo-walkthrough.html)

@@ -44,7 +44,7 @@ class OsgiConfig {
 
     void configFelix() {
         bundlesPath = 'bundle'
-        bundles = OSGIAAS_CLI_BUNDLES
+        bundles = FELIX_GOGO_BUNDLES
         osgiMain = FELIX
         config = [ 'felix.auto.deploy.action'  : 'install,start',
                    'felix.log.level'           : 1,
@@ -54,7 +54,7 @@ class OsgiConfig {
 
     void configEquinox() {
         bundlesPath = 'plugins'
-        bundles = OSGIAAS_CLI_BUNDLES
+        bundles = FELIX_GOGO_BUNDLES
         osgiMain = EQUINOX
         config = [ 'eclipse.ignoreApp': true,
                    'osgi.noShutdown'  : true ]
@@ -94,28 +94,9 @@ class OsgiConfig {
 
     static final FELIX_GOGO_BUNDLES = [
             'org.apache.felix:org.apache.felix.gogo.runtime:1.1.4',
-            'org.apache.felix:org.apache.felix.gogo.shell:1.1.4',
+            'org.apache.felix:org.apache.felix.gogo.jline:1.1.8',
             'org.apache.felix:org.apache.felix.gogo.command:1.1.2',
+            'org.jline:jline:3.21.0',
     ].collect { [ dependency: it, transitive: false ] }.asImmutable()
-
-    static final IPOJO_BUNDLE = [
-            'org.apache.felix:org.apache.felix.ipojo:1.12.1'
-    ].collect { [ dependency: it, transitive: false ] }.asImmutable()
-
-    static final IPOJO_ALL_BUNDLES = IPOJO_BUNDLE + [
-            'org.apache.felix:org.apache.felix.shell:1.4.3',
-            'org.apache.felix:org.apache.felix.shell.tui:1.4.1',
-            'org.apache.felix:org.apache.felix.bundlerepository:2.0.6',
-            'org.apache.felix:org.apache.felix.ipojo.arch:1.6.0'
-    ].collect { [ dependency: it, transitive: false ] }.asImmutable()
-
-    static final OSGIAAS_CLI_BUNDLE = 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
-
-    static final OSGIAAS_CLI_BUNDLES = [
-            'org.osgi:org.osgi.util.promise:1.2.0',
-            [ dependency: 'org.apache.felix:org.apache.felix.scr:2.1.30',
-              exclusions: [ [ group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations' ] ] ],
-            OSGIAAS_CLI_BUNDLE
-    ].asImmutable()
 
 }
