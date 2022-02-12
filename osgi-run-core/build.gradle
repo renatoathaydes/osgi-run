@@ -18,10 +18,12 @@ repositories {
 dependencies {
     implementation gradleApi()
     implementation group: 'biz.aQute.bnd', name: 'biz.aQute.bndlib', version: '3.1.0'
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-    testImplementation group: 'org.spockframework', name: 'spock-core', version: '1.0-groovy-2.4', {
-        transitive = false
-    }
+    testImplementation platform("org.spockframework:spock-bom:2.1-M2-groovy-3.0")
+    testImplementation "org.spockframework:spock-core"
+}
+
+test {
+    useJUnitPlatform()
 }
 
 java {

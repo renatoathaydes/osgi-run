@@ -14,7 +14,7 @@ class OsgiDependencySpec extends Specification {
         dep.group == group
         dep.name == name
         dep.version == version
-        dep.configuration == ( config ?: 'default' )
+        dep.targetConfiguration == config
         dep.startLevel == startLevel
 
         where:
