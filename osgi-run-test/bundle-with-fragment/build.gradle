@@ -7,10 +7,6 @@ allprojects {
     }
 }
 
-subprojects {
-    apply plugin: 'osgi'
-}
-
 runOsgi {
     bundles += subprojects
 }

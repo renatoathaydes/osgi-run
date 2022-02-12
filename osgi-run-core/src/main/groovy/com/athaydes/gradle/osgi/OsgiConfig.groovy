@@ -86,16 +86,16 @@ class OsgiConfig {
 
     // CONSTANTS
 
-    static final String FELIX = 'org.apache.felix:org.apache.felix.main:5.6.8'
+    static final String FELIX = 'org.apache.felix:org.apache.felix.main:7.0.3'
 
     static final String EQUINOX = 'org.osgi:org.eclipse.osgi:3.10.100.v20150529-1857'
 
     static final String KNOPFLERFISH = 'org.knopflerfish.kf6:framework:8.0.5'
 
     static final FELIX_GOGO_BUNDLES = [
-            'org.apache.felix:org.apache.felix.gogo.runtime:1.0.8',
-            'org.apache.felix:org.apache.felix.gogo.shell:1.0.0',
-            'org.apache.felix:org.apache.felix.gogo.command:1.0.2',
+            'org.apache.felix:org.apache.felix.gogo.runtime:1.1.4',
+            'org.apache.felix:org.apache.felix.gogo.shell:1.1.4',
+            'org.apache.felix:org.apache.felix.gogo.command:1.1.2',
     ].collect { [ dependency: it, transitive: false ] }.asImmutable()
 
     static final IPOJO_BUNDLE = [
@@ -112,7 +112,8 @@ class OsgiConfig {
     static final OSGIAAS_CLI_BUNDLE = 'com.athaydes.osgiaas:osgiaas-cli-core:0.7'
 
     static final OSGIAAS_CLI_BUNDLES = [
-            [ dependency: 'org.apache.felix:org.apache.felix.scr:2.0.12',
+            'org.osgi:org.osgi.util.promise:1.2.0',
+            [ dependency: 'org.apache.felix:org.apache.felix.scr:2.1.30',
               exclusions: [ [ group: 'org.codehaus.mojo', module: 'animal-sniffer-annotations' ] ] ],
             OSGIAAS_CLI_BUNDLE
     ].asImmutable()

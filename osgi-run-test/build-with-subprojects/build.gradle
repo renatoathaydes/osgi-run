@@ -1,14 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'org.dm.gradle:gradle-bundle-plugin:0.8.2'
-    }
+plugins {
+    id 'com.athaydes.osgi-run'
 }
-
-apply plugin: 'com.athaydes.osgi-run'
 
 repositories {
     mavenLocal()

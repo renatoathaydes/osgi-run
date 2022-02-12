@@ -87,7 +87,7 @@ plugins {
 ```groovy
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath "com.athaydes.gradle.osgi:osgi-run-core:1.6.0"

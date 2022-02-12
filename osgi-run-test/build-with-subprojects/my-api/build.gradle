@@ -1,7 +1,17 @@
-apply plugin: 'java'
-apply plugin: 'org.dm.bundle'
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder"
+}
 
 bundle {
     instruction 'Export-Package', '*'
     trace = true
+}
+
+jar {
+    bundle {
+        bnd( "Bundle-Name": "my-api",
+                "Bundle-Vendor": "Renato Athaydes",
+                "Bundle-Description": "API Example" )
+    }
 }
