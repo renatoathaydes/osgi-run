@@ -9,21 +9,6 @@ repositories {
 
 project.buildDir = file 'dist'
 
-subprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-
-    apply plugin: 'com.athaydes.osgi-run'
-
-    // make a simple environment for each sub-project
-    runOsgi {
-        bundles += project
-        copyManifestTo file( 'generated-sources/MANIFEST.MF' )
-    }
-}
-
 dependencies {
     osgiRuntime osgi( group: 'org.apache.commons', name: 'commons-lang3', version: '3.3.2', startLevel: 2 )
 }

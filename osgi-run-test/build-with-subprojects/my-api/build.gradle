@@ -1,17 +1,13 @@
 plugins {
     id 'java'
-    id "biz.aQute.bnd.builder"
-}
-
-bundle {
-    instruction 'Export-Package', '*'
-    trace = true
+    id "biz.aQute.bnd.builder" version "6.1.0"
 }
 
 jar {
     bundle {
         bnd( "Bundle-Name": "my-api",
                 "Bundle-Vendor": "Renato Athaydes",
-                "Bundle-Description": "API Example" )
+                "Bundle-Description": "API Example",
+                'Export-Package': '*' )
     }
 }

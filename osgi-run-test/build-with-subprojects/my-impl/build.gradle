@@ -1,14 +1,23 @@
-apply plugin: 'groovy'
-apply plugin: 'org.dm.bundle'
+plugins {
+    id 'groovy'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
+
+repositories {
+    mavenCentral()
+}
 
 jar {
-    manifest {
-        attributes 'Bundle-Activator': 'com.athaydes.myimpl.MyImplActivator'
+    bundle {
+        bnd( "Bundle-Name": "my-impl",
+                "Bundle-Vendor": "Renato Athaydes",
+                "Bundle-Description": "API Implementation Example",
+                'Bundle-Activator': 'com.athaydes.myimpl.MyImplActivator')
     }
 }
 
 dependencies {
-    compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.1.1'
-    compile group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
-    compile project( ':build-with-subprojects:my-api' )
+    implementation group: 'org.apache.groovy', name: 'groovy', version: '4.0.0'
+    implementation group: 'org.osgi', name: 'org.osgi.core', version: '6.0.0'
+    implementation project( ':build-with-subprojects:my-api' )
 }

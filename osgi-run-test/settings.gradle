@@ -1,9 +1,9 @@
 rootProject.name = 'osgi-run-test'
-//include 'build-with-subprojects',
-//        'build-with-subprojects:my-api',
-//        'build-with-subprojects:my-impl',
-//        'build-with-subprojects:my-consumer',
-include        'simplest-build'
+include 'build-with-subprojects',
+        'build-with-subprojects:my-api',
+        'build-with-subprojects:my-impl',
+        'build-with-subprojects:my-consumer',
+        'simplest-build'
 //        'installing-non-bundles',
 //        'using-equinox',
 //        'ipojo-dosgi',
