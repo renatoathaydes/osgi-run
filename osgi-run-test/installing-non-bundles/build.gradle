@@ -1,21 +1,24 @@
-apply plugin: 'java'
-apply plugin: 'com.athaydes.osgi-run'
-apply plugin: 'osgi'
+plugins {
+    id 'java'
+    id 'com.athaydes.osgi-run'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
 
 repositories {
     mavenCentral()
 }
 
-
 dependencies {
-    compile 'org.osgi:org.osgi.core:4.3.1'
-    compile 'org.apache.pdfbox:pdfbox:1.8.6'
+    implementation 'org.osgi:org.osgi.core:6.0.0'
+    implementation 'org.apache.pdfbox:pdfbox:1.8.6'
 }
 
 jar {
-    manifest {
-        instruction 'Export-Package', ''
-        instruction 'Bundle-Activator', 'com.athaydes.osgirun.demo.pdfbox.PdfBoxDemo'
+    bundle {
+        bnd( "Bundle-Name": "PdfBox Example",
+                "Bundle-Vendor": "Renato Athaydes",
+                "Bundle-Description": "Using non-bundle in OSGi Example",
+                'Bundle-Activator': 'com.athaydes.osgirun.demo.pdfbox.PdfBoxDemo' )
     }
 }.doLast {
     jar.manifest.writeTo( project.file( 'generated-sources/MANIFEST.MF' ) )
