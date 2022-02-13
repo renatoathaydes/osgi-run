@@ -14,6 +14,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 
+import java.nio.file.Files
 import java.util.jar.Manifest
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
@@ -68,29 +69,40 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         def osgiConfig = project.extensions.getByName( 'runOsgi' ) as OsgiConfig
 
         String target = getTarget( project, osgiConfig )
+        def systemLibs = getSystemLibs( target )
+        systemLibs.mkdirs()
 
         log.info( "Will copy osgi runtime resources into $target" )
-        copySystemLibs( project, osgiConfig, target )
-        updateConfigWithSystemLibs( project, osgiConfig, target )
-        copyMainDeps( project, target )
+        copySystemLibs( project, systemLibs )
+        updateConfigWithSystemLibs( osgiConfig, systemLibs )
+        copyMainDeps( project, systemLibs, osgiConfig )
         copyConfigFiles( target, osgiConfig, project )
         osgiConfig.javaArgs = osgiConfig.javaArgs.replaceAll( /[\r\n]/, ' ' )
-        def mainClass = selectMainClass( project )
+        def mainClass = selectMainClass( project, systemLibs )
         createOSScriptFiles( target, osgiConfig, mainClass )
     }
 
-    private void copyMainDeps( Project project, String target ) {
-        project.copy {
-            from project.configurations.osgiMain
-            into "${target}/${SYSTEM_LIBS}"
+    private void copyMainDeps( Project project, File systemLibs, OsgiConfig osgiConfig ) {
+        if ( osgiConfig.osgiMain instanceof URI ) {
+            URI uri = osgiConfig.osgiMain
+            def fileName = new File( uri.path ).name
+            Files.write( new File( systemLibs, fileName ).toPath(), uri.toURL().openStream().bytes )
+        } else {
+            project.copy {
+                from project.configurations.osgiMain
+                into systemLibs
+            }
         }
     }
 
-    static String selectMainClass( Project project ) {
+    static String selectMainClass( Project project, File systemLibs ) {
         String mainClass = null
-        def mainJars = project.configurations.osgiMain.resolvedConfiguration.resolvedArtifacts
-        for ( artifact in mainJars ) {
-            mainClass = JarUtils.withManifestEntry( artifact.file ) { ZipFile file, ZipEntry manifestEntry ->
+        def mainJars = project.configurations.osgiMain.resolvedConfiguration.resolvedArtifacts*.file
+        def systemJars = systemLibs.listFiles( { dir, name ->
+            name.endsWith( '.jar' )
+        } as FilenameFilter )?.toList() ?: [ ]
+        for ( artifact in ( mainJars + systemJars ) ) {
+            mainClass = JarUtils.withManifestEntry( artifact ) { ZipFile file, ZipEntry manifestEntry ->
                 def manifest = new Manifest( file.getInputStream( manifestEntry ) )
                 manifest.mainAttributes.getValue( 'Main-Class' )
             }
@@ -108,18 +120,15 @@ class CreateOsgiRuntimeTask extends DefaultTask {
         return mainClass
     }
 
-    private void copySystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = "${target}/${SYSTEM_LIBS}"
+    private void copySystemLibs( Project project, File systemLibs ) {
         project.copy {
             from project.configurations.systemLib
-            into systemLibsDir
+            into systemLibs
         }
     }
 
-    private static void updateConfigWithSystemLibs( Project project, OsgiConfig osgiConfig, String target ) {
-        def systemLibsDir = project.file "${target}/${SYSTEM_LIBS}"
-
-        systemLibsDir.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
+    private static void updateConfigWithSystemLibs( OsgiConfig osgiConfig, File systemLibs ) {
+        systemLibs.listFiles()?.findAll { it.name.endsWith( '.jar' ) }?.each { File jar ->
             Set packages = [ ]
             final version = MavenVersion.parseString( JarUtils.versionOf( new aQute.bnd.osgi.Jar( jar ) ) )
                     .getOSGiVersion()
@@ -164,6 +173,10 @@ class CreateOsgiRuntimeTask extends DefaultTask {
             case 'none': return null
         }
         throw new GradleException( "Unknown OSGi configSettings: ${osgiConfig.configSettings}" )
+    }
+
+    static File getSystemLibs( String target ) {
+        new File( "${target}/${SYSTEM_LIBS}" )
     }
 
     static String getTarget( Project project, OsgiConfig osgiConfig ) {

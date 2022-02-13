@@ -18,7 +18,7 @@ runOsgi {
     if ( project.hasProperty( 'equinox' ) ) {
         configSettings = 'equinox'
     }
-    bundles += subprojects
+    bundles = subprojects
     bundlesPath = 'jars'
     config += [ 'org.osgi.framework.storage.clean'       : 'onFirstInit',
                 'org.osgi.framework.startlevel.beginning': 10 ]

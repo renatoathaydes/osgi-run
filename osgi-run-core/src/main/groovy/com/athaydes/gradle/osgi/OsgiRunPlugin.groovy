@@ -121,8 +121,14 @@ class OsgiRunPlugin implements Plugin<Project> {
         def hasOsgiMainDeps = !project.configurations.osgiMain.dependencies.empty
         if ( !hasOsgiMainDeps ) {
             assert osgiConfig.osgiMain, 'No osgiMain provided, cannot create OSGi runtime'
-            project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
-                transitive = false
+            if (osgiConfig.osgiMain instanceof URI) {
+                log.debug( 'Skipping adding osgiMain dependency for URI, will download directly: {}',
+                        osgiConfig.osgiMain as URI )
+            } else {
+                log.debug( 'Adding dependency to osgiMain configuration: {}', osgiConfig.osgiMain.toString() )
+                project.dependencies.add( 'osgiMain', osgiConfig.osgiMain ) {
+                    transitive = false
+                }
             }
         }
     }

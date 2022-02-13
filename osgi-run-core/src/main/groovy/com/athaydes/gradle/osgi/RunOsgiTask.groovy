@@ -1,6 +1,6 @@
 package com.athaydes.gradle.osgi
 
-import org.apache.tools.ant.taskdefs.condition.Os
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import static CreateOsgiRuntimeTask.createJavaRunArgs
 import static CreateOsgiRuntimeTask.getTarget
 import static CreateOsgiRuntimeTask.selectMainClass
+import static com.athaydes.gradle.osgi.CreateOsgiRuntimeTask.getSystemLibs
 
 /**
  * The runOsgi task.
@@ -23,13 +24,11 @@ class RunOsgiTask extends DefaultTask {
 
         log.info "Running project ${project.name}"
 
-        def mainClass = selectMainClass( project )
         String target = getTarget( project, config )
-
-        def separator = Os.isFamily( Os.FAMILY_WINDOWS ) ? ';' : ':'
-
+        def systemLibs = getSystemLibs( target )
+        def mainClass = selectMainClass( project, systemLibs )
+        def separator = File.pathSeparator
         def javaArgs = createJavaRunArgs( target, config, mainClass, separator )
-
         def command = "${javaCmd()} ${javaArgs}"
 
         log.info "Running command: ${command}"
