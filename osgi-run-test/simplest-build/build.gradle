@@ -5,10 +5,3 @@ plugins {
 repositories {
     mavenCentral()
 }
-
-runOsgi {
-    // currently, osgiaas-cli is broken as its OSGI-INF/ds.xml file is no longer accepted by OSGi,
-    // so replace that with the Gogo bundles and use that for a CLI.
-    bundles = FELIX_GOGO_BUNDLES
-    config += [ 'org.osgi.framework.system.packages.extra': 'javax.annotation' ]
-}
