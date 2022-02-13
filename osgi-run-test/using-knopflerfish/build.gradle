@@ -3,7 +3,8 @@ apply plugin: 'com.athaydes.osgi-run'
 repositories {
     mavenLocal()
     maven {
-        url 'http://resources.knopflerfish.org/repo/maven2/release/'
+//        url 'http://resources.knopflerfish.org/repo/maven2/release/'
+        url 'https://www.knopflerfish.org/releases/6.1.4/maven2/'
     }
     mavenCentral()
 }

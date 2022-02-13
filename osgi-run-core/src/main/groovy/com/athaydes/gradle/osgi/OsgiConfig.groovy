@@ -90,7 +90,7 @@ class OsgiConfig {
 
     static final URI EQUINOX = URI.create( 'https://download.eclipse.org/releases/2021-12/202112081000/plugins/org.eclipse.osgi_3.17.100.v20211104-1730.jar' )
 
-    static final String KNOPFLERFISH = 'org.knopflerfish.kf6:framework:8.0.5'
+    static final String KNOPFLERFISH = 'org.knopflerfish.kf6:framework:8.0.11'
 
     static final FELIX_GOGO_BUNDLES = [
             'org.apache.felix:org.apache.felix.gogo.runtime:1.1.4',
