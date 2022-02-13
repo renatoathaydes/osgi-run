@@ -1,15 +1,17 @@
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+    id 'com.athaydes.osgi-run'
+}
+
 repositories {
     mavenCentral()
     mavenLocal()
 }
 
-apply plugin: 'java'
-apply plugin: 'com.athaydes.osgi-run'
-apply plugin: 'osgi'
-
 dependencies {
-    compile 'org.osgi:org.osgi.core:4.3.1'
-    compile "org.quartz-scheduler:quartz:2.2.1"
+    implementation 'org.osgi:org.osgi.core:6.0.0'
+    implementation "org.quartz-scheduler:quartz:2.2.1"
 
     // required as Quartz uses slf4j-api
     osgiRuntime 'org.slf4j:slf4j-simple:1.6.6'
@@ -19,9 +21,10 @@ dependencies {
 }
 
 jar {
-    manifest {
-        instruction 'Export-Package', ''
-        instruction 'Bundle-Activator', 'com.athaydes.osgi.quartz.JobStarter'
+    bundle {
+        bnd( "Bundle-Name": "Quartz Example",
+                "Bundle-Vendor": "Renato Athaydes",
+                'Bundle-Activator': 'com.athaydes.osgi.quartz.JobStarter' )
     }
 }.doLast {
     // copy manifest to location where the IDE can use it to let us know when we breach OSGi restrictions!
@@ -41,4 +44,6 @@ runOsgi {
                     'the jdbc3 spec and the optional extensions to jdbc2.'
         }
     }
+
+    config += [ 'org.osgi.framework.system.packages.extra': 'javax.xml.bind' ]
 }
