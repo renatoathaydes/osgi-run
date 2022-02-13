@@ -1,22 +1,28 @@
-apply plugin: 'com.athaydes.osgi-run'
+plugins {
+    id 'com.athaydes.osgi-run'
+}
 
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
         mavenCentral()
     }
 }
 
-subprojects {
-    apply plugin: 'osgi'
-}
-
 dependencies {
-    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.0.2'
-    osgiMain "org.apache.felix:org.apache.felix.main:5.4.0"
+    osgiRuntime 'org.apache.felix:org.apache.felix.scr:2.1.30'
+
+    // Declarative Services require extra bundles
+    osgiRuntime 'org.osgi:org.osgi.util.promise:1.0.0'
+    osgiRuntime 'org.osgi:org.osgi.util.function:1.2.0'
+
+    osgiMain "org.apache.felix:org.apache.felix.main:7.0.3"
 }
 
 runOsgi {
+    // only exclude the annotations bundle which is not supposed to be deployed to runtime
+    excludedBundles = ['osgi\\.annotation.*']
+
+    // deploy all sub-projects to the bundles directory
     bundles += subprojects
 }

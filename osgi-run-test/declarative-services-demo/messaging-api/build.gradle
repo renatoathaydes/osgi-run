@@ -1,1 +1,12 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
+
+jar {
+    bundle {
+        bnd( "Bundle-Name": "Messaging API",
+                "Bundle-Vendor": "Renato Athaydes",
+                'Export-Package': '*' )
+    }
+}

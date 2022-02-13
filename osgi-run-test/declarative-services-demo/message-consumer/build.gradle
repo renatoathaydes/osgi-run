@@ -1,15 +1,11 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
-apply plugin: 'com.athaydes.osgi-ds'
-
-jar {
-    manifest {
-        instruction 'Export-Package', ''
-    }
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+    id 'com.athaydes.osgi-ds'
 }
 
 dependencies {
-    compile project( ':declarative-services-demo:messaging-api' )
+    implementation project( ':declarative-services-demo:messaging-api' )
 }
 
 declarativeServices {

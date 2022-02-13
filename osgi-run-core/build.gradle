@@ -110,13 +110,12 @@ gradlePlugin {
             description = project.description
             version = project.version
         }
-//        osgiRunPlugin {
-//            id = 'com.athaydes.osgi-ds'
-//            implementationClass = 'com.athaydes.gradle.osgi.ds.DeclarativeServicesPlugin'
-//            displayName = 'Osgi-run Declarative Services Gradle Plugin'
-//            description = project.description
-//            version = project.version
-////            tags = [ 'osgi', 'declarative-services', 'modular' ]
-//        }
+        osgiRunDeclarativeServicesPlugin {
+            id = 'com.athaydes.osgi-ds'
+            implementationClass = 'com.athaydes.gradle.osgi.ds.DeclarativeServicesPlugin'
+            displayName = 'Osgi-run Declarative Services Gradle Plugin'
+            description = project.description
+            version = project.version
+        }
     }
 }
