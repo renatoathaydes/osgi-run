@@ -1,7 +1,9 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
 
-sourceCompatibility = 1.7
+sourceCompatibility = 1.8
 
 repositories {
     mavenLocal()
@@ -9,14 +11,16 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
-    compile 'org.osgi:org.osgi.core:4.3.1'
+    implementation 'org.osgi:org.osgi.core:6.0.0'
+    implementation group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
 }
 
 jar {
-    manifest {
-        instruction 'Export-Package', ''
-        instruction 'Bundle-Activator', 'com.athaydes.osgirun.sample.config.FileBasedConfigurator'
+    bundle {
+        bnd( "Bundle-Name": "Configurator",
+                "Bundle-Vendor": "Renato Athaydes",
+                "Bundle-Description": "Admin Config Example",
+                'Bundle-Activator': 'com.athaydes.osgirun.sample.config.FileBasedConfigurator' )
     }
 }.doLast {
     // copy manifest to location where the IDE can use it to let us know when we breach OSGi restrictions!
