@@ -1,6 +1,8 @@
 osgi-run
 ========
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.athaydes.gradle.osgi/osgi-run-core.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.athaydes.gradle.osgi%22%20AND%20a:%22osgi-run-core%22)
+
 Osgi-Run - A Gradle plugin to make the development of modular applications using OSGi completely painless.
 
 ### Features
@@ -60,20 +62,19 @@ To get started quickly, see the [Quick Start](#quick-start) section further belo
 
 For a more advanced guide, check the [osgi-run tutorial](https://sites.google.com/a/athaydes.com/renato-athaydes/posts/osgi-runtutorial-runyourjavakotlinfregecodeinosgi).
 
-Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory (all examples use the 'osgi' plugin,
-except [build-with-subprojects](osgi-run-test/build-with-subprojects) which uses 'org.dm.bundle').
+Plenty of examples are available in the [osgi-run-test](osgi-run-test/) directory.
 
 ## Applying the osgi-run plugin
 
-### Gradle 2.1+ and 3.0+
-
 ```groovy
 plugins {
-    id "com.athaydes.osgi-run" version "1.6.0"
+    id "com.athaydes.osgi-run" version "2.0" // check top of the page for latest version
 }
 ```
 
-### Older Gradle versions
+### Use Maven Central to resolve plugin
+
+If you have trouble with the Gradle Plugins Repository, use Maven Central instead:
 
 ```groovy
 buildscript {
@@ -81,7 +82,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.athaydes.gradle.osgi:osgi-run-core:1.6.0"
+        classpath "com.athaydes.gradle.osgi:osgi-run-core:2.0"
     }
 }
 
@@ -108,7 +109,7 @@ of the OSGi Config Admin Service:
 ```groovy
 dependencies {
     compile group: 'org.osgi', name: 'org.osgi.enterprise', version: '5.0.0'
-    osgiRuntime group: 'org.apache.felix', name: 'org.apache.felix.configadmin', version: '1.8.8'
+    osgiRuntime group: 'org.apache.felix', name: 'org.apache.felix.configadmin', version: '1.9.22'
 }
 
 runOsgi {
@@ -138,10 +139,10 @@ To run it:
 ```
 cd build/osgi
 chmod +x run.sh  # may be necessary in Linux/Mac
-./run.sh # In Windows, use run.bat
+./run.sh # In Windows, use 'run.bat' instead
 ```
 
-Once the framework starts, type ``lb`` (or ``ps``) to see all bundles installed and running.
+Once the framework starts, type ``lb`` to see all bundles installed and running.
 To see a list of commands available, type ``help``.
 Stop the OSGi framework by typing ``exit``, ``stop 0`` (stops the system bundle) or pressing `Ctrl+C`.
 
@@ -246,7 +247,7 @@ depend on itself, so you just need to type `gradle clean` to obliterate the OSGi
         Each item can be anything accepted by ``Project.files(Object... paths)``.
     * ``osgiMain``: Main OSGi run-time 
         (default: ``FELIX``, set to ``EQUINOX``, or ``KNOPFLERFISH`` depending on `configSettings`).
-        Accepts anything accepted by ``Project.files(Object... paths)``.
+        Accepts anything accepted by ``Project.files(Object... paths)`` or a `URI` pointing to the framework jar.
     * ``javaArgs``: String with arguments to be passed to the java process (default: ``""``).
     * ``programArgs``: String with arguments to be passed to the main Java class (main args).
     * ``bundlesPath``: String with path where the bundles should be copied to 
@@ -298,6 +299,7 @@ the `bundles` property):
 ```
 
 > Notice that to use Knopflerfish, you need to add its Maven Repository to your build file.
+> See the [Knopflerfish Demo](osgi-run-test/using-knopflerfish) for a working example.
     
 The following constants can be used to provide values for the above properties:
     
@@ -463,9 +465,9 @@ runOsgi {
 ```groovy
 dependencies {
   // add all the Apache Felix Gogo bundles to the OSGi runtime
-  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:0.12.1'
-  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.shell:0.10.0'
-  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:0.14.0'
+  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.runtime:1.1.4'
+  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.jline:1.1.8'
+  osgiRuntime 'org.apache.felix:org.apache.felix.gogo.command:1.1.2'
 }
 ```
 
@@ -635,7 +637,7 @@ to use, you can set ``runOsgi.osgiMain`` to the artifact coordinates of the cont
 ##### Using an older/newer version of Apache Felix
 
 ```groovy
-def felixVersion = '3.2.1' // or some other version
+def felixVersion = '7.0.3' // or some other version
 
 runOsgi {
   osgiMain = "org.apache.felix:org.apache.felix.main:$felixVersion"
@@ -645,12 +647,13 @@ runOsgi {
 ##### Using an older/newer version of Equinox
 
 ```groovy
-def equinoxVersion = '3.6.0.v20100517'
+// find the URI of the latest Equinox jar at https://download.eclipse.org/releases/
+def equinoxJar = URI.create( 'https://download.eclipse.org/releases/2021-12/202112081000/plugins/org.eclipse.osgi_3.17.100.v20211104-1730.jar' )
 
 runOsgi {
   configSettings = 'equinox'
   programArgs = '-console'
-  osgiMain = "org.eclipse.osgi:org.eclipse.osgi:$equinoxVersion"
+  osgiMain = equinoxJar
   bundles = [] // do not use the default bundles, older Equinox has its own console
 }
 ```
@@ -662,13 +665,13 @@ Just point to a runnable artifact which can start up your framework of choice, K
 ```groovy
 repositories {
   maven {
-    url 'http://www.knopflerfish.org/maven2'
+    url 'https://www.knopflerfish.org/releases/6.1.4/maven2/'
   }
 }
 
 runOsgi {
   configSettings = 'none'
-  osgiMain = "org.knopflerfish:framework:7.1.2"
+  osgiMain = "org.knopflerfish.kf6:framework:8.0.11"
   bundles = subprojects // your bundles 
 }
 ```
