@@ -2,6 +2,7 @@ plugins {
     id 'groovy'
     id 'groovy-gradle-plugin'
     id 'maven-publish'
+    id 'com.gradle.plugin-publish' version '0.18.0'
     id 'signing'
 }
 
@@ -17,7 +18,7 @@ repositories {
 
 dependencies {
     implementation group: 'biz.aQute.bnd', name: 'biz.aQute.bndlib', version: '6.1.0'
-    testImplementation platform("org.spockframework:spock-bom:2.1-M2-groovy-3.0")
+    testImplementation platform( "org.spockframework:spock-bom:2.1-M2-groovy-3.0" )
     testImplementation "org.spockframework:spock-core"
 }
 
@@ -36,65 +37,68 @@ javadoc {
     }
 }
 
-//publishing {
-//    publications {
-//        mavenJava( MavenPublication ) {
-//            artifactId = 'osgi-run-core'
-//            from components.java
-//            versionMapping {
-//                usage( 'java-api' ) {
-//                    fromResolutionOf( 'runtimeClasspath' )
-//                }
-//                usage( 'java-runtime' ) {
-//                    fromResolutionResult()
-//                }
-//            }
-//            pom {
-//                inceptionYear = '2014'
-//                name = project.name
-//                packaging = 'jar'
-//                description = project.description
-//
-//                url = 'https://github.com/renatoathaydes/osgi-run'
-//
-//                scm {
-//                    connection 'git@github.com:renatoathaydes/osgi-run.git'
-//                    developerConnection 'git@github.com:renatoathaydes/osgi-run.git'
-//                    url 'https://github.com/renatoathaydes/osgi-run'
-//                }
-//
-//                licenses {
-//                    license {
-//                        name = 'The Apache License, Version 2.0'
-//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//                    }
-//                }
-//
-//                developers {
-//                    developer {
-//                        id = 'renatoathaydes'
-//                        name = 'Renato Athaydes'
-//                        email = 'renato@athaydes.com'
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    repositories {
-//        maven {
-//            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-//            credentials {
-//                username getProjectProperty( 'ossrhUsername' )?.toString()
-//                password getProjectProperty( 'ossrhPassword' )?.toString()
-//            }
-//        }
-//    }
-//}
+def getProjectProperty = { String name -> project.properties.get( name, '' ) }
+
+publishing {
+    publications {
+        mavenJava( MavenPublication ) {
+            groupId = group
+            artifactId = project.name
+            version = project.version
+            from components.java
+
+            pom {
+                inceptionYear = '2014'
+                name = project.name
+                description = project.description
+                packaging = 'jar'
+
+                url = 'https://github.com/renatoathaydes/osgi-run'
+
+                scm {
+                    connection = 'git@github.com:renatoathaydes/osgi-run.git'
+                    developerConnection = 'git@github.com:renatoathaydes/osgi-run.git'
+                    url = 'https://github.com/renatoathaydes/osgi-run'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'renatoathaydes'
+                        name = 'Renato Athaydes'
+                        email = 'renato@athaydes.com'
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username getProjectProperty( 'ossrhUsername' )?.toString()
+                password getProjectProperty( 'ossrhPassword' )?.toString()
+            }
+        }
+    }
+}
 
 signing {
     if ( project.hasProperty( 'sign' ) ) {
         sign publishing.publications.mavenJava
     }
+}
+
+pluginBundle {
+    website = 'https://github.com/renatoathaydes/osgi-run'
+    vcsUrl = 'https://github.com/renatoathaydes/osgi-run'
+    tags = [ 'osgi', 'modular', 'apache-felix', 'equinox', 'knopflerfish' ]
 }
 
 gradlePlugin {
@@ -105,7 +109,6 @@ gradlePlugin {
             displayName = 'Osgi-run Gradle Plugin'
             description = project.description
             version = project.version
-//            tags = [ 'osgi', 'modular', 'apache-felix', 'equinox', 'knopflerfish' ]
         }
 //        osgiRunPlugin {
 //            id = 'com.athaydes.osgi-ds'
