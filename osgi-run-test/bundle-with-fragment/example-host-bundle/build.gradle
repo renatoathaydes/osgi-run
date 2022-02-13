@@ -1,13 +1,17 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
 
 jar {
-    manifest {
-        instruction 'Export-Package', ''
-        instruction 'Bundle-Activator', 'com.athaydes.osgi.host.HostBundleActivator'
+    bundle {
+        bnd( "Bundle-Name": "Host Bundle",
+                "Bundle-Vendor": "Renato Athaydes",
+                "Bundle-Description": "Host Bundle with Fragment Example",
+                'Bundle-Activator': 'com.athaydes.osgi.host.HostBundleActivator' )
     }
 }
 
 dependencies {
-    compile group: 'org.osgi', name: 'org.osgi.core', version: '4.3.1'
+    implementation 'org.osgi:org.osgi.core:6.0.0'
 }

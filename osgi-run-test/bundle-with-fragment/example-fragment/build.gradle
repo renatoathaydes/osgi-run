@@ -1,11 +1,13 @@
-apply plugin: 'java'
-apply plugin: 'osgi'
+plugins {
+    id 'java'
+    id "biz.aQute.bnd.builder" version "6.1.0"
+}
 
 jar {
-    manifest {
-        instruction 'Export-Package', ''
-        instruction 'Fragment-Host',
-                'com.athaydes.gradle.osgi.example-host-bundle;' +
-                        'bundle-version=' + version
+    bundle {
+        bnd( "Bundle-Name": "Fragment Example",
+                "Bundle-Vendor": "Renato Athaydes",
+                'Fragment-Host': 'example-host-bundle;' +
+                        'bundle-version=' + project.version )
     }
 }
